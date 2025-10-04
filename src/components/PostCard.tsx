@@ -114,6 +114,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           {post.content}
         </p>
 
+        {post.image_url && (
+          <div className="mb-4">
+            <img
+              src={post.image_url}
+              alt="Post content"
+              className="w-full rounded-xl object-cover max-h-[500px]"
+            />
+          </div>
+        )}
+
         <div className="flex items-center gap-6 pt-4 border-t border-slate-100">
           <button
             onClick={handleLike}
