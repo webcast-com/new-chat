@@ -4,12 +4,11 @@ import Auth from './components/Auth';
 import Feed from './components/Feed';
 import UserProfile from './components/UserProfile';
 import PeopleDiscovery from './components/PeopleDiscovery';
-import Messages from './components/Messages';
-import { Loader2, Home, Users, User, LogOut, Search, Mail } from 'lucide-react';
+import { Loader2, Home, Users, User, LogOut, Search } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
-  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'messages'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
@@ -96,17 +95,6 @@ function MainApp() {
                   <span>Discover</span>
                 </button>
                 <button
-                  onClick={() => setActiveView('messages')}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    activeView === 'messages'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <Mail className="w-5 h-5" />
-                  <span>Messages</span>
-                </button>
-                <button
                   onClick={() => setActiveView('profile')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'profile'
@@ -161,17 +149,6 @@ function MainApp() {
                 <span className="hidden xs:inline text-sm">Discover</span>
               </button>
               <button
-                onClick={() => setActiveView('messages')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                  activeView === 'messages'
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-slate-600'
-                }`}
-              >
-                <Mail className="w-5 h-5" />
-                <span className="hidden xs:inline text-sm">Messages</span>
-              </button>
-              <button
                 onClick={() => setActiveView('profile')}
                 className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
                   activeView === 'profile'
@@ -189,10 +166,7 @@ function MainApp() {
           <main className="lg:col-span-3 pb-20 lg:pb-0">
             {activeView === 'feed' && <Feed />}
             {activeView === 'profile' && <UserProfile />}
-            {activeView === 'people' && <PeopleDiscovery onStartMessage={(userId) => {
-              setActiveView('messages');
-            }} />}
-            {activeView === 'messages' && <Messages />}
+            {activeView === 'people' && <PeopleDiscovery />}
           </main>
         </div>
       </div>
