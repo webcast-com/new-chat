@@ -5,11 +5,12 @@ import Feed from './components/Feed';
 import UserProfile from './components/UserProfile';
 import PeopleDiscovery from './components/PeopleDiscovery';
 import Messages from './components/Messages';
-import { Loader2, Home, Users, User, LogOut, Search, Mail } from 'lucide-react';
+import Dashboard from './components/Dashboard';
+import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3 } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
-  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'messages'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'messages' | 'dashboard'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
@@ -85,6 +86,17 @@ function MainApp() {
                   <span>Home</span>
                 </button>
                 <button
+                  onClick={() => setActiveView('dashboard')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    activeView === 'dashboard'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Dashboard</span>
+                </button>
+                <button
                   onClick={() => setActiveView('people')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'people'
@@ -136,51 +148,62 @@ function MainApp() {
           </aside>
 
           {/* Mobile Navigation */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2">
-            <div className="flex justify-around gap-2">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2">
+            <div className="flex justify-around gap-1 overflow-x-auto">
               <button
                 onClick={() => setActiveView('feed')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'feed'
                     ? 'bg-blue-50 text-blue-600'
                     : 'text-slate-600'
                 }`}
               >
                 <Home className="w-5 h-5" />
-                <span className="hidden xs:inline text-sm">Home</span>
+                <span className="hidden xs:inline text-xs">Home</span>
+              </button>
+              <button
+                onClick={() => setActiveView('dashboard')}
+                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                  activeView === 'dashboard'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-slate-600'
+                }`}
+              >
+                <BarChart3 className="w-5 h-5" />
+                <span className="hidden xs:inline text-xs">Dashboard</span>
               </button>
               <button
                 onClick={() => setActiveView('people')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'people'
                     ? 'bg-blue-50 text-blue-600'
                     : 'text-slate-600'
                 }`}
               >
                 <Users className="w-5 h-5" />
-                <span className="hidden xs:inline text-sm">Discover</span>
+                <span className="hidden xs:inline text-xs">Discover</span>
               </button>
               <button
                 onClick={() => setActiveView('messages')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'messages'
                     ? 'bg-blue-50 text-blue-600'
                     : 'text-slate-600'
                 }`}
               >
                 <Mail className="w-5 h-5" />
-                <span className="hidden xs:inline text-sm">Messages</span>
+                <span className="hidden xs:inline text-xs">Messages</span>
               </button>
               <button
                 onClick={() => setActiveView('profile')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'profile'
                     ? 'bg-blue-50 text-blue-600'
                     : 'text-slate-600'
                 }`}
               >
                 <User className="w-5 h-5" />
-                <span className="hidden xs:inline text-sm">Profile</span>
+                <span className="hidden xs:inline text-xs">Profile</span>
               </button>
             </div>
           </div>
@@ -188,6 +211,7 @@ function MainApp() {
           {/* Main Content Area */}
           <main className="lg:col-span-3 pb-20 lg:pb-0">
             {activeView === 'feed' && <Feed />}
+            {activeView === 'dashboard' && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={(userId) => {
               setActiveView('messages');
