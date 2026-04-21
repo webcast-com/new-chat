@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { MessageCircle, MoreHorizontal, Edit2, Trash2, X, Check } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check } from 'lucide-react';
 import { Post, Comment } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import CommentSection from './CommentSection';
 import ReactionButton from './ReactionButton';
 import ShareButton from './ShareButton';
+import LazyImage from './LazyImage';
 
 interface PostCardProps {
   post: Post;
@@ -200,8 +201,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg">
-              {post.profiles?.username.charAt(0).toUpperCase()}
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg overflow-hidden flex-shrink-0">
+              {post.profiles?.avatar_url ? (
+                <LazyImage
+                  src={post.profiles.avatar_url}
+                  alt={post.profiles.username}
+                  className="w-12 h-12"
+                />
+              ) : (
+                <span>{post.profiles?.username.charAt(0).toUpperCase()}</span>
+              )}
             </div>
             <div>
               <h3 className="font-semibold text-slate-900">{post.profiles?.username}</h3>
@@ -312,7 +321,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
             {post.image_url && (
               <div className="mb-4">
-                <img
+                <LazyImage
                   src={post.image_url}
                   alt="Post content"
                   className="w-full rounded-xl object-cover max-h-[500px]"

@@ -1,17 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { Check, X, Loader2, Lock, Bell, Eye } from 'lucide-react';
+import { Check, X, Loader2, Lock, Bell, Eye, Upload, Camera } from 'lucide-react';
+import LazyImage from '../LazyImage';
 
 export default function DashboardSettings() {
   const { profile, signOut } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editForm, setEditForm] = useState({
     full_name: '',
     bio: '',
   });
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [message, setMessage] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [notifications, setNotifications] = useState({
     likes: true,
     comments: true,
@@ -78,6 +82,63 @@ export default function DashboardSettings() {
     }));
   };
 
+  const handlePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+
+    if (!file.type.startsWith('image/')) {
+      setMessage('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('Image must be smaller than 5MB');
+      return;
+    }
+
+    setUploadingPicture(true);
+    try {
+      const preview = URL.createObjectURL(file);
+      setPreviewUrl(preview);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}/profile.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          avatar_url: data.publicUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      setMessage('Profile picture updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+      setPreviewUrl(null);
+    } catch (error) {
+      console.error('Error uploading picture:', error);
+      setMessage('Failed to upload profile picture');
+      setPreviewUrl(null);
+    } finally {
+      setUploadingPicture(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {message && (
@@ -85,6 +146,60 @@ export default function DashboardSettings() {
           {message}
         </div>
       )}
+
+      {/* Profile Picture */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <Camera className="w-5 h-5" />
+          Profile Picture
+        </h2>
+
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="w-32 h-32 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-4xl font-bold shadow-md">
+              {previewUrl ? (
+                <LazyImage
+                  src={previewUrl}
+                  alt="Profile preview"
+                  className="w-32 h-32"
+                />
+              ) : profile?.avatar_url ? (
+                <LazyImage
+                  src={profile.avatar_url}
+                  alt="Profile picture"
+                  className="w-32 h-32"
+                />
+              ) : (
+                <span>{profile?.username.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPicture}
+              className="absolute bottom-0 right-0 p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all disabled:opacity-50"
+            >
+              {uploadingPicture ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Upload className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePictureUpload}
+            disabled={uploadingPicture}
+            className="hidden"
+          />
+
+          <p className="text-sm text-slate-600">
+            Click the upload button to change your profile picture. Maximum size: 5MB
+          </p>
+        </div>
+      </div>
 
       {/* Profile Settings */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { Edit2, Check, X, UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import { CreditCard as Edit2, Check, X, UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import LazyImage from './LazyImage';
 
 export default function UserProfile() {
   const { profile } = useAuth();
@@ -75,8 +76,16 @@ export default function UserProfile() {
       <div className="h-32 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
       <div className="px-6 pb-6">
         <div className="flex justify-between items-start -mt-12 mb-4">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-xl">
-            {profile?.username.charAt(0).toUpperCase()}
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-xl overflow-hidden">
+            {profile?.avatar_url ? (
+              <LazyImage
+                src={profile.avatar_url}
+                alt={profile.username}
+                className="w-24 h-24"
+              />
+            ) : (
+              <span>{profile?.username.charAt(0).toUpperCase()}</span>
+            )}
           </div>
           {!editing ? (
             <button

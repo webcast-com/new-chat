@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Comment } from '../lib/supabase';
 import { Send } from 'lucide-react';
+import LazyImage from './LazyImage';
 
 interface CommentSectionProps {
   postId: string;
@@ -57,8 +58,16 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-white font-semibold text-sm">
-                {comment.profiles?.username.charAt(0).toUpperCase()}
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
+                {comment.profiles?.avatar_url ? (
+                  <LazyImage
+                    src={comment.profiles.avatar_url}
+                    alt={comment.profiles.username}
+                    className="w-8 h-8"
+                  />
+                ) : (
+                  <span>{comment.profiles?.username.charAt(0).toUpperCase()}</span>
+                )}
               </div>
             </div>
             <div className="flex-1 bg-white rounded-xl px-4 py-3 shadow-sm">
@@ -77,8 +86,16 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
       <div className="px-6 py-4 border-t border-slate-200">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm">
-              {profile?.username.charAt(0).toUpperCase()}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
+              {profile?.avatar_url ? (
+                <LazyImage
+                  src={profile.avatar_url}
+                  alt={profile.username}
+                  className="w-8 h-8"
+                />
+              ) : (
+                <span>{profile?.username.charAt(0).toUpperCase()}</span>
+              )}
             </div>
           </div>
           <div className="flex-1 flex gap-2">

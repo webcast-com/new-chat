@@ -6,6 +6,7 @@ import UserProfile from './components/UserProfile';
 import PeopleDiscovery from './components/PeopleDiscovery';
 import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
+import LazyImage from './components/LazyImage';
 import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3 } from 'lucide-react';
 
 function MainApp() {
