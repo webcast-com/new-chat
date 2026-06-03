@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
 import { Plus, X } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
+import Image from './Image';
 
 interface Story {
   id: string;
@@ -77,10 +78,11 @@ export default function Stories() {
               onClick={() => setSelectedStory(latestStory)}
               className="min-w-[120px] h-56 rounded-2xl overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105"
             >
-              <img
+              <Image
                 src={latestStory.image_url}
                 alt={latestStory.profile.username}
-                className="w-full h-full object-cover"
+                variant="story"
+                rounded="lg"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
@@ -102,10 +104,12 @@ export default function Stories() {
       {selectedStory && (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
           <div className="relative w-full max-w-sm h-screen md:h-[90vh] md:rounded-2xl overflow-hidden bg-black">
-            <img
+            <Image
               src={selectedStory.image_url}
               alt="Story"
-              className="w-full h-full object-cover"
+              variant="custom"
+              className="w-full h-full"
+              rounded="lg"
             />
 
             <button

@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import CommentSection from './CommentSection';
 import ReactionButton from './ReactionButton';
 import ShareButton from './ShareButton';
-import LazyImage from './LazyImage';
+import Image from './Image';
 
 interface PostCardProps {
   post: Post;
@@ -203,10 +203,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           <div className="flex gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg overflow-hidden flex-shrink-0">
               {post.profiles?.avatar_url ? (
-                <LazyImage
+                <Image
                   src={post.profiles.avatar_url}
                   alt={post.profiles.username}
-                  className="w-12 h-12"
+                  variant="avatar"
                 />
               ) : (
                 <span>{post.profiles?.username.charAt(0).toUpperCase()}</span>
@@ -321,10 +321,11 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
             {post.image_url && (
               <div className="mb-4">
-                <LazyImage
+                <Image
                   src={post.image_url}
                   alt="Post content"
-                  className="w-full rounded-xl object-cover max-h-[500px]"
+                  variant="post"
+                  rounded="lg"
                 />
               </div>
             )}

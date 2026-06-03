@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
 import { Loader2, MessageCircle } from 'lucide-react';
-import LazyImage from './LazyImage';
+import Image from './Image';
 
 interface ContactsProps {
   onStartMessage?: (userId: string) => void;
@@ -75,10 +75,10 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 overflow-hidden">
                   {contact.avatar_url ? (
-                    <LazyImage
+                    <Image
                       src={contact.avatar_url}
                       alt={contact.username}
-                      className="w-10 h-10"
+                      variant="avatar"
                     />
                   ) : (
                     <span>{contact.username.charAt(0).toUpperCase()}</span>

@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Image sizing system */
+.image-avatar {
+  @apply object-cover rounded-full;
+}
+
+.image-cover {
+  @apply w-full h-[220px] md:h-[350px] lg:h-[500px] object-cover rounded-2xl;
+}
+
+.image-community-cover {
+  @apply w-full h-[280px] md:h-[350px] lg:h-[400px] object-cover;
+}
+
+.image-story {
+  @apply w-[120px] h-[220px] object-cover rounded-2xl;
+}
+
+.image-story-full {
+  @apply w-full h-screen md:h-[90vh] object-cover;
+}
+
+.image-post {
+  @apply w-full aspect-square object-cover rounded-xl;
+}
+
+.image-post-thumbnail {
+  @apply w-full h-[300px] md:h-[400px] object-cover rounded-xl;
+}
+
+.image-card {
+  @apply w-full h-[200px] object-cover rounded-xl;
+}
+
+.image-hero {
+  @apply w-full h-[300px] md:h-[500px] lg:h-[700px] object-cover;
+}
