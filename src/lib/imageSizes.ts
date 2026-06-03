@@ -60,22 +60,3 @@ export const imageClasses = {
   coverImage: 'w-full h-full object-cover',
   thumbnailImage: 'w-full h-full object-cover rounded-xl',
 };
-
-// Helper function to combine classes
-export function getImageClasses(
-  size: string,
-  objectFit: 'cover' | 'contain' | 'fill' | 'scale-down' = 'cover',
-  rounded: 'none' | 'sm' | 'md' | 'lg' | 'full' = 'md'
-): string {
-  const roundedClass = {
-    none: 'rounded-none',
-    sm: 'rounded-lg',
-    md: 'rounded-xl',
-    lg: 'rounded-2xl',
-    full: 'rounded-full',
-  }[rounded];
-
-  const objectFitClass = `object-${objectFit === 'scale-down' ? 'scale-down' : objectFit}`;
-
-  return `${size} ${objectFitClass} ${roundedClass}`;
-}
