@@ -6,6 +6,7 @@ import UserProfile from './components/UserProfile';
 import PeopleDiscovery from './components/PeopleDiscovery';
 import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
+import Contacts from './components/Contacts';
 import LazyImage from './components/LazyImage';
 import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3 } from 'lucide-react';
 
@@ -70,8 +71,8 @@ function MainApp() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24">
               <nav className="space-y-2">
@@ -210,15 +211,31 @@ function MainApp() {
           </div>
 
           {/* Main Content Area */}
-          <main className="lg:col-span-3 pb-20 lg:pb-0">
+          <main className="lg:col-span-3 pb-20 lg:pb-0 order-2 lg:order-none">
             {activeView === 'feed' && <Feed />}
-            {activeView === 'dashboard' && <Dashboard />}
+            {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={(userId) => {
-              setActiveView('messages');
+              if (user) {
+                setActiveView('messages');
+              } else {
+                setActiveView('auth');
+              }
             }} />}
-            {activeView === 'messages' && <Messages />}
+            {activeView === 'messages' && user && <Messages />}
+            {activeView === 'auth' && <Auth />}
           </main>
+
+          {/* Right Sidebar - Contacts */}
+          <aside className="hidden lg:block lg:col-span-1 order-3">
+            <Contacts onStartMessage={(userId) => {
+              if (user) {
+                setActiveView('messages');
+              } else {
+                setActiveView('auth');
+              }
+            }} />
+          </aside>
         </div>
       </div>
     </div>
