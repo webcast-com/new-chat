@@ -132,6 +132,3 @@ export default function Image({
     </div>
   );
 }
-
-
-export default Image
