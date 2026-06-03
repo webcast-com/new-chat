@@ -3,17 +3,19 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
 import { UserPlus, Check, X, Loader2 } from 'lucide-react';
 import MessageButton from './MessageButton';
+import AuthPrompt from './AuthPrompt';
 
 interface PeopleDiscoveryProps {
   onStartMessage?: (userId: string) => void;
 }
 
 export default function PeopleDiscovery({ onStartMessage }: PeopleDiscoveryProps) {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [users, setUsers] = useState<Profile[]>([]);
   const [friendRequests, setFriendRequests] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -47,6 +49,10 @@ export default function PeopleDiscovery({ onStartMessage }: PeopleDiscoveryProps
   };
 
   const handleSendRequest = async (userId: string) => {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
     if (!profile || actionLoading) return;
 
     setActionLoading(userId);
@@ -142,7 +148,7 @@ export default function PeopleDiscovery({ onStartMessage }: PeopleDiscoveryProps
                         ? handleCancelRequest(user.id)
                         : handleSendRequest(user.id)
                     }
-                    disabled={isLoading}
+                    disabled={isLoading || !user}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 ${
                       hasRequested
                         ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -169,6 +175,7 @@ export default function PeopleDiscovery({ onStartMessage }: PeopleDiscoveryProps
           })}
         </div>
       )}
+      <AuthPrompt isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} action="send friend requests" />
     </div>
   );
 }
