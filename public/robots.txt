@@ -1,0 +1,31 @@
+# Social Hub Robots.txt
+# https://socialhub.app
+
+User-agent: *
+Allow: /
+Disallow: /messages/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /api/
+
+# Allow search engines to index public pages
+Allow: /feed
+Allow: /discover
+Allow: /login
+Allow: /signup
+
+# Sitemap location
+Sitemap: https://socialhub.app/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Block common bot traps
+User-agent: AhrefsBot
+Disallow: /api/
+
+User-agent: SemrushBot
+Disallow: /api/
+
+User-agent: MJ12bot
+Disallow: /api/
