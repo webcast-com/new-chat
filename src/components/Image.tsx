@@ -86,7 +86,7 @@ export default function Image({
   useEffect(() => {
     if (!isVisible || !src) return;
 
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => {
       setImageSrc(src);
       setLoadState('loaded');
