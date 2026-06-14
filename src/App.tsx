@@ -4,15 +4,16 @@ import Auth from './components/Auth';
 import Feed from './components/Feed';
 import UserProfile from './components/UserProfile';
 import PeopleDiscovery from './components/PeopleDiscovery';
+import FriendRequests from './components/FriendRequests';
 import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import LazyImage from './components/LazyImage';
-import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3 } from 'lucide-react';
+import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
-  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'messages' | 'dashboard'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSignOut = async () => {
@@ -110,6 +111,17 @@ function MainApp() {
                   <span>Discover</span>
                 </button>
                 <button
+                  onClick={() => setActiveView('friends')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    activeView === 'friends'
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <UserPlus className="w-5 h-5" />
+                  <span>Friends</span>
+                </button>
+                <button
                   onClick={() => setActiveView('messages')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'messages'
@@ -186,6 +198,17 @@ function MainApp() {
                 <span className="hidden xs:inline text-xs">Discover</span>
               </button>
               <button
+                onClick={() => setActiveView('friends')}
+                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                  activeView === 'friends'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-slate-600'
+                }`}
+              >
+                <UserPlus className="w-5 h-5" />
+                <span className="hidden xs:inline text-xs">Friends</span>
+              </button>
+              <button
                 onClick={() => setActiveView('messages')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'messages'
@@ -222,6 +245,7 @@ function MainApp() {
                 setActiveView('auth');
               }
             }} />}
+            {activeView === 'friends' && <FriendRequests />}
             {activeView === 'messages' && user && <Messages />}
             {activeView === 'auth' && <Auth />}
           </main>
