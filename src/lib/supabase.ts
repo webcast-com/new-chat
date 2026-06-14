@@ -22,7 +22,9 @@ export type Post = {
   image_url: string;
   likes_count: number;
   comments_count: number;
+  shares_count?: number;
   created_at: string;
+  last_engagement_at?: string;
   profiles?: Profile;
 };
 

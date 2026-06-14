@@ -337,7 +337,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 sm:flex sm:items-center sm:gap-6 pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-3 sm:flex sm:items-center sm:gap-6 pt-4 border-t border-slate-100">
               <ReactionButton postId={post.id} onReactionChange={loadReactions} />
 
               <button
