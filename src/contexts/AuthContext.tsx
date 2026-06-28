@@ -59,12 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
     if (data.user) {
       const { error: profileError } = await supabase
@@ -81,15 +82,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (profileError) throw profileError;
     }
+    } catch (err) {
+      console.error('SignUp error:', err);
+      throw err;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) throw error;
+      if (error) throw error;
+    } catch (err) {
+      console.error('SignIn error:', err);
+      throw err;
+    }
   };
 
   const signOut = async () => {
