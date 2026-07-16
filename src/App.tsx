@@ -56,7 +56,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-violet-100">
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-40 shadow-sm">
         <div className="container mx-auto px-4 py-4">
