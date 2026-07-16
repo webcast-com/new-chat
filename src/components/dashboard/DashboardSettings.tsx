@@ -295,7 +295,7 @@ export default function DashboardSettings() {
                 onClick={() => toggleNotification(item.key as keyof typeof notifications)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   notifications[item.key as keyof typeof notifications]
-                    ? 'bg-blue-500'
+                    ? 'bg-violet-500'
                     : 'bg-slate-300'
                 }`}
               >

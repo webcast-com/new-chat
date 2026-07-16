@@ -64,7 +64,7 @@ export default function DashboardInsights() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -75,8 +75,8 @@ export default function DashboardInsights() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
+            <div className="bg-indigo-100 p-3 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-indigo-600" />
             </div>
             <p className="text-slate-600 text-sm font-medium">Engagement Rate</p>
           </div>
@@ -86,8 +86,8 @@ export default function DashboardInsights() {
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-red-100 p-3 rounded-lg">
-              <Heart className="w-5 h-5 text-red-600" />
+            <div className="bg-fuchsia-100 p-3 rounded-lg">
+              <Heart className="w-5 h-5 text-fuchsia-600" />
             </div>
             <p className="text-slate-600 text-sm font-medium">Avg Likes</p>
           </div>
@@ -97,8 +97,8 @@ export default function DashboardInsights() {
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-green-100 p-3 rounded-lg">
-              <MessageCircle className="w-5 h-5 text-green-600" />
+            <div className="bg-violet-100 p-3 rounded-lg">
+              <MessageCircle className="w-5 h-5 text-violet-600" />
             </div>
             <p className="text-slate-600 text-sm font-medium">Total Engagement</p>
           </div>
@@ -108,8 +108,8 @@ export default function DashboardInsights() {
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-purple-100 p-3 rounded-lg">
-              <Award className="w-5 h-5 text-purple-600" />
+            <div className="bg-violet-100 p-3 rounded-lg">
+              <Award className="w-5 h-5 text-violet-600" />
             </div>
             <p className="text-slate-600 text-sm font-medium">Best Day</p>
           </div>
@@ -133,7 +133,7 @@ export default function DashboardInsights() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-xs font-bold">
                         {idx + 1}
                       </span>
                       <p className="font-semibold text-slate-900">{post.content.substring(0, 50)}</p>
@@ -145,15 +145,15 @@ export default function DashboardInsights() {
                 </div>
                 <div className="flex gap-6 ml-8">
                   <div className="flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-red-500" />
+                    <Heart className="w-4 h-4 text-fuchsia-500" />
                     <span className="text-sm font-semibold text-slate-700">{post.likes_count} likes</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-green-500" />
+                    <MessageCircle className="w-4 h-4 text-violet-500" />
                     <span className="text-sm font-semibold text-slate-700">{post.comments_count} comments</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-blue-500" />
+                    <Eye className="w-4 h-4 text-violet-500" />
                     <span className="text-sm font-semibold text-slate-700">
                       {post.likes_count + post.comments_count} engagement
                     </span>
@@ -166,19 +166,19 @@ export default function DashboardInsights() {
       </div>
 
       {/* Recommendations */}
-      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl shadow-sm border border-blue-200 p-6">
+      <div className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-2xl shadow-sm border border-indigo-200 p-6">
         <h2 className="text-lg font-bold text-slate-900 mb-4">Recommendations</h2>
         <ul className="space-y-2 text-slate-700">
           <li className="flex gap-3">
-            <span className="text-blue-600 font-bold">•</span>
+            <span className="text-indigo-600 font-bold">•</span>
             <span>Post consistently on {insights.mostEngagingDay}s for maximum reach</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-blue-600 font-bold">•</span>
+            <span className="text-indigo-600 font-bold">•</span>
             <span>Focus on content that generates high engagement</span>
           </li>
           <li className="flex gap-3">
-            <span className="text-blue-600 font-bold">•</span>
+            <span className="text-indigo-600 font-bold">•</span>
             <span>Engage with your audience through comments and replies</span>
           </li>
         </ul>

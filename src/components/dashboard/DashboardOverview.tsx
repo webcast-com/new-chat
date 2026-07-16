@@ -38,25 +38,25 @@ export default function DashboardOverview() {
           title: 'Total Posts',
           value: postsRes.data?.length || 0,
           icon: <TrendingUp className="w-6 h-6" />,
-          color: 'from-blue-500 to-blue-600',
+          color: 'from-indigo-500 to-violet-600',
         },
         {
           title: 'Followers',
           value: followersRes.data?.length || 0,
           icon: <Users className="w-6 h-6" />,
-          color: 'from-purple-500 to-purple-600',
+          color: 'from-violet-500 to-fuchsia-600',
         },
         {
           title: 'Likes Received',
           value: likesRes.data?.length || 0,
           icon: <Heart className="w-6 h-6" />,
-          color: 'from-red-500 to-red-600',
+          color: 'from-fuchsia-500 to-violet-600',
         },
         {
           title: 'Comments Made',
           value: commentsRes.data?.length || 0,
           icon: <MessageCircle className="w-6 h-6" />,
-          color: 'from-green-500 to-green-600',
+          color: 'from-indigo-500 to-violet-600',
         },
       ];
 
@@ -71,7 +71,7 @@ export default function DashboardOverview() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -90,7 +90,7 @@ export default function DashboardOverview() {
                 {metric.icon}
               </div>
               {metric.trend && (
-                <span className={`text-sm font-semibold ${metric.trend > 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                <span className={`text-sm font-semibold ${metric.trend > 0 ? 'text-violet-600' : 'text-slate-600'}`}>
                   {metric.trend > 0 ? '+' : ''}{metric.trend}%
                 </span>
               )}
@@ -105,19 +105,19 @@ export default function DashboardOverview() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h2 className="text-lg font-bold text-slate-900 mb-4">Quick Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
+          <div className="p-4 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-lg border border-indigo-100">
             <p className="text-slate-600 text-sm mb-1">Engagement Rate</p>
-            <p className="text-2xl font-bold text-blue-600">0%</p>
+            <p className="text-2xl font-bold text-indigo-600">0%</p>
             <p className="text-xs text-slate-500 mt-2">Track your engagement patterns</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
+          <div className="p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-lg border border-violet-100">
             <p className="text-slate-600 text-sm mb-1">Most Active Day</p>
-            <p className="text-2xl font-bold text-green-600">N/A</p>
+            <p className="text-2xl font-bold text-violet-600">N/A</p>
             <p className="text-xs text-slate-500 mt-2">Based on your posting history</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-100">
+          <div className="p-4 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-lg border border-indigo-100">
             <p className="text-slate-600 text-sm mb-1">Avg Likes per Post</p>
-            <p className="text-2xl font-bold text-amber-600">0</p>
+            <p className="text-2xl font-bold text-indigo-600">0</p>
             <p className="text-xs text-slate-500 mt-2">Average engagement per post</p>
           </div>
         </div>

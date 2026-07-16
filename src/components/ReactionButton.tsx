@@ -106,7 +106,7 @@ export default function ReactionButton({ postId, onReactionChange }: ReactionBut
           onClick={() => user ? setShowMenu(!showMenu) : setShowAuthPrompt(true)}
           className={`flex items-center gap-2 transition-all px-3 py-2 rounded-lg ${
             userReaction
-              ? 'text-blue-600 bg-blue-50'
+              ? 'text-violet-700 bg-violet-50'
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >

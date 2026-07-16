@@ -57,7 +57,7 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24 flex justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
 
               <button
                 onClick={() => onStartMessage?.(contact.id)}
-                className="text-slate-400 hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                className="text-slate-400 hover:text-violet-500 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                 title="Message"
               >
                 <MessageCircle className="w-4 h-4" />

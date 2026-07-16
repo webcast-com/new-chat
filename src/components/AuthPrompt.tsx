@@ -14,8 +14,8 @@ export default function AuthPrompt({ isOpen, onClose, action }: AuthPromptProps)
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <LogIn className="w-6 h-6 text-blue-600" />
+            <div className="bg-indigo-100 p-3 rounded-full">
+              <LogIn className="w-6 h-6 text-indigo-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900">Sign In Required</h2>
           </div>
@@ -34,7 +34,7 @@ export default function AuthPrompt({ isOpen, onClose, action }: AuthPromptProps)
         <div className="space-y-3">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all"
+            className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-violet-500 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-violet-600 transition-all"
           >
             Continue to Sign In
           </button>

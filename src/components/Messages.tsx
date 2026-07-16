@@ -251,7 +251,7 @@ export default function Messages() {
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-sm"
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none text-sm"
             />
             <Search className="absolute right-3 top-2.5 w-5 h-5 text-slate-400" />
           </div>
@@ -260,7 +260,7 @@ export default function Messages() {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
@@ -273,11 +273,11 @@ export default function Messages() {
                 key={conversation.userId}
                 onClick={() => setSelectedConversation(conversation.userId)}
                 className={`w-full p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors text-left ${
-                  selectedConversation === conversation.userId ? 'bg-blue-50' : ''
+                  selectedConversation === conversation.userId ? 'bg-violet-50' : ''
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
                     {conversation.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -311,7 +311,7 @@ export default function Messages() {
           {/* Chat Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-semibold">
                 {selectedUser.username.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -345,12 +345,12 @@ export default function Messages() {
                       <div
                         className={`px-4 py-2 rounded-lg ${
                           isSent
-                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-br-none'
+                            ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-br-none'
                             : 'bg-slate-100 text-slate-900 rounded-bl-none'
                         }`}
                       >
                         <p className="break-words">{message.content}</p>
-                        <p className={`text-xs mt-1 ${isSent ? 'text-blue-100' : 'text-slate-500'}`}>
+                        <p className={`text-xs mt-1 ${isSent ? 'text-indigo-100' : 'text-slate-500'}`}>
                           {formatTime(message.created_at)}
                         </p>
                       </div>
@@ -379,12 +379,12 @@ export default function Messages() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
               />
               <button
                 type="submit"
                 disabled={sendingMessage || !newMessage.trim()}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-500 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-violet-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
                 {sendingMessage ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
