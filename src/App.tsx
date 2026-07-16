@@ -75,7 +75,7 @@ function MainApp() {
           <span className="text-indigo-200 hidden sm:inline">Connect. Create. Belong.</span>
         </div>
 
-        <div className="container mx-auto px-4 py-3">
+        <div className="w-full px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
