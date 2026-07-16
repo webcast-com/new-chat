@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { CreditCard as Edit2, Check, X, UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import { CreditCard as Edit2, Check, X, Loader2, Users } from 'lucide-react';
 import LazyImage from './LazyImage';
 
 export default function UserProfile() {
@@ -11,7 +11,10 @@ export default function UserProfile() {
     full_name: '',
     bio: '',
   });
-  const [stats, setStats] = useState({ posts: 0, friends: 0 });
+  const [stats, setStats] = useState({ posts: 0, friends: 0, following: 0, followers: 0 });
+  const [following, setFollowing] = useState<Profile[]>([]);
+  const [followers, setFollowers] = useState<Profile[]>([]);
+  const [connectionView, setConnectionView] = useState<'following' | 'followers'>('following');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,16 +30,36 @@ export default function UserProfile() {
   const loadStats = async () => {
     if (!profile) return;
 
-    const [postsData, friendsData] = await Promise.all([
+    const [postsData, friendsData, followingData, followerData] = await Promise.all([
       supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
       supabase.from('friendships').select('id', { count: 'exact', head: true })
         .eq('status', 'accepted')
         .or(`requester_id.eq.${profile.id},recipient_id.eq.${profile.id}`),
+      supabase.from('connections').select('following_id').eq('follower_id', profile.id),
+      supabase.from('connections').select('follower_id').eq('following_id', profile.id),
     ]);
 
+    const followingIds = followingData.data?.map((connection) => connection.following_id) || [];
+    const followerIds = followerData.data?.map((connection) => connection.follower_id) || [];
+    const [followingProfiles, followerProfiles] = await Promise.all([
+      followingIds.length > 0
+        ? supabase.from('profiles').select('*').in('id', followingIds)
+        : Promise.resolve({ data: [], error: null }),
+      followerIds.length > 0
+        ? supabase.from('profiles').select('*').in('id', followerIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (followingProfiles.error) throw followingProfiles.error;
+    if (followerProfiles.error) throw followerProfiles.error;
+
+    setFollowing(followingProfiles.data || []);
+    setFollowers(followerProfiles.data || []);
     setStats({
       posts: postsData.count || 0,
       friends: friendsData.count || 0,
+      following: followingIds.length,
+      followers: followerIds.length,
     });
     setLoading(false);
   };
@@ -146,7 +169,7 @@ export default function UserProfile() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-200">
           <div className="text-center">
             <div className="text-2xl font-bold text-slate-900">{stats.posts}</div>
             <div className="text-sm text-slate-600">Posts</div>
@@ -155,6 +178,48 @@ export default function UserProfile() {
             <div className="text-2xl font-bold text-slate-900">{stats.friends}</div>
             <div className="text-sm text-slate-600">Friends</div>
           </div>
+          <button
+            onClick={() => setConnectionView('following')}
+            className={`text-center rounded-lg transition-colors ${connectionView === 'following' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+          >
+            <div className="text-2xl font-bold text-slate-900">{stats.following}</div>
+            <div className="text-sm text-slate-600">Following</div>
+          </button>
+          <button
+            onClick={() => setConnectionView('followers')}
+            className={`text-center rounded-lg transition-colors ${connectionView === 'followers' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+          >
+            <div className="text-2xl font-bold text-slate-900">{stats.followers}</div>
+            <div className="text-sm text-slate-600">Followers</div>
+          </button>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-slate-200">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-blue-500" />
+            <h2 className="font-bold text-slate-900">
+              {connectionView === 'following' ? 'Following' : 'Followers'}
+            </h2>
+          </div>
+          {(connectionView === 'following' ? following : followers).length === 0 ? (
+            <p className="text-sm text-slate-500">No {connectionView} yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(connectionView === 'following' ? following : followers).map((connection) => (
+                <div key={connection.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
+                    {connection.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900 truncate">
+                      {connection.full_name || connection.username}
+                    </p>
+                    <p className="text-sm text-slate-500 truncate">@{connection.username}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
