@@ -9,7 +9,7 @@ import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import LazyImage from './components/LazyImage';
-import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus } from 'lucide-react';
+import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
@@ -77,9 +77,24 @@ function MainApp() {
 
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-red-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
-              Social Hub
-            </h1>
+            <button
+              type="button"
+              onClick={() => setActiveView('feed')}
+              className="flex items-center space-x-3 cursor-pointer group text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-rose-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-red-900/50 group-hover:scale-105 transition-transform">
+                <span className="text-2xl">🎅</span>
+              </div>
+              <div>
+                <h1 className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-200 via-amber-100 to-red-300 bg-clip-text text-transparent flex items-center gap-1.5">
+                  SANTA&apos;S TOY WORKSHOP
+                  <Sparkles className="w-4 h-4 text-amber-400 inline animate-spin" style={{ animationDuration: '6s' }} />
+                </h1>
+                <p className="text-xs text-slate-400 flex items-center gap-1">
+                  <span>Elves At Work</span> <span>&bull;</span> <span className="text-emerald-400 font-medium">100% Christmas Magic</span>
+                </p>
+              </div>
+            </button>
 
             <div className="flex-1 max-w-md hidden sm:block">
               <div className="relative">
