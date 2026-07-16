@@ -107,7 +107,7 @@ export default function ReactionButton({ postId, onReactionChange }: ReactionBut
           className={`flex items-center gap-2 transition-all px-3 py-2 rounded-lg ${
             userReaction
               ? 'text-violet-700 bg-violet-50'
-              : 'text-slate-600 hover:bg-slate-100'
+              : 'bg-[#107fde] text-white hover:bg-[#107fde]'
           }`}
         >
           {currentReactionEmoji ? (

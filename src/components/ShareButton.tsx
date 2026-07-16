@@ -79,14 +79,14 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
           className={`flex items-center gap-2 transition-all px-3 py-2 rounded-lg ${
             copied
               ? 'text-green-600 bg-green-50'
-              : 'text-slate-600 hover:bg-slate-100'
+              : 'bg-[#4eb584] text-[#c2d3eb] hover:bg-[#4eb584]'
           } disabled:opacity-50`}
         >
-          {copied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
-          <span className="text-sm font-medium hidden sm:inline">
+          {copied ? <Check className="w-5 h-5 text-black" /> : <Share2 className="w-5 h-5 text-black" />}
+          <span className="text-sm font-medium text-black hidden sm:inline">
             {copied ? 'Link Copied!' : 'Share'}
           </span>
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-4 h-4 text-black" />
         </button>
 
         {menuOpen && (

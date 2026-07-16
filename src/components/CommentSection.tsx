@@ -104,14 +104,14 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-sm"
+              className="flex-1 rounded-lg border border-black px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="submit"
               disabled={loading || !newComment.trim()}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+              className="rounded-lg bg-white p-2 text-[#eef0ec] shadow-md transition-all hover:bg-white hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-[#eef0ec]" />
             </button>
           </div>
         </form>
