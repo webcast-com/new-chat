@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, Post } from '../lib/supabase';
 import CreatePost from './CreatePost';
 import PostCard from './PostCard';
+import Stories from './Stories';
 import { Loader2 } from 'lucide-react';
 
 export default function Feed() {
@@ -31,13 +32,14 @@ export default function Feed() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <Stories />
       <CreatePost onPostCreated={loadPosts} />
 
       {posts.length === 0 ? (

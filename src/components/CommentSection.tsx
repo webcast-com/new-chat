@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Comment } from '../lib/supabase';
 import { Send } from 'lucide-react';
+import LazyImage from './LazyImage';
 
 interface CommentSectionProps {
   postId: string;
@@ -57,8 +58,16 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-white font-semibold text-sm">
-                {comment.profiles?.username.charAt(0).toUpperCase()}
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
+                {comment.profiles?.avatar_url ? (
+                  <LazyImage
+                    src={comment.profiles.avatar_url}
+                    alt={comment.profiles.username}
+                    className="w-8 h-8"
+                  />
+                ) : (
+                  <span>{comment.profiles?.username.charAt(0).toUpperCase()}</span>
+                )}
               </div>
             </div>
             <div className="flex-1 bg-white rounded-xl px-4 py-3 shadow-sm">
@@ -77,8 +86,16 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
       <div className="px-6 py-4 border-t border-slate-200">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm">
-              {profile?.username.charAt(0).toUpperCase()}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
+              {profile?.avatar_url ? (
+                <LazyImage
+                  src={profile.avatar_url}
+                  alt={profile.username}
+                  className="w-8 h-8"
+                />
+              ) : (
+                <span>{profile?.username.charAt(0).toUpperCase()}</span>
+              )}
             </div>
           </div>
           <div className="flex-1 flex gap-2">
@@ -87,14 +104,14 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-sm"
+              className="flex-1 rounded-lg border border-black px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="submit"
               disabled={loading || !newComment.trim()}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+              className="rounded-lg bg-white p-2 text-[#eef0ec] shadow-md transition-all hover:bg-white hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-[#eef0ec]" />
             </button>
           </div>
         </form>

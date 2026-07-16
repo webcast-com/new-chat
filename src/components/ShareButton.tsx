@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Share2, Share } from 'lucide-react';
+import { Check, ChevronDown, Copy, Share2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import AuthPrompt from './AuthPrompt';
 
 interface ShareButtonProps {
   postId: string;
@@ -9,98 +10,110 @@ interface ShareButtonProps {
 }
 
 export default function ShareButton({ postId, onShareChange }: ShareButtonProps) {
-  const { profile } = useAuth();
-  const [isShared, setIsShared] = useState(false);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [showInput, setShowInput] = useState(false);
-  const [shareMessage, setShareMessage] = useState('');
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const handleShare = async () => {
-    if (!profile || loading) return;
+  const [menuOpen, setMenuOpen] = useState(false);
 
-    setLoading(true);
-    try {
-      if (isShared) {
-        await supabase
-          .from('shares')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', profile.id);
-        setIsShared(false);
-      } else {
-        setShowInput(true);
-      }
-      onShareChange();
-    } catch (error) {
-      console.error('Error toggling share:', error);
-    } finally {
-      setLoading(false);
+  const recordShare = async () => {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return false;
     }
-  };
-
-  const handleConfirmShare = async () => {
-    if (!profile || loading) return;
 
     setLoading(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from('shares')
-        .insert([{ post_id: postId, user_id: profile.id, shared_content: shareMessage }]);
-      setIsShared(true);
-      setShowInput(false);
-      setShareMessage('');
-      onShareChange();
-    } catch (error) {
-      console.error('Error sharing post:', error);
+        .insert([{ post_id: postId, user_id: user.id }]);
+
+      if (!error) {
+        onShareChange();
+      }
     } finally {
       setLoading(false);
     }
+
+    return true;
   };
 
-  if (showInput) {
-    return (
-      <div className="w-full">
-        <textarea
-          value={shareMessage}
-          onChange={(e) => setShareMessage(e.target.value)}
-          placeholder="Say something about this post..."
-          className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none text-sm"
-          rows={2}
-        />
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={handleConfirmShare}
-            disabled={loading}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 text-sm font-medium"
-          >
-            Share
-          </button>
-          <button
-            onClick={() => {
-              setShowInput(false);
-              setShareMessage('');
-            }}
-            className="flex-1 bg-slate-100 text-slate-700 px-3 py-2 rounded-lg hover:bg-slate-200 transition-all text-sm font-medium"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleCopyLink = async () => {
+    if (!(await recordShare())) return;
+
+    await navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setMenuOpen(false);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePlatformShare = async (platform: string) => {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    const shareUrl = encodeURIComponent(window.location.href);
+    const shareText = encodeURIComponent('Check out this post');
+    const urls: Record<string, string> = {
+      Facebook: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`,
+      'X': `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}`,
+      LinkedIn: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`,
+      WhatsApp: `https://wa.me/?text=${shareText}%20${shareUrl}`,
+    };
+
+    window.open(urls[platform], '_blank', 'noopener,noreferrer');
+    await recordShare();
+    setMenuOpen(false);
+  };
 
   return (
-    <button
-      onClick={handleShare}
-      disabled={loading}
-      className={`flex items-center gap-2 transition-all px-3 py-2 rounded-lg ${
-        isShared
-          ? 'text-green-600 bg-green-50'
-          : 'text-slate-600 hover:bg-slate-100'
-      } disabled:opacity-50`}
-    >
-      {isShared ? <Share className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
-      <span className="text-sm font-medium hidden sm:inline">Share</span>
-    </button>
+    <>
+      <div className="relative">
+        <button
+          onClick={() => setMenuOpen((open) => !open)}
+          disabled={loading}
+          aria-expanded={menuOpen}
+          aria-haspopup="menu"
+          className={`flex items-center gap-2 transition-all px-3 py-2 rounded-lg ${
+            copied
+              ? 'text-green-600 bg-green-50'
+              : 'bg-[#4eb584] text-[#c2d3eb] hover:bg-[#4eb584]'
+          } disabled:opacity-50`}
+        >
+          {copied ? <Check className="w-5 h-5 text-black" /> : <Share2 className="w-5 h-5 text-black" />}
+          <span className="text-sm font-medium text-black hidden sm:inline">
+            {copied ? 'Link Copied!' : 'Share'}
+          </span>
+          <ChevronDown className="w-4 h-4 text-black" />
+        </button>
+
+        {menuOpen && (
+          <div className="absolute right-0 z-20 mt-2 w-44 rounded-lg border border-slate-200 bg-white p-1 shadow-lg" role="menu">
+            {['Facebook', 'X', 'LinkedIn', 'WhatsApp'].map((platform) => (
+              <button
+                key={platform}
+                onClick={() => handlePlatformShare(platform)}
+                className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                role="menuitem"
+              >
+                Share to {platform}
+              </button>
+            ))}
+            <button
+              onClick={handleCopyLink}
+              disabled={loading}
+              className="flex w-full items-center gap-2 rounded-md border-t border-slate-100 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+              role="menuitem"
+            >
+              <Copy className="h-4 w-4" />
+              Copy link
+            </button>
+          </div>
+        )}
+      </div>
+      <AuthPrompt isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} action="share posts" />
+    </>
   );
 }

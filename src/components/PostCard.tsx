@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { MessageCircle, MoreHorizontal, Edit2, Trash2, X, Check } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check } from 'lucide-react';
 import { Post, Comment } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import CommentSection from './CommentSection';
 import ReactionButton from './ReactionButton';
 import ShareButton from './ShareButton';
+import Image from './Image';
 
 interface PostCardProps {
   post: Post;
@@ -197,15 +198,23 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="p-6">
+      <div className="bg-[#9b9b9b] p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg">
-              {post.profiles?.username.charAt(0).toUpperCase()}
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg overflow-hidden flex-shrink-0">
+              {post.profiles?.avatar_url ? (
+                <Image
+                  src={post.profiles.avatar_url}
+                  alt={post.profiles.username}
+                  variant="avatar"
+                />
+              ) : (
+                <span>{post.profiles?.username.charAt(0).toUpperCase()}</span>
+              )}
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">{post.profiles?.username}</h3>
-              <p className="text-sm text-slate-500">{formatDate(post.created_at)}</p>
+              <h3 className="font-semibold text-slate-900 [text-shadow:1px_1px_3px_rgba(155,155,155,1)]">{post.profiles?.username}</h3>
+              <p className="text-sm text-black [text-shadow:1px_1px_3px_rgba(155,155,155,1)]">{formatDate(post.created_at)}</p>
             </div>
           </div>
 
@@ -312,10 +321,11 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
             {post.image_url && (
               <div className="mb-4">
-                <img
+                <Image
                   src={post.image_url}
                   alt="Post content"
-                  className="w-full rounded-xl object-cover max-h-[500px]"
+                  variant="post"
+                  rounded="lg"
                 />
               </div>
             )}
@@ -327,12 +337,12 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 sm:flex sm:items-center sm:gap-6 pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-3 bg-[#d0c6c6] pt-4 border-t border-slate-100 sm:flex sm:items-center sm:gap-6">
               <ReactionButton postId={post.id} onReactionChange={loadReactions} />
 
               <button
                 onClick={handleCommentClick}
-                className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-slate-100"
+                className="flex items-center gap-2 rounded-lg bg-[#f3f3f3] px-3 py-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-blue-600"
               >
                 <MessageCircle className="w-5 h-5" />
                 <span className="text-sm font-medium">{post.comments_count}</span>

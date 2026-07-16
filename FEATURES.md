@@ -32,6 +32,7 @@
 - Profile statistics (posts, friends)
 - Avatar with user initial
 - User discovery
+- Following and follower lists on user profiles
 
 ### Friend System
 - Send friend requests to other users
@@ -108,7 +109,7 @@
 - Video uploads
 - Post scheduling
 - Trending posts algorithm
-- User following lists
+- Advanced user following lists
 - Activity timeline
 - Privacy settings
 - Content moderation tools

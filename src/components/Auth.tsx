@@ -25,18 +25,27 @@ export default function Auth() {
       } else {
         await signIn(email, password);
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const normalizedMessage = message.toLowerCase();
+
+      if (normalizedMessage.includes('user already registered')) {
+        setError('This email is already registered. Switch to Sign In instead.');
+      } else if (normalizedMessage.includes('failed to fetch')) {
+        setError('Unable to reach Supabase right now. Check your connection and try again.');
+      } else {
+        setError(message || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-950 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
         <div className="flex justify-center mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-cyan-500 p-4 rounded-2xl">
+          <div className="bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-4 rounded-2xl">
             {isSignUp ? (
               <UserPlus className="w-8 h-8 text-white" />
             ) : (
@@ -64,7 +73,7 @@ export default function Auth() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required={isSignUp}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
                 placeholder="Choose a username"
               />
             </div>
@@ -80,7 +89,7 @@ export default function Auth() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
               placeholder="your@email.com"
             />
           </div>
@@ -95,7 +104,7 @@ export default function Auth() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
               placeholder="••••••••"
             />
           </div>
@@ -109,7 +118,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            className="w-full bg-gradient-to-r from-indigo-600 to-fuchsia-500 text-white py-3 rounded-lg font-medium hover:from-indigo-700 hover:to-fuchsia-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
           >
             {loading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
@@ -121,7 +130,7 @@ export default function Auth() {
               setIsSignUp(!isSignUp);
               setError('');
             }}
-            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            className="text-indigo-600 hover:text-violet-700 font-medium transition-colors"
           >
             {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </button>
