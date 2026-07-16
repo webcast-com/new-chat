@@ -25,8 +25,17 @@ export default function Auth() {
       } else {
         await signIn(email, password);
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      const normalizedMessage = message.toLowerCase();
+
+      if (normalizedMessage.includes('user already registered')) {
+        setError('This email is already registered. Switch to Sign In instead.');
+      } else if (normalizedMessage.includes('failed to fetch')) {
+        setError('Unable to reach Supabase right now. Check your connection and try again.');
+      } else {
+        setError(message || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }

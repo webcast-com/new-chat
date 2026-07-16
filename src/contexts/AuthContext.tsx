@@ -71,8 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (createError) throw createError;
       setProfile(createdProfile);
-    } catch (error) {
-      console.error('Error loading profile:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error loading profile:', message);
       setProfile(null);
     } finally {
       setLoading(false);
@@ -92,8 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.user && data.session) {
       await loadProfile(data.user);
     }
-    } catch (err) {
-      console.error('SignUp error:', err);
+    } catch (err: unknown) {
+      console.error('SignUp error:', err instanceof Error ? err.message : JSON.stringify(err));
       throw err;
     }
   };
@@ -106,8 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) throw error;
-    } catch (err) {
-      console.error('SignIn error:', err);
+    } catch (err: unknown) {
+      console.error('SignIn error:', err instanceof Error ? err.message : JSON.stringify(err));
       throw err;
     }
   };
