@@ -58,29 +58,45 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-violet-100">
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-40 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-red-900/40 shadow-2xl text-white">
+        <div className="flex justify-between items-center px-4 py-1 bg-gradient-to-r from-red-950 via-emerald-950 to-red-950 border-b border-red-800/30 text-xs">
+          <div className="flex items-center space-x-2">
+            {['bg-red-500', 'bg-yellow-400', 'bg-emerald-400', 'bg-blue-400', 'bg-pink-400', 'bg-amber-300'].map((color, i) => (
+              <span
+                key={color}
+                className={`w-2 h-2 rounded-full ${color} animate-pulse shadow-sm shadow-white`}
+                style={{ animationDelay: `${i * 200}ms` }}
+              />
+            ))}
+            <span className="ml-2 font-semibold text-amber-200 hidden sm:inline">
+              Santa Zoza Nation &bull; Kanashi
+            </span>
+          </div>
+          <span className="text-emerald-200 hidden sm:inline">Connect. Create. Belong.</span>
+        </div>
+
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-red-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
               Social Hub
             </h1>
 
             <div className="flex-1 max-w-md hidden sm:block">
               <div className="relative">
-                <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search the community..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900/80 border border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all outline-none"
                 />
               </div>
             </div>
 
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-slate-200 hover:bg-red-900/50 hover:text-white rounded-lg transition-all"
             >
               <LogOut className="w-5 h-5" />
               <span className="hidden sm:inline">Sign Out</span>
