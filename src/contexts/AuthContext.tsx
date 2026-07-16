@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadProfile(session.user.id);
+        loadProfile(session.user);
       } else {
         setLoading(false);
       }
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadProfile(session.user.id);
+        loadProfile(session.user);
       } else {
         setProfile(null);
         setLoading(false);
@@ -41,18 +41,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadProfile = async (userId: string) => {
+  const loadProfile = async (authUser: User) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', authUser.id)
         .maybeSingle();
 
       if (error) throw error;
-      setProfile(data);
+
+      if (data) {
+        setProfile(data);
+        return;
+      }
+
+      const username = authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'user';
+      const { data: createdProfile, error: createError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: authUser.id,
+          username,
+          full_name: '',
+          bio: '',
+          avatar_url: '',
+        }, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+      setProfile(createdProfile);
     } catch (error) {
       console.error('Error loading profile:', error);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -63,24 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: { data: { username } },
       });
 
       if (error) throw error;
 
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: data.user.id,
-            username,
-            full_name: '',
-            bio: '',
-            avatar_url: '',
-          },
-        ]);
-
-      if (profileError) throw profileError;
+    if (data.user && data.session) {
+      await loadProfile(data.user);
     }
     } catch (err) {
       console.error('SignUp error:', err);

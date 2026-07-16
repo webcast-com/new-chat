@@ -36,6 +36,25 @@ function MainApp() {
     return <Auth />;
   }
 
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
+          <h2 className="text-2xl font-bold text-slate-800 mb-3">Profile unavailable</h2>
+          <p className="text-slate-600 mb-6">
+            We couldn’t load your profile from Supabase. Please sign in again.
+          </p>
+          <button
+            onClick={handleSignOut}
+            className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}

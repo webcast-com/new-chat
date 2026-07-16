@@ -4,24 +4,10 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase configuration:', {
-    hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseAnonKey,
-    url: supabaseUrl,
-    key: supabaseAnonKey ? supabaseAnonKey.substring(0, 20) + '...' : undefined
-  });
-} else {
-  console.log('Supabase configured with URL:', supabaseUrl);
+  throw new Error('Missing Supabase environment variables');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Test connection
-supabase.auth.getSession().then(({ data }) => {
-  console.log('Supabase connection test:', data ? 'Connected' : 'No session');
-}).catch(err => {
-  console.error('Supabase connection error:', err);
-});
 
 export type Profile = {
   id: string;
