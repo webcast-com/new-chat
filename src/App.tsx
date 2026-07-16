@@ -80,17 +80,17 @@ function MainApp() {
             <button
               type="button"
               onClick={() => setActiveView('feed')}
-              className="flex items-center space-x-3 cursor-pointer group text-left"
+              className="flex min-w-0 items-center space-x-2 sm:space-x-3 cursor-pointer group text-left"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-indigo-900/50 group-hover:scale-105 transition-transform">
+              <div className="h-9 w-9 shrink-0 rounded-xl sm:h-10 sm:w-10 bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-indigo-900/50 group-hover:scale-105 transition-transform">
                 <span className="text-2xl">🎅</span>
               </div>
               <div>
-                <h1 className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-violet-200 via-white to-indigo-300 bg-clip-text text-transparent flex items-center gap-1.5">
+                <h1 className="truncate font-extrabold text-sm sm:text-lg tracking-tight bg-gradient-to-r from-violet-200 via-white to-indigo-300 bg-clip-text text-transparent flex items-center gap-1.5">
                   SANTA&apos;S TOY WORKSHOP
                   <Sparkles className="w-4 h-4 text-violet-300 inline animate-spin" style={{ animationDuration: '6s' }} />
                 </h1>
-                <p className="text-xs text-slate-400 flex items-center gap-1">
+                <p className="hidden text-xs text-slate-400 items-center gap-1 md:flex">
                   <span>Elves At Work</span> <span>&bull;</span> <span className="text-violet-300 font-medium">100% Christmas Magic</span>
                 </p>
               </div>
@@ -121,8 +121,8 @@ function MainApp() {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
+        <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-5">
           {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-1">
             <div className="bg-white/95 rounded-2xl shadow-lg shadow-indigo-100/50 border border-indigo-100 p-6 sticky top-24">
@@ -212,79 +212,79 @@ function MainApp() {
           </aside>
 
           {/* Mobile Navigation */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-indigo-100 px-2 py-2 shadow-[0_-6px_20px_rgba(79,70,229,0.08)]">
-            <div className="flex justify-around gap-1 overflow-x-auto">
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 border-t border-indigo-100 px-1 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(79,70,229,0.08)] backdrop-blur-md">
+            <div className="grid grid-cols-6 gap-1">
               <button
                 onClick={() => setActiveView('feed')}
-                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'feed'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
                 }`}
               >
                 <Home className="w-5 h-5" />
-                <span className="hidden xs:inline text-xs">Home</span>
+                <span className="truncate">Home</span>
               </button>
               <button
                 onClick={() => setActiveView('dashboard')}
-                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'dashboard'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
                 }`}
               >
                 <BarChart3 className="w-5 h-5" />
-                <span className="hidden xs:inline text-xs">Dashboard</span>
+                <span className="truncate">Dashboard</span>
               </button>
               <button
                 onClick={() => setActiveView('people')}
-                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'people'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
                 }`}
               >
                 <Users className="w-5 h-5" />
-                <span className="hidden xs:inline text-xs">Discover</span>
+                <span className="truncate">Discover</span>
               </button>
               <button
                 onClick={() => setActiveView('friends')}
-                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'friends'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
                 }`}
               >
                 <UserPlus className="w-5 h-5" />
-                <span className="hidden xs:inline text-xs">Friends</span>
+                <span className="truncate">Friends</span>
               </button>
               <button
                 onClick={() => setActiveView('messages')}
-                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'messages'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
                 }`}
               >
                 <Mail className="w-5 h-5" />
-                <span className="hidden xs:inline text-xs">Messages</span>
+                <span className="truncate">Messages</span>
               </button>
               <button
                 onClick={() => setActiveView('profile')}
-                className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'profile'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
                 }`}
               >
                 <User className="w-5 h-5" />
-                <span className="hidden xs:inline text-xs">Profile</span>
+                <span className="truncate">Profile</span>
               </button>
             </div>
           </div>
 
           {/* Main Content Area */}
-          <main className="lg:col-span-3 pb-20 lg:pb-0 order-2 lg:order-none">
+          <main className="order-2 min-w-0 pb-24 lg:order-none lg:col-span-3 lg:pb-0">
             {activeView === 'feed' && <Feed />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}

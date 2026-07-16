@@ -259,8 +259,8 @@ export default function FriendRequests() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-200">
-        <h2 className="text-2xl font-bold text-slate-900">Friends</h2>
+      <div className="border-b border-slate-200 p-4 sm:p-6">
+        <h2 className="text-xl font-bold sm:text-2xl text-slate-900">Friends</h2>
         <p className="text-slate-600 text-sm mt-1">Manage your friend requests and connections</p>
       </div>
 
@@ -269,7 +269,7 @@ export default function FriendRequests() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-all ${
+            className={`flex min-h-12 flex-1 items-center justify-center gap-1 px-2 py-3 text-xs font-medium sm:gap-2 sm:px-4 sm:text-sm transition-all ${
               activeTab === tab.id
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                 : 'text-slate-600 hover:bg-slate-50'

@@ -18,10 +18,10 @@ export default function Dashboard() {
   ] as const;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <h1 className="text-2xl font-bold sm:text-3xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
           Dashboard
         </h1>
         <p className="text-slate-600 mt-2">Track your social presence and engagement metrics</p>
@@ -37,7 +37,7 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+                className={`flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-3 text-sm sm:px-4 font-medium transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
                     : 'text-slate-700 hover:bg-slate-100'

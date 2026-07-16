@@ -168,12 +168,12 @@ export default function Stories() {
 
   return (
     <>
-      <div className="flex gap-3 overflow-x-auto pb-2 mb-6 -mx-6 px-6 scrollbar-hide">
+      <div className="-mx-3 mb-5 flex gap-3 overflow-x-auto px-3 pb-2 scrollbar-hide sm:-mx-6 sm:mb-6 sm:px-6">
         {user && (
           <button
             onClick={handleUploadStory}
             disabled={uploading}
-            className="min-w-[120px] h-56 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0 disabled:opacity-50"
+            className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] bg-gradient-to-br from-blue-500 to-cyan-500 flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0 disabled:opacity-50"
           >
             {uploading ? (
               <Loader2 className="w-8 h-8 animate-spin" />
@@ -198,7 +198,7 @@ export default function Stories() {
             <button
               key={group.userId}
               onClick={() => handleStoryClick(latestStory, group)}
-              className="min-w-[120px] h-56 rounded-2xl overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105 ring-2 ring-blue-500 ring-offset-2"
+              className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105 ring-2 ring-blue-500 ring-offset-2"
             >
               <Image
                 src={latestStory.image_url}
@@ -210,7 +210,7 @@ export default function Stories() {
 
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white">
+                  <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white">
                     {latestStory.profile?.username?.charAt(0).toUpperCase() || '?'}
                   </div>
                   <span className="text-white text-xs font-semibold truncate">

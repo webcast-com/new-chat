@@ -240,9 +240,9 @@ export default function Messages() {
   const selectedUser = conversations.find(c => c.userId === selectedConversation);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-150px)] pb-20 md:pb-0">
+    <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 md:grid-cols-3 md:gap-6 md:h-[calc(100dvh-150px)] md:pb-0">
       {/* Conversations List */}
-      <div className="md:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div className="flex min-h-0 max-h-[45vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:col-span-1 md:max-h-none">
         <div className="p-4 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900 mb-4">Messages</h2>
           <div className="relative">
@@ -257,7 +257,7 @@ export default function Messages() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
               <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
@@ -307,7 +307,7 @@ export default function Messages() {
 
       {/* Chat View */}
       {selectedConversation && selectedUser ? (
-        <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+        <div className="flex min-h-[60vh] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:min-h-0 md:col-span-2">
           {/* Chat Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -372,7 +372,7 @@ export default function Messages() {
           </div>
 
           {/* Message Input */}
-          <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200">
+          <form onSubmit={handleSendMessage} className="border-t border-slate-200 p-3 sm:p-4">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -384,7 +384,7 @@ export default function Messages() {
               <button
                 type="submit"
                 disabled={sendingMessage || !newMessage.trim()}
-                className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-500 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-violet-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-violet-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
                 {sendingMessage ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -396,7 +396,7 @@ export default function Messages() {
           </form>
         </div>
       ) : (
-        <div className="md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center">
+        <div className="flex min-h-[40vh] min-w-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm md:min-h-0 md:col-span-2">
           <div className="text-center">
             <p className="text-slate-600 text-lg">Select a conversation to start messaging</p>
           </div>
