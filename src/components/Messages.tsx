@@ -37,18 +37,41 @@ export default function Messages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (profile) {
-      loadConversations();
-      const interval = setInterval(() => loadConversations(), 3000);
-      return () => clearInterval(interval);
-    }
-  }, [profile]);
+    if (!profile) return;
+
+    loadConversations();
+
+    const channel = supabase
+      .channel(`messages:${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        (payload) => {
+          const message = (payload.new || payload.old) as Partial<Message>;
+          const isRelevant = message.sender_id === profile.id || message.recipient_id === profile.id;
+
+          if (!isRelevant) return;
+
+          loadConversations();
+
+          if (
+            selectedConversation &&
+            (message.sender_id === selectedConversation || message.recipient_id === selectedConversation)
+          ) {
+            loadMessages(selectedConversation);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile, selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation);
-      const interval = setInterval(() => loadMessages(selectedConversation), 2000);
-      return () => clearInterval(interval);
     }
   }, [selectedConversation]);
 
@@ -112,6 +135,10 @@ export default function Messages() {
             const conv = conversationMap.get(key)!;
             if (!msg.is_read) {
               conv.unreadCount += 1;
+            }
+            if (new Date(msg.created_at).getTime() > new Date(conv.lastMessageTime || 0).getTime()) {
+              conv.lastMessage = msg.content;
+              conv.lastMessageTime = msg.created_at;
             }
           }
         });

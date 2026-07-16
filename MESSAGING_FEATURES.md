@@ -61,9 +61,12 @@ CREATE TABLE messages (
 - **Recipient access** - Recipients can read and mark messages as read
 
 ## Real-time Updates
-- **Auto-refresh conversations** - Updates every 3 seconds
-- **Auto-refresh messages** - Updates every 2 seconds when chat is open
+- **Supabase realtime subscriptions** - Receives message inserts, updates, and deletes without polling
+- **Live conversation previews** - Refreshes the conversation list when a relevant message changes
+- **Live open thread** - Refreshes the active conversation when a relevant message changes
 - **Manual mark as read** - Automatically marks messages as read when opened
+
+Supabase Realtime must be enabled for the `messages` table in the project dashboard. Row Level Security policies continue to control which message events each signed-in user can receive.
 
 ## Performance Optimizations
 - **Efficient queries** - Uses OR conditions to find bidirectional conversations
@@ -85,7 +88,7 @@ CREATE TABLE messages (
 1. **Messages.tsx** - Main messaging component
    - Manages conversations list
    - Handles message display and sending
-   - Real-time updates via interval polling
+   - Real-time updates via Supabase subscriptions
    - Delete functionality
 
 2. **MessageButton.tsx** - Quick message button
@@ -94,7 +97,7 @@ CREATE TABLE messages (
 
 ### State Management
 - Uses React hooks for local state
-- Real-time updates via setInterval polling
+- Real-time updates via Supabase Realtime subscriptions
 - Auto-scroll with useRef
 
 ### Performance
@@ -104,7 +107,7 @@ CREATE TABLE messages (
 - Optimized re-renders with proper dependencies
 
 ## Future Enhancement Opportunities
-- Real-time updates with Supabase subscriptions
+- Message read receipts (seen at time X)
 - Message read receipts (seen at time X)
 - Typing indicators
 - Message reactions/emoji
