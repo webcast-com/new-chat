@@ -26,7 +26,7 @@ function MainApp() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
       </div>
     );
@@ -38,7 +38,7 @@ function MainApp() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
           <h2 className="text-2xl font-bold text-slate-800 mb-3">Profile unavailable</h2>
           <p className="text-slate-600 mb-6">
@@ -56,12 +56,12 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+      <header className="bg-white/90 backdrop-blur-md border-b border-indigo-100 sticky top-0 z-40 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
               Social Hub
             </h1>
 
@@ -73,14 +73,14 @@ function MainApp() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
                 />
               </div>
             </div>
 
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all"
             >
               <LogOut className="w-5 h-5" />
               <span className="hidden sm:inline">Sign Out</span>
@@ -100,8 +100,8 @@ function MainApp() {
                   onClick={() => setActiveView('feed')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'feed'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
                   }`}
                 >
                   <Home className="w-5 h-5" />
@@ -111,8 +111,8 @@ function MainApp() {
                   onClick={() => setActiveView('dashboard')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'dashboard'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
                   }`}
                 >
                   <BarChart3 className="w-5 h-5" />
@@ -122,8 +122,8 @@ function MainApp() {
                   onClick={() => setActiveView('people')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'people'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
                   }`}
                 >
                   <Users className="w-5 h-5" />
@@ -133,8 +133,8 @@ function MainApp() {
                   onClick={() => setActiveView('friends')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'friends'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
                   }`}
                 >
                   <UserPlus className="w-5 h-5" />
@@ -144,8 +144,8 @@ function MainApp() {
                   onClick={() => setActiveView('messages')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'messages'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
                   }`}
                 >
                   <Mail className="w-5 h-5" />
@@ -155,8 +155,8 @@ function MainApp() {
                   onClick={() => setActiveView('profile')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'profile'
-                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
                   }`}
                 >
                   <User className="w-5 h-5" />
@@ -167,7 +167,7 @@ function MainApp() {
               {profile && (
                 <div className="mt-6 pt-6 border-t border-slate-200">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm">
                       {profile.username.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -181,13 +181,13 @@ function MainApp() {
           </aside>
 
           {/* Mobile Navigation */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-indigo-100 px-2 py-2 shadow-[0_-6px_20px_rgba(79,70,229,0.08)]">
             <div className="flex justify-around gap-1 overflow-x-auto">
               <button
                 onClick={() => setActiveView('feed')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'feed'
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -198,7 +198,7 @@ function MainApp() {
                 onClick={() => setActiveView('dashboard')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'dashboard'
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -209,7 +209,7 @@ function MainApp() {
                 onClick={() => setActiveView('people')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'people'
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -220,7 +220,7 @@ function MainApp() {
                 onClick={() => setActiveView('friends')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'friends'
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -231,7 +231,7 @@ function MainApp() {
                 onClick={() => setActiveView('messages')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'messages'
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -242,7 +242,7 @@ function MainApp() {
                 onClick={() => setActiveView('profile')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'profile'
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-700'
                     : 'text-slate-600'
                 }`}
               >

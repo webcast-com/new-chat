@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-indigo-50 text-slate-900 antialiased;
+  }
+
+  ::selection {
+    @apply bg-violet-200 text-violet-950;
+  }
+}
+
 /* Image sizing system */
 .image-avatar {
   @apply object-cover rounded-full;
