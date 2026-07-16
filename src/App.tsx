@@ -56,7 +56,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 text-black">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-indigo-950/90 backdrop-blur-md border-b border-violet-900/40 shadow-2xl text-white">
         <div className="flex justify-between items-center px-4 py-1 bg-gradient-to-r from-indigo-950 via-violet-950 to-indigo-950 border-b border-violet-800/30 text-xs">
@@ -124,7 +124,7 @@ function MainApp() {
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
         <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-5">
           {/* Left Sidebar */}
-          <aside className="hidden lg:block lg:col-span-1">
+          <aside className="hidden text-black lg:col-span-1 lg:block">
             <div className="bg-white/95 rounded-2xl shadow-lg shadow-indigo-100/50 border border-indigo-100 p-6 sticky top-24">
               <nav className="space-y-2">
                 <button
