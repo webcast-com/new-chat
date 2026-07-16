@@ -122,10 +122,10 @@ function MainApp() {
 
       {/* Main Content */}
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
-        <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-5">
+        <div className="grid min-w-0 grid-cols-1 gap-4 bg-[#483c93] [text-shadow:1px_1px_3px_rgba(255,255,255,1)] md:gap-6 lg:grid-cols-5">
           {/* Left Sidebar */}
-          <aside className="hidden text-black lg:col-span-1 lg:block">
-            <div className="bg-white/95 rounded-2xl shadow-lg shadow-indigo-100/50 border border-indigo-100 p-6 sticky top-24">
+          <aside className="hidden bg-[#483c93] text-black [text-shadow:1px_1px_3px_rgba(0,0,0,1)] lg:col-span-1 lg:block">
+            <div className="sticky top-24 rounded-2xl border border-indigo-100 bg-black/95 p-6 text-white shadow-none">
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveView('feed')}
@@ -180,7 +180,7 @@ function MainApp() {
                   }`}
                 >
                   <Mail className="w-5 h-5" />
-                  <span>Messages</span>
+                  <span className="[text-shadow:1px_1px_3px_rgba(0,0,0,1)]">Messages</span>
                 </button>
                 <button
                   onClick={() => setActiveView('profile')}
@@ -202,8 +202,8 @@ function MainApp() {
                       {profile.username.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-slate-900 truncate">{profile.username}</p>
-                      <p className="text-sm text-slate-600 truncate">@{profile.username}</p>
+                      <p className="truncate font-semibold text-white">{profile.username}</p>
+                      <p className="truncate text-sm text-white">@{profile.username}</p>
                     </div>
                   </div>
                 </div>

@@ -97,7 +97,7 @@ export default function UserProfile() {
   return (
     <div className="bg-white/95 rounded-2xl shadow-xl shadow-indigo-100/60 border border-indigo-100 overflow-hidden">
       <div className="h-32 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500"></div>
-      <div className="px-6 pb-6">
+      <div className="bg-[#2a3328] px-6 pb-6">
         <div className="flex justify-between items-start -mt-12 mb-4">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-xl overflow-hidden">
             {profile?.avatar_url ? (
@@ -159,45 +159,45 @@ export default function UserProfile() {
           </div>
         ) : (
           <div className="mt-4">
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-white">
               {profile?.full_name || profile?.username}
             </h1>
-            <p className="text-slate-600 mt-1">@{profile?.username}</p>
+            <p className="mt-1 text-white">@{profile?.username}</p>
             {profile?.bio && (
-              <p className="text-slate-700 mt-3 leading-relaxed">{profile.bio}</p>
+              <p className="mt-3 leading-relaxed text-white">{profile.bio}</p>
             )}
           </div>
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-200">
           <div className="text-center">
-            <div className="text-2xl font-bold text-slate-900">{stats.posts}</div>
-            <div className="text-sm text-slate-600">Posts</div>
+            <div className="text-2xl font-bold text-white">{stats.posts}</div>
+            <div className="text-sm text-white">Posts</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-slate-900">{stats.friends}</div>
-            <div className="text-sm text-slate-600">Friends</div>
+            <div className="text-2xl font-bold text-white">{stats.friends}</div>
+            <div className="text-sm text-white">Friends</div>
           </div>
           <button
             onClick={() => setConnectionView('following')}
             className={`text-center rounded-lg transition-colors ${connectionView === 'following' ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
           >
-            <div className="text-2xl font-bold text-slate-900">{stats.following}</div>
-            <div className="text-sm text-slate-600">Following</div>
+            <div className="text-2xl font-bold text-white">{stats.following}</div>
+            <div className="text-sm text-white">Following</div>
           </button>
           <button
             onClick={() => setConnectionView('followers')}
             className={`text-center rounded-lg transition-colors ${connectionView === 'followers' ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
           >
-            <div className="text-2xl font-bold text-slate-900">{stats.followers}</div>
-            <div className="text-sm text-slate-600">Followers</div>
+            <div className="bg-[#417505] text-2xl font-bold text-white">{stats.followers}</div>
+            <div className="bg-[#417505] text-sm text-white">Followers</div>
           </button>
         </div>
 
         <div className="mt-6 pt-6 border-t border-slate-200">
           <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-violet-600" />
-            <h2 className="font-bold text-slate-900">
+            <Users className="w-5 h-5 text-white" />
+            <h2 className="font-bold text-white">
               {connectionView === 'following' ? 'Following' : 'Followers'}
             </h2>
           </div>
@@ -214,7 +214,7 @@ export default function UserProfile() {
                     <p className="font-medium text-slate-900 truncate">
                       {connection.full_name || connection.username}
                     </p>
-                    <p className="text-sm text-slate-500 truncate">@{connection.username}</p>
+                    <p className="truncate text-sm text-black">@{connection.username}</p>
                   </div>
                 </div>
               ))}

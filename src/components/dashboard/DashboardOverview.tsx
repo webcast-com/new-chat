@@ -77,13 +77,15 @@ export default function DashboardOverview() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[#657acb]">
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, idx) => (
           <div
             key={idx}
-            className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
+            className={`rounded-xl border border-slate-200 p-6 shadow-sm transition-shadow hover:shadow-md ${
+              idx === 0 ? 'bg-[#9b9b9b]' : idx === 1 ? 'bg-[#22a1af] [text-shadow:1px_1px_3px_rgba(0,0,0,1)]' : idx === 2 ? 'bg-[#8c4bc2]' : 'bg-[#48d699]'
+            }`}
           >
             <div className="flex items-start justify-between mb-4">
               <div className={`bg-gradient-to-br ${metric.color} p-3 rounded-lg text-white`}>
@@ -95,30 +97,32 @@ export default function DashboardOverview() {
                 </span>
               )}
             </div>
-            <p className="text-slate-600 text-sm font-medium">{metric.title}</p>
+            <p className={`text-sm font-medium text-black ${
+              idx === 0 ? 'bg-[#9b9b9b] [text-shadow:1px_1px_3px_rgba(155,155,155,1)]' : idx === 1 ? '[text-shadow:1px_1px_3px_rgba(40,174,194,1)]' : idx === 2 ? '[text-shadow:1px_1px_3px_rgba(134,38,218,1)]' : ''
+            }`}>{metric.title}</p>
             <p className="text-3xl font-bold text-slate-900 mt-2">{metric.value}</p>
           </div>
         ))}
       </div>
 
       {/* Recent Activity Summary */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div className="rounded-2xl border border-slate-200 bg-[#b23b3b] p-6 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900 mb-4">Quick Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-4 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-lg border border-indigo-100">
-            <p className="text-slate-600 text-sm mb-1">Engagement Rate</p>
+            <p className="text-sm text-black mb-1">Engagement Rate</p>
             <p className="text-2xl font-bold text-indigo-600">0%</p>
-            <p className="text-xs text-slate-500 mt-2">Track your engagement patterns</p>
+            <p className="text-xs text-black mt-2">Track your engagement patterns</p>
           </div>
           <div className="p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-lg border border-violet-100">
-            <p className="text-slate-600 text-sm mb-1">Most Active Day</p>
+            <p className="text-sm text-black mb-1">Most Active Day</p>
             <p className="text-2xl font-bold text-violet-600">N/A</p>
-            <p className="text-xs text-slate-500 mt-2">Based on your posting history</p>
+            <p className="text-xs text-black mt-2">Based on your posting history</p>
           </div>
           <div className="p-4 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-lg border border-indigo-100">
-            <p className="text-slate-600 text-sm mb-1">Avg Likes per Post</p>
+            <p className="text-sm text-black mb-1">Avg Likes per Post</p>
             <p className="text-2xl font-bold text-indigo-600">0</p>
-            <p className="text-xs text-slate-500 mt-2">Average engagement per post</p>
+            <p className="text-xs text-black mt-2">Average engagement per post</p>
           </div>
         </div>
       </div>

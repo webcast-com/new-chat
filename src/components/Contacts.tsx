@@ -63,7 +63,7 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24 space-y-3">
+    <div className="sticky top-24 space-y-3 rounded-2xl border border-slate-200 bg-[#c4cadf] p-6 text-black shadow-sm">
       <h2 className="font-bold text-slate-900">Contacts</h2>
 
       {contacts.length === 0 ? (
