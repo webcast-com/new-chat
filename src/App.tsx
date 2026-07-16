@@ -56,7 +56,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-violet-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-emerald-50 to-rose-50">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-red-900/40 shadow-2xl text-white">
         <div className="flex justify-between items-center px-4 py-1 bg-gradient-to-r from-red-950 via-emerald-950 to-red-950 border-b border-red-800/30 text-xs">
@@ -125,14 +125,14 @@ function MainApp() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24">
+            <div className="bg-white/95 rounded-2xl shadow-lg shadow-emerald-100/50 border border-emerald-100 p-6 sticky top-24">
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveView('feed')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'feed'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
-                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-600 to-emerald-600 text-white shadow-lg shadow-emerald-200/60'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                 >
                   <Home className="w-5 h-5" />
@@ -142,8 +142,8 @@ function MainApp() {
                   onClick={() => setActiveView('dashboard')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'dashboard'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
-                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-600 to-emerald-600 text-white shadow-lg shadow-emerald-200/60'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                 >
                   <BarChart3 className="w-5 h-5" />
@@ -153,8 +153,8 @@ function MainApp() {
                   onClick={() => setActiveView('people')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'people'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
-                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-600 to-emerald-600 text-white shadow-lg shadow-emerald-200/60'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                 >
                   <Users className="w-5 h-5" />
@@ -164,8 +164,8 @@ function MainApp() {
                   onClick={() => setActiveView('friends')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'friends'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
-                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-600 to-emerald-600 text-white shadow-lg shadow-emerald-200/60'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                 >
                   <UserPlus className="w-5 h-5" />
@@ -175,8 +175,8 @@ function MainApp() {
                   onClick={() => setActiveView('messages')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'messages'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
-                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-600 to-emerald-600 text-white shadow-lg shadow-emerald-200/60'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                 >
                   <Mail className="w-5 h-5" />
@@ -186,8 +186,8 @@ function MainApp() {
                   onClick={() => setActiveView('profile')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'profile'
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200/60'
-                      : 'text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'
+                      ? 'bg-gradient-to-r from-red-600 to-emerald-600 text-white shadow-lg shadow-emerald-200/60'
+                      : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                 >
                   <User className="w-5 h-5" />
@@ -218,7 +218,7 @@ function MainApp() {
                 onClick={() => setActiveView('feed')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'feed'
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-rose-50 text-red-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -229,7 +229,7 @@ function MainApp() {
                 onClick={() => setActiveView('dashboard')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'dashboard'
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-rose-50 text-red-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -240,7 +240,7 @@ function MainApp() {
                 onClick={() => setActiveView('people')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'people'
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-rose-50 text-red-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -251,7 +251,7 @@ function MainApp() {
                 onClick={() => setActiveView('friends')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'friends'
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-rose-50 text-red-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -262,7 +262,7 @@ function MainApp() {
                 onClick={() => setActiveView('messages')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'messages'
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-rose-50 text-red-700'
                     : 'text-slate-600'
                 }`}
               >
@@ -273,7 +273,7 @@ function MainApp() {
                 onClick={() => setActiveView('profile')}
                 className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg transition-all min-w-fit ${
                   activeView === 'profile'
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-rose-50 text-red-700'
                     : 'text-slate-600'
                 }`}
               >
