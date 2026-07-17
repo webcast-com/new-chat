@@ -20,7 +20,7 @@ type SignalPayload = {
   candidate?: RTCIceCandidateInit;
 };
 
-export default function VideoCall({ channelName, userId, remoteUserId, remoteName, onClose }: VideoCallProps) {
+export default function VideoCall({ channelName, userId, remoteUserId, remoteName, onClose, isOpen }: VideoCallProps) {
   const [status, setStatus] = useState<'idle' | 'starting' | 'calling' | 'incoming' | 'connected' | 'ended' | 'error'>('idle');
   const [error, setError] = useState('');
   const [muted, setMuted] = useState(false);

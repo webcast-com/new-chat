@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
 import VideoCall from './VideoCall';
-import { ArrowLeft, File, ImagePlus, Loader2, MessageCircle, Paperclip, Phone, Plus, Search, Send, Smile, Trash2, X, Video as VideoIcon } from 'lucide-react';
+import { ArrowLeft, File, ImagePlus, Loader2, MessageCircle, Paperclip, Plus, Search, Send, Smile, Trash2, X, Video as VideoIcon } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -708,6 +708,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           remoteUserId={selectedConversation}
           remoteName={selectedUser.full_name || selectedUser.username}
           onClose={() => setShowVideoCall(false)}
+          isOpen={showVideoCall}
         />
       )}
 
