@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { ArrowLeft, File, ImagePlus, Loader2, MessageCircle, Paperclip, Plus, Search, Send, Smile, Trash2, X } from 'lucide-react';
+import VideoCall from './VideoCall';
+import { ArrowLeft, File, ImagePlus, Loader2, MessageCircle, Paperclip, Phone, Plus, Search, Send, Smile, Trash2, X, Video as VideoIcon } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -40,6 +41,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   const [newMessage, setNewMessage] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
   const [reactions, setReactions] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -576,13 +578,24 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                 <p className="text-xs text-slate-500">@{selectedUser.username}</p>
               </div>
             </div>
-            <button
-              onClick={() => handleDeleteConversation(selectedConversation)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Delete conversation"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setShowVideoCall(true)}
+                className="rounded-lg p-2 text-violet-600 transition-colors hover:bg-violet-50"
+                title="Start video call"
+                aria-label="Start video call"
+              >
+                <VideoIcon className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => handleDeleteConversation(selectedConversation)}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete conversation"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
@@ -686,6 +699,16 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
             </button>
           </div>
         </div>
+      )}
+
+      {showVideoCall && selectedConversation && selectedUser && profile && (
+        <VideoCall
+          channelName={`video-call:${[profile.id, selectedConversation].sort().join(':')}`}
+          userId={profile.id}
+          remoteUserId={selectedConversation}
+          remoteName={selectedUser.full_name || selectedUser.username}
+          onClose={() => setShowVideoCall(false)}
+        />
       )}
 
       {showRecipientPicker && (
