@@ -107,6 +107,9 @@ function MainApp() {
                   placeholder="Search the community..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setActiveView('feed');
+                  }}
                   className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900/80 border border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all outline-none"
                 />
               </div>
@@ -301,7 +304,7 @@ function MainApp() {
 
           {/* Main Content Area */}
           <main className="order-2 min-w-0 pb-24 lg:order-none lg:col-span-3 lg:pb-0">
-            {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} />}
+            {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={(userId) => {

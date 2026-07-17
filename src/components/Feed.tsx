@@ -6,9 +6,10 @@ import { Loader2 } from 'lucide-react';
 
 interface FeedProps {
   refreshKey: number;
+  searchQuery: string;
 }
 
-export default function Feed({ refreshKey }: FeedProps) {
+export default function Feed({ refreshKey, searchQuery }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,6 +33,15 @@ export default function Feed({ refreshKey }: FeedProps) {
     loadPosts();
   }, [refreshKey]);
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const visiblePosts = normalizedSearchQuery
+    ? posts.filter((post) =>
+        post.content.toLowerCase().includes(normalizedSearchQuery) ||
+        post.profiles?.username.toLowerCase().includes(normalizedSearchQuery) ||
+        post.profiles?.full_name.toLowerCase().includes(normalizedSearchQuery)
+      )
+    : posts;
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -43,12 +53,14 @@ export default function Feed({ refreshKey }: FeedProps) {
   return (
     <div className="space-y-6">
       <Stories />
-      {posts.length === 0 ? (
+      {visiblePosts.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
-          <p className="text-slate-600 text-lg">No posts yet. Be the first to share something!</p>
+          <p className="text-slate-600 text-lg">
+            {normalizedSearchQuery ? 'No posts match your search.' : 'No posts yet. Be the first to share something!'}
+          </p>
         </div>
       ) : (
-        posts.map((post) => (
+        visiblePosts.map((post) => (
           <PostCard key={post.id} post={post} onUpdate={loadPosts} />
         ))
       )}
