@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { ArrowLeft, Loader2, MessageCircle, Plus, Search, Send, Trash2, X } from 'lucide-react';
+import { ArrowLeft, File, ImagePlus, Loader2, MessageCircle, Paperclip, Plus, Search, Send, Smile, Trash2, X } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -10,6 +10,9 @@ interface Message {
   content: string;
   is_read: boolean;
   created_at: string;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
   sender?: Profile;
   recipient?: Profile;
 }
@@ -35,6 +38,9 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,6 +49,8 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   const [showRecipientPicker, setShowRecipientPicker] = useState(false);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const emojiOptions = ['👍', '❤️', '😂', '🎉', '😮', '😢'];
 
   useEffect(() => {
     if (!profile) return;
@@ -258,7 +266,15 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
         .order('created_at', { ascending: true });
 
       if (data) {
-        setMessages(data);
+        const messagesWithSignedAttachments = await Promise.all(data.map(async (message: Message) => {
+          if (!message.attachment_url) return message;
+          const { data: signed } = await supabase.storage
+            .from('message-attachments')
+            .createSignedUrl(message.attachment_url, 3600);
+          return { ...message, attachment_url: signed?.signedUrl || null };
+        }));
+        setMessages(messagesWithSignedAttachments);
+        await loadReactions(data.map((message: Message) => message.id));
 
         const unreadIds = data
           .filter((msg: Message) => msg.recipient_id === profile.id && !msg.is_read)
@@ -279,23 +295,73 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     }
   };
 
+  const loadReactions = async (messageIds: string[]) => {
+    if (messageIds.length === 0) {
+      setReactions({});
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('message_reactions')
+      .select('message_id, reaction')
+      .in('message_id', messageIds);
+
+    if (error) {
+      console.error('Error loading message reactions:', error);
+      return;
+    }
+
+    const grouped: Record<string, Record<string, number>> = {};
+    (data || []).forEach(({ message_id, reaction }) => {
+      grouped[message_id] ??= {};
+      grouped[message_id][reaction] = (grouped[message_id][reaction] || 0) + 1;
+    });
+    setReactions(grouped);
+  };
+
+  const handleAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      alert('Attachments must be smaller than 25MB.');
+      event.target.value = '';
+      return;
+    }
+    setAttachment(file);
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !profile || !selectedConversation) return;
+    if ((!newMessage.trim() && !attachment) || !profile || !selectedConversation) return;
 
     setSendingMessage(true);
     try {
-      const { error } = await supabase.from('messages').insert([
-        {
-          sender_id: profile.id,
-          recipient_id: selectedConversation,
-          content: newMessage.trim(),
-        },
-      ]);
+      let attachmentUrl: string | null = null;
+      if (attachment) {
+        const safeName = attachment.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+        const path = `${profile.id}/${crypto.randomUUID()}-${safeName}`;
+        const { error: uploadError } = await supabase.storage
+          .from('message-attachments')
+          .upload(path, attachment);
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from('message-attachments').getPublicUrl(path);
+        attachmentUrl = data.publicUrl;
+      }
+
+      const { error } = await supabase.from('messages').insert({
+        sender_id: profile.id,
+        recipient_id: selectedConversation,
+        content: newMessage.trim(),
+        attachment_url: attachmentUrl,
+        attachment_name: attachment?.name || null,
+        attachment_type: attachment?.type || null,
+      });
 
       if (error) throw error;
 
       setNewMessage('');
+      setAttachment(null);
+      if (attachmentInputRef.current) attachmentInputRef.current.value = '';
       await loadMessages(selectedConversation);
       await loadConversations();
     } catch (error) {
@@ -304,6 +370,27 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     } finally {
       setSendingMessage(false);
     }
+  };
+
+  const toggleReaction = async (messageId: string, reaction: string) => {
+    if (!profile) return;
+    const { data: existing } = await supabase
+      .from('message_reactions')
+      .select('id')
+      .eq('message_id', messageId)
+      .eq('user_id', profile.id)
+      .eq('reaction', reaction)
+      .maybeSingle();
+
+    const result = existing
+      ? await supabase.from('message_reactions').delete().eq('id', existing.id)
+      : await supabase.from('message_reactions').insert({ message_id: messageId, user_id: profile.id, reaction });
+
+    if (result.error) {
+      console.error('Error updating message reaction:', result.error);
+      return;
+    }
+    await loadReactions(messages.map((message) => message.id));
   };
 
   const handleDeleteMessage = async (messageId: string) => {
@@ -502,10 +589,24 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                             : 'bg-slate-100 text-slate-900 rounded-bl-none'
                         }`}
                       >
-                        <p className="break-words">{message.content}</p>
+                        {message.content && <p className="break-words whitespace-pre-wrap">{message.content}</p>}
+                        {message.attachment_url && (
+                          <a href={message.attachment_url} target="_blank" rel="noreferrer" className="mt-2 flex items-center gap-2 rounded-lg bg-black/10 p-2 text-sm underline">
+                            {message.attachment_type?.startsWith('image/') ? <ImagePlus className="h-4 w-4" /> : <File className="h-4 w-4" />}
+                            <span className="max-w-48 truncate">{message.attachment_name || 'Attachment'}</span>
+                          </a>
+                        )}
                         <p className={`text-xs mt-1 ${isSent ? 'text-indigo-100' : 'text-slate-500'}`}>
                           {formatTime(message.created_at)}
                         </p>
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {Object.entries(reactions[message.id] || {}).map(([reaction, count]) => (
+                          <button key={reaction} type="button" onClick={() => toggleReaction(message.id, reaction)} className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs shadow-sm">
+                            {reaction} {count}
+                          </button>
+                        ))}
+                        <button type="button" onClick={() => toggleReaction(message.id, '👍')} className="rounded-full border border-slate-200 bg-white p-1 text-xs opacity-0 transition-opacity group-hover:opacity-100" aria-label="Add like reaction">👍</button>
                       </div>
                       {isSent && (
                         <button
@@ -526,17 +627,24 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
 
           {/* Message Input */}
           <form onSubmit={handleSendMessage} className="border-t border-slate-200 p-3 sm:p-4">
+            {attachment && <div className="mb-2 flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700"><span className="truncate">{attachment.name}</span><button type="button" onClick={() => setAttachment(null)} className="p-1" aria-label="Remove attachment"><X className="h-4 w-4" /></button></div>}
             <div className="flex gap-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none"
-              />
+              <input ref={attachmentInputRef} type="file" onChange={handleAttachmentChange} className="hidden" />
+              <button type="button" onClick={() => attachmentInputRef.current?.click()} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Attach a file"><Paperclip className="h-5 w-5" /></button>
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  className="w-full rounded-lg border border-slate-300 px-4 py-2 pr-10 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-violet-500"
+                />
+                <button type="button" onClick={() => setShowEmojiPicker((visible) => !visible)} className="absolute right-2 top-2 rounded p-1 text-slate-500 hover:bg-slate-100" aria-label="Add emoji"><Smile className="h-5 w-5" /></button>
+                {showEmojiPicker && <div className="absolute bottom-12 right-0 z-10 flex gap-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">{emojiOptions.map((emoji) => <button key={emoji} type="button" onClick={() => { setNewMessage((value) => value + emoji); setShowEmojiPicker(false); }} className="p-1 text-xl hover:bg-slate-100">{emoji}</button>)}</div>}
+              </div>
               <button
                 type="submit"
-                disabled={sendingMessage || !newMessage.trim()}
+                disabled={sendingMessage || (!newMessage.trim() && !attachment)}
                 className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-violet-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
                 {sendingMessage ? (

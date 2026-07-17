@@ -15,7 +15,11 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const shareUrl = window.location.href;
+  const shareUrl = (() => {
+    const url = new URL(window.location.href);
+    url.hash = `post-${postId}`;
+    return url.toString();
+  })();
 
   const recordShare = async () => {
     if (!user) {
@@ -29,39 +33,50 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
         .from('shares')
         .insert([{ post_id: postId, user_id: user.id }]);
 
-      if (!error) onShareChange();
+      if (error) return false;
+      onShareChange();
       return true;
     } catch {
-      return true;
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setShowMenu(false);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      await recordShare();
+      setCopied(true);
+      setShowMenu(false);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
   };
 
   const handleShare = async () => {
-    const canShare = await recordShare();
-    if (!canShare) return;
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
 
     if (navigator.share) {
-      await navigator.share({
-        title: 'Check out this post',
-        url: shareUrl,
-      }).catch(() => undefined);
+      try {
+        await navigator.share({ title: 'Check out this post', url: shareUrl });
+        await recordShare();
+      } catch {
+        return;
+      }
       return;
     }
 
     setShowMenu((isOpen) => !isOpen);
   };
 
-  const openSocialShare = (url: string) => {
+  const openSocialShare = async (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
+    await recordShare();
     setShowMenu(false);
   };
 
