@@ -35,7 +35,7 @@
 - Profile statistics (posts, friends)
 - Avatar with user initial
 - User discovery
-- Following and follower lists on user profiles
+- Searchable following and follower lists with name sorting
 
 ### Friend System
 - Send friend requests to other users
@@ -117,7 +117,6 @@
 - Group chats
 - Video uploads
 - Post scheduling
-- Advanced user following lists
 - Activity timeline
 - Server-enforced privacy settings
 - Content moderation tools

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { CreditCard as Edit2, Check, X, Loader2, Users } from 'lucide-react';
+import { CreditCard as Edit2, Check, X, Loader2, Users, Search, ArrowUpDown } from 'lucide-react';
 import LazyImage from './LazyImage';
 
 export default function UserProfile() {
@@ -15,6 +15,8 @@ export default function UserProfile() {
   const [following, setFollowing] = useState<Profile[]>([]);
   const [followers, setFollowers] = useState<Profile[]>([]);
   const [connectionView, setConnectionView] = useState<'following' | 'followers'>('following');
+  const [connectionSearch, setConnectionSearch] = useState('');
+  const [connectionSort, setConnectionSort] = useState<'recent' | 'name'>('recent');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,6 +95,16 @@ export default function UserProfile() {
       </div>
     );
   }
+
+  const activeConnections = [...(connectionView === 'following' ? following : followers)]
+    .filter((connection) => {
+      const query = connectionSearch.trim().toLowerCase();
+      return !query || [connection.username, connection.full_name, connection.bio]
+        .some((value) => value?.toLowerCase().includes(query));
+    })
+    .sort((a, b) => connectionSort === 'name'
+      ? (a.full_name || a.username).localeCompare(b.full_name || b.username)
+      : 0);
 
   return (
     <div className="bg-white/95 rounded-2xl shadow-xl shadow-indigo-100/60 border border-indigo-100 overflow-hidden">
@@ -195,26 +207,56 @@ export default function UserProfile() {
         </div>
 
         <div className="mt-6 pt-6 border-t border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-violet-600" />
-            <h2 className="font-bold text-slate-900">
-              {connectionView === 'following' ? 'Following' : 'Followers'}
-            </h2>
+          <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-violet-600" />
+              <h2 className="font-bold text-slate-900">
+                {connectionView === 'following' ? 'Following' : 'Followers'}
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <label className="relative flex-1 sm:w-52">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <span className="sr-only">Search {connectionView}</span>
+                <input
+                  type="search"
+                  value={connectionSearch}
+                  onChange={(event) => setConnectionSearch(event.target.value)}
+                  placeholder="Search people"
+                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+                />
+              </label>
+              <label className="relative">
+                <ArrowUpDown className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <span className="sr-only">Sort {connectionView}</span>
+                <select
+                  value={connectionSort}
+                  onChange={(event) => setConnectionSort(event.target.value as 'recent' | 'name')}
+                  className="h-9 rounded-lg border border-slate-300 bg-white py-2 pl-8 pr-2 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+                >
+                  <option value="recent">Recent</option>
+                  <option value="name">Name</option>
+                </select>
+              </label>
+            </div>
           </div>
           {(connectionView === 'following' ? following : followers).length === 0 ? (
             <p className="text-sm text-slate-500">No {connectionView} yet.</p>
+          ) : activeConnections.length === 0 ? (
+            <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-500">No people match your search.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(connectionView === 'following' ? following : followers).map((connection) => (
-                <div key={connection.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-semibold">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {activeConnections.map((connection) => (
+                <div key={connection.id} className="flex items-center gap-3 rounded-lg bg-slate-50 p-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 font-semibold text-white">
                     {connection.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-900 truncate">
+                    <p className="truncate font-medium text-slate-900">
                       {connection.full_name || connection.username}
                     </p>
-                    <p className="text-sm text-slate-500 truncate">@{connection.username}</p>
+                    <p className="truncate text-sm text-slate-500">@{connection.username}</p>
+                    {connection.bio && <p className="mt-1 truncate text-xs text-slate-500">{connection.bio}</p>}
                   </div>
                 </div>
               ))}
