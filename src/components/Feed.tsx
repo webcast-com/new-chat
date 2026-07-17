@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase, Post } from '../lib/supabase';
-import CreatePost from './CreatePost';
 import PostCard from './PostCard';
 import Stories from './Stories';
 import { Loader2 } from 'lucide-react';
 
-export default function Feed() {
+interface FeedProps {
+  refreshKey: number;
+}
+
+export default function Feed({ refreshKey }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +30,7 @@ export default function Feed() {
 
   useEffect(() => {
     loadPosts();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) {
     return (
@@ -40,8 +43,6 @@ export default function Feed() {
   return (
     <div className="space-y-6">
       <Stories />
-      <CreatePost onPostCreated={loadPosts} />
-
       {posts.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
           <p className="text-slate-600 text-lg">No posts yet. Be the first to share something!</p>

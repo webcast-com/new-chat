@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import Feed from './components/Feed';
+import CreatePost from './components/CreatePost';
 import UserProfile from './components/UserProfile';
 import PeopleDiscovery from './components/PeopleDiscovery';
 import FriendRequests from './components/FriendRequests';
@@ -9,12 +10,14 @@ import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import LazyImage from './components/LazyImage';
-import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles } from 'lucide-react';
+import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
   const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [postsRefreshKey, setPostsRefreshKey] = useState(0);
 
   const handleSignOut = async () => {
     try {
@@ -96,8 +99,8 @@ function MainApp() {
               </div>
             </button>
 
-            <div className="flex-1 max-w-md hidden sm:block">
-              <div className="relative">
+            <div className="flex flex-1 max-w-md items-center justify-end gap-2 sm:justify-start">
+              <div className="relative hidden flex-1 sm:block">
                 <Search className="absolute left-3 top-2.5 w-5 h-5 text-slate-400" />
                 <input
                   type="text"
@@ -107,6 +110,16 @@ function MainApp() {
                   className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900/80 border border-slate-700 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all outline-none"
                 />
               </div>
+              <button
+                type="button"
+                onClick={() => setIsCreatePostOpen(true)}
+                aria-label="Create a post"
+                title="Create a post"
+                className="flex items-center gap-2 rounded-lg bg-violet-500 px-3 py-2 text-white shadow-lg shadow-violet-950/30 transition-all hover:bg-violet-400"
+              >
+                <Plus className="h-5 w-5" />
+                <span className="hidden md:inline">Create</span>
+              </button>
             </div>
 
             <button
@@ -285,7 +298,7 @@ function MainApp() {
 
           {/* Main Content Area */}
           <main className="order-2 min-w-0 pb-24 lg:order-none lg:col-span-3 lg:pb-0">
-            {activeView === 'feed' && <Feed />}
+            {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={(userId) => {
@@ -312,6 +325,35 @@ function MainApp() {
           </aside>
         </div>
       </div>
+
+      {isCreatePostOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-24 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create a post"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsCreatePostOpen(false);
+          }}
+        >
+          <div className="relative w-full max-w-2xl">
+            <button
+              type="button"
+              onClick={() => setIsCreatePostOpen(false)}
+              aria-label="Close create post"
+              className="absolute right-3 top-3 z-10 rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <CreatePost
+              onPostCreated={() => {
+                setIsCreatePostOpen(false);
+                setPostsRefreshKey((key) => key + 1);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
