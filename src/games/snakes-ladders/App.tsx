@@ -492,10 +492,10 @@ export default function App() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_370px]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Board Area */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-full max-w-[640px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-full max-w-[760px]">
               <Board
                 positions={positions}
                 currentPlayer={currentPlayer}
@@ -503,7 +503,7 @@ export default function App() {
               />
             </div>
             {/* Emote Reaction Bar */}
-            <div className="w-full max-w-[640px]">
+            <div className="w-full max-w-[760px]">
               <EmoteBar
                 onSendEmote={(emote) => {
                   online.sendMessage({ type: "EMOTE", username: activeProfile.username, emote });
@@ -514,9 +514,9 @@ export default function App() {
           </div>
 
           {/* Sidebar Panel */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {/* Current turn + 3D dice */}
-            <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur shadow-xl">
+            <div className="rounded-3xl bg-white/5 p-4 ring-1 ring-white/10 backdrop-blur shadow-xl">
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <div className="text-xs uppercase tracking-widest text-emerald-300/70 font-bold">
@@ -567,8 +567,8 @@ export default function App() {
             </div>
 
             {/* Players memory & scoreboard */}
-            <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur shadow-xl">
-              <div className="flex items-center justify-between mb-3">
+            <div className="rounded-3xl bg-white/5 p-4 ring-1 ring-white/10 backdrop-blur shadow-xl">
+              <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-emerald-300/70">
                   Participants Memory
                 </h2>
