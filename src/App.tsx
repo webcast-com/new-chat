@@ -23,7 +23,7 @@ function PublicFeed() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
       <header className="sticky top-0 z-40 border-b border-violet-900/40 bg-indigo-950/90 text-white shadow-2xl backdrop-blur-md">
-        <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-900/50">
               <span className="text-2xl">🎅</span>
@@ -39,7 +39,7 @@ function PublicFeed() {
           </button>
         </div>
       </header>
-      <main className="container mx-auto max-w-3xl px-4 py-6">
+      <main className="w-full px-4 py-6">
         <Feed refreshKey={0} searchQuery="" />
       </main>
     </div>
