@@ -14,12 +14,14 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
   const { user, profile } = useAuth();
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
     setLoading(true);
+    setErrorMessage('');
     try {
       const { error } = await supabase.from('comments').insert([
         {
@@ -34,7 +36,9 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
       setNewComment('');
       onCommentAdded();
     } catch (error: unknown) {
-      console.error('Error adding comment:', error instanceof Error ? error.message : JSON.stringify(error));
+      const message = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unable to add your comment.';
+      console.error('Error adding comment:', error);
+      setErrorMessage(message);
     } finally {
       setLoading(false);
     }
@@ -84,6 +88,7 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
       </div>
 
       <div className="px-6 py-4 border-t border-slate-200">
+        {errorMessage && <p className="mb-3 text-sm text-red-600">{errorMessage}</p>}
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="flex-shrink-0">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">

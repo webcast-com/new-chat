@@ -9,12 +9,12 @@ import FriendRequests from './components/FriendRequests';
 import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
-import LazyImage from './components/LazyImage';
+import Trending from './components/Trending';
 import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
-  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [postsRefreshKey, setPostsRefreshKey] = useState(0);
@@ -170,6 +170,17 @@ function MainApp() {
                   <span>Dashboard</span>
                 </button>
                 <button
+                  onClick={() => setActiveView('trending')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    activeView === 'trending'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-violet-50 hover:text-violet-700'
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5" />
+                  <span>Trending</span>
+                </button>
+                <button
                   onClick={() => setActiveView('people')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'people'
@@ -306,29 +317,17 @@ function MainApp() {
           {/* Main Content Area */}
           <main className="order-2 min-w-0 pb-24 lg:order-none lg:col-span-3 lg:pb-0">
             {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
+            {activeView === 'trending' && <Trending />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
-            {activeView === 'people' && <PeopleDiscovery onStartMessage={(userId) => {
-              if (user) {
-                setActiveView('messages');
-              } else {
-                setActiveView('auth');
-              }
-            }} />}
+            {activeView === 'people' && <PeopleDiscovery onStartMessage={() => setActiveView('messages')} />}
             {activeView === 'friends' && <FriendRequests />}
             {activeView === 'messages' && user && <Messages />}
-            {activeView === 'auth' && <Auth />}
           </main>
 
           {/* Right Sidebar - Contacts */}
           <aside className="hidden lg:block lg:col-span-1 order-3">
-            <Contacts onStartMessage={(userId) => {
-              if (user) {
-                setActiveView('messages');
-              } else {
-                setActiveView('auth');
-              }
-            }} />
+            <Contacts onStartMessage={() => setActiveView('messages')} />
           </aside>
         </div>
       </div>

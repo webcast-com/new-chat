@@ -26,12 +26,11 @@ interface StoryGroup {
 export default function Stories() {
   const { user, profile } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedStoryGroup, setSelectedStoryGroup] = useState<StoryGroup | null>(null);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -65,8 +64,6 @@ export default function Stories() {
       setStories(formattedStories);
     } catch (error) {
       console.error('Error loading stories:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -81,10 +78,19 @@ export default function Stories() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !profile) return;
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please choose an image file.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('Story images must be smaller than 10MB.');
+      return;
+    }
 
     setUploading(true);
+    setUploadError('');
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
@@ -111,8 +117,10 @@ export default function Stories() {
       if (insertError) throw insertError;
 
       await loadStories();
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unable to upload your story.';
       console.error('Error uploading story:', error);
+      setUploadError(message);
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -145,7 +153,6 @@ export default function Stories() {
   const handleStoryClick = (story: Story, group: StoryGroup) => {
     const storyIndex = group.stories.findIndex(s => s.id === story.id);
     setSelectedStoryGroup(group);
-    setSelectedStory(story);
     setCurrentStoryIndex(storyIndex >= 0 ? storyIndex : 0);
   };
 
@@ -169,6 +176,7 @@ export default function Stories() {
   return (
     <>
       <div className="-mx-3 mb-5 flex gap-3 overflow-x-auto px-3 pb-2 scrollbar-hide sm:-mx-6 sm:mb-6 sm:px-6">
+        {uploadError && <p className="w-full basis-full text-sm text-red-200">{uploadError}</p>}
         {user && (
           <button
             onClick={handleUploadStory}

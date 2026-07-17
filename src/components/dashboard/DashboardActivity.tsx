@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase, Post, Comment } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { Heart, MessageCircle, UserPlus, FileText, Loader2 } from 'lucide-react';
 
 type ActivityItem = {

@@ -427,7 +427,7 @@ export default function FriendRequests() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MessageButton userId={friendship.friend.id} username={friendship.friend.username} />
+                      <MessageButton userId={friendship.friend.id} username={friendship.friend.username} onClick={() => undefined} />
                       <button
                         onClick={() => handleRemoveFriend(friendship.id)}
                         disabled={actionLoading === friendship.id}
