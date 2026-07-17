@@ -164,6 +164,7 @@ function MainApp() {
                       ? 'bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-200/60'
                       : 'text-slate-700 hover:bg-violet-50 hover:text-violet-700'
                   }`}
+                  style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 1)' }}
                 >
                   <BarChart3 className="w-5 h-5" />
                   <span>Dashboard</span>
