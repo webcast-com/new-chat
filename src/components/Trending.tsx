@@ -14,10 +14,6 @@ export default function Trending() {
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('7d');
 
-  useEffect(() => {
-    loadTrendingPosts();
-  }, [loadTrendingPosts]);
-
   const loadTrendingPosts = useCallback(async () => {
     setLoading(true);
     try {
@@ -74,6 +70,10 @@ export default function Trending() {
       setLoading(false);
     }
   }, [timeFilter]);
+
+  useEffect(() => {
+    loadTrendingPosts();
+  }, [loadTrendingPosts]);
 
   const formatScore = (score?: number) => {
     if (!score) return '0';
