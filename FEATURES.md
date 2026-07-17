@@ -13,6 +13,9 @@
 - Post engagement tracking
 - Real-time comment threads
 - Nested comment system
+- Community feed search by post content, username, or full name
+- Trending feed ranked by engagement and recency, with 24-hour, weekly, and all-time filters
+- 24-hour image stories with upload, grouped viewing, and automatic progression
 
 ### Reactions (Facebook-like)
 - 6 reaction types: Like 👍, Love ❤️, Haha 😂, Wow 😮, Sad 😢, Angry 😠
@@ -52,7 +55,8 @@
 - Sticky header with app branding
 - Desktop sidebar navigation
 - Mobile bottom navigation bar
-- Search bar (UI ready for implementation)
+- Community feed search
+- Quick-create post modal
 - Sign out functionality
 
 ### UI/UX
@@ -61,7 +65,16 @@
 - Smooth transitions and hover states
 - Loading states for async operations
 - Error handling and user feedback
+- Dashboard controls for notification and privacy preferences
 - Clean, modern design with Tailwind CSS
+
+### Direct Messaging
+- Conversation inbox with recent-message previews and unread counts
+- Conversation search by username or full name
+- Send, receive, read, and delete messages
+- Live conversation and thread updates through Supabase Realtime
+- Responsive split-view chat layout with message timestamps and auto-scroll
+- Start conversations from People Discovery and Contacts
 
 ## Database Schema
 
@@ -99,17 +112,12 @@
 - **Build**: Vite
 
 ## Future Enhancement Opportunities
-- Direct messaging between users
-- Stories feature (24-hour temporary posts)
-- Notifications system
-- Post search and filtering
-- User search and mentions
-- Like/comment notifications
+- Persistent notification center and delivery for likes, comments, and friend requests
+- User mentions in posts and comments
 - Group chats
 - Video uploads
 - Post scheduling
-- Trending posts algorithm
 - Advanced user following lists
 - Activity timeline
-- Privacy settings
+- Server-enforced privacy settings
 - Content moderation tools

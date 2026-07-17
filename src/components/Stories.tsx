@@ -146,7 +146,6 @@ export default function Stories() {
 
   const closeStoryViewer = () => {
     setSelectedStoryGroup(null);
-    setSelectedStory(null);
     setCurrentStoryIndex(0);
   };
 
