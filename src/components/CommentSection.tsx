@@ -11,20 +11,20 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ postId, comments, onCommentAdded }: CommentSectionProps) {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !profile) return;
+    if (!newComment.trim() || !user) return;
 
     setLoading(true);
     try {
       const { error } = await supabase.from('comments').insert([
         {
           post_id: postId,
-          user_id: profile.id,
+          user_id: user.id,
           content: newComment.trim(),
         },
       ]);
@@ -33,8 +33,8 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
 
       setNewComment('');
       onCommentAdded();
-    } catch (error) {
-      console.error('Error adding comment:', error);
+    } catch (error: unknown) {
+      console.error('Error adding comment:', error instanceof Error ? error.message : JSON.stringify(error));
     } finally {
       setLoading(false);
     }
