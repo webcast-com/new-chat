@@ -11,10 +11,29 @@ import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import Trending from './components/Trending';
 import FutureEnhancements from './components/FutureEnhancements';
-import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell } from 'lucide-react';
+import SnakesAndLadders from './games/snakes-ladders/App';
+import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell, Gamepad2 } from 'lucide-react';
 
 function PublicFeed() {
   const [showAuth, setShowAuth] = useState(false);
+  const [showGame, setShowGame] = useState(false);
+
+  if (showGame) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+          <button
+            type="button"
+            onClick={() => setShowGame(false)}
+            className="rounded-lg border border-violet-500/40 bg-violet-950/80 px-4 py-2 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-900"
+          >
+            ← Back to community
+          </button>
+        </div>
+        <SnakesAndLadders />
+      </div>
+    );
+  }
 
   if (showAuth) {
     return <Auth />;
@@ -30,13 +49,23 @@ function PublicFeed() {
             </div>
             <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-lg">SANTA&apos;S TOY WORKSHOP</h1>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAuth(true)}
-            className="rounded-lg bg-violet-500 px-4 py-2 font-medium text-white transition-colors hover:bg-violet-400"
-          >
-            Sign In
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowGame(true)}
+              className="flex items-center gap-2 rounded-lg border border-violet-400/60 bg-violet-950/70 px-4 py-2 font-medium text-violet-100 transition-colors hover:bg-violet-900"
+            >
+              <Gamepad2 className="h-4 w-4" />
+              Play
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAuth(true)}
+              className="rounded-lg bg-violet-500 px-4 py-2 font-medium text-white transition-colors hover:bg-violet-400"
+            >
+              Sign In
+            </button>
+          </div>
         </div>
       </header>
       <main className="w-full px-4 py-6">
@@ -48,7 +77,7 @@ function PublicFeed() {
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
-  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'game'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [postsRefreshKey, setPostsRefreshKey] = useState(0);
@@ -232,6 +261,17 @@ function MainApp() {
                   <span>Community Tools</span>
                 </button>
                 <button
+                  onClick={() => setActiveView('game')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    activeView === 'game'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-violet-50 hover:text-violet-700'
+                  }`}
+                >
+                  <Gamepad2 className="w-5 h-5" />
+                  <span>Snakes &amp; Ladders</span>
+                </button>
+                <button
                   onClick={() => setActiveView('people')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'people'
@@ -295,7 +335,7 @@ function MainApp() {
 
           {/* Mobile Navigation */}
           <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 border-t border-indigo-100 px-1 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(79,70,229,0.08)] backdrop-blur-md">
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-4 gap-1 sm:grid-cols-8">
               <button
                 onClick={() => setActiveView('feed')}
                 className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
@@ -363,6 +403,15 @@ function MainApp() {
                 <span className="truncate">Profile</span>
               </button>
               <button
+                onClick={() => setActiveView('game')}
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                  activeView === 'game' ? 'bg-violet-50 text-violet-700' : 'text-slate-600'
+                }`}
+              >
+                <Gamepad2 className="w-5 h-5" />
+                <span className="truncate">Play</span>
+              </button>
+              <button
                 onClick={() => setActiveView('tools')}
                 className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'tools' ? 'bg-violet-50 text-violet-700' : 'text-slate-600'
@@ -379,6 +428,7 @@ function MainApp() {
             {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
             {activeView === 'trending' && <Trending />}
             {activeView === 'tools' && <FutureEnhancements />}
+            {activeView === 'game' && <SnakesAndLadders />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={handleStartMessage} />}
