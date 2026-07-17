@@ -138,8 +138,11 @@ function MainApp() {
         <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-5">
           {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-1">
-            <div className="bg-white/95 rounded-2xl shadow-lg shadow-indigo-100/50 border border-indigo-100 p-6 sticky top-24">
-              <nav className="space-y-2">
+            <div
+              className="bg-white/95 rounded-2xl border border-indigo-100 p-6 sticky top-24"
+              style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 1)' }}
+            >
+              <nav className="space-y-2" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 1)' }}>
                 <button
                   onClick={() => setActiveView('feed')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
