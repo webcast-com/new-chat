@@ -42,7 +42,7 @@ function PipFace({ value }: { value: number }) {
   );
 }
 
-const SIZE = 96; // px
+const SIZE = 72; // px
 const HALF = SIZE / 2;
 
 const faceBaseStyle: CSSProperties = {

@@ -516,14 +516,14 @@ export default function App() {
           {/* Sidebar Panel */}
           <div className="flex flex-col gap-3">
             {/* Current turn + 3D dice */}
-            <div className="rounded-3xl bg-white/5 p-4 ring-1 ring-white/10 backdrop-blur shadow-xl">
-              <div className="mb-3 flex items-center justify-between">
+            <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10 backdrop-blur shadow-xl">
+              <div className="mb-2 flex items-center justify-between">
                 <div>
                   <div className="text-xs uppercase tracking-widest text-emerald-300/70 font-bold">
                     {winner !== null ? "Game Finished" : isOnlineMode ? "Live Online Turn" : "Current Turn"}
                   </div>
-                  <div className="flex items-center gap-2 text-lg font-bold mt-0.5">
-                    <span className="text-2xl">{currentParticipant.avatar}</span>
+                  <div className="flex items-center gap-1.5 text-base font-bold mt-0.5">
+                    <span className="text-xl">{currentParticipant.avatar}</span>
                     <span
                       className={`inline-block h-3 w-3 rounded-full ${currentColor.bg}`}
                     />
@@ -536,11 +536,11 @@ export default function App() {
                   <div className="text-xs uppercase tracking-widest text-emerald-300/70 font-bold">
                     Landed On
                   </div>
-                  <div className="text-2xl font-black tabular-nums text-amber-300">{diceValue}</div>
+                  <div className="text-xl font-black tabular-nums text-amber-300">{diceValue}</div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center py-3">
+              <div className="flex items-center justify-center py-1">
                 <Dice value={diceTarget} rollKey={rollKey} />
               </div>
 
@@ -548,7 +548,7 @@ export default function App() {
                 onClick={rollDice}
                 disabled={!canRoll}
                 className={[
-                  "mt-3 w-full rounded-2xl px-4 py-3.5 text-base font-black shadow-lg transition",
+                  "mt-2 w-full rounded-xl px-3 py-2.5 text-sm font-black shadow-lg transition",
                   canRoll
                     ? "bg-gradient-to-r from-amber-400 to-rose-400 text-amber-950 hover:brightness-110 active:scale-[0.98]"
                     : "cursor-not-allowed bg-white/10 text-white/40",
