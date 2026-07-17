@@ -10,11 +10,12 @@ import Messages from './components/Messages';
 import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import Trending from './components/Trending';
-import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X } from 'lucide-react';
+import FutureEnhancements from './components/FutureEnhancements';
+import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell } from 'lucide-react';
 
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
-  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending'>('feed');
+  const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools'>('feed');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [postsRefreshKey, setPostsRefreshKey] = useState(0);
@@ -181,6 +182,17 @@ function MainApp() {
                   <span>Trending</span>
                 </button>
                 <button
+                  onClick={() => setActiveView('tools')}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    activeView === 'tools'
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-200/60'
+                      : 'text-slate-700 hover:bg-violet-50 hover:text-violet-700'
+                  }`}
+                >
+                  <Bell className="w-5 h-5" />
+                  <span>Community Tools</span>
+                </button>
+                <button
                   onClick={() => setActiveView('people')}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     activeView === 'people'
@@ -244,7 +256,7 @@ function MainApp() {
 
           {/* Mobile Navigation */}
           <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 border-t border-indigo-100 px-1 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(79,70,229,0.08)] backdrop-blur-md">
-            <div className="grid grid-cols-6 gap-1">
+            <div className="grid grid-cols-7 gap-1">
               <button
                 onClick={() => setActiveView('feed')}
                 className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
@@ -311,6 +323,15 @@ function MainApp() {
                 <User className="w-5 h-5" />
                 <span className="truncate">Profile</span>
               </button>
+              <button
+                onClick={() => setActiveView('tools')}
+                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                  activeView === 'tools' ? 'bg-violet-50 text-violet-700' : 'text-slate-600'
+                }`}
+              >
+                <Bell className="w-5 h-5" />
+                <span className="truncate">Tools</span>
+              </button>
             </div>
           </div>
 
@@ -318,6 +339,7 @@ function MainApp() {
           <main className="order-2 min-w-0 pb-24 lg:order-none lg:col-span-3 lg:pb-0">
             {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
             {activeView === 'trending' && <Trending />}
+            {activeView === 'tools' && <FutureEnhancements />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={() => setActiveView('messages')} />}

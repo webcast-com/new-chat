@@ -24,6 +24,7 @@ export type Post = {
   user_id: string;
   content: string;
   image_url: string;
+  media_type?: 'image' | 'video';
   likes_count: number;
   comments_count: number;
   shares_count?: number;

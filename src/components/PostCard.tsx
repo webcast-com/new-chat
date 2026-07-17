@@ -322,13 +322,12 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             </p>
 
             {post.image_url && (
-              <div className="mb-4">
-                <Image
-                  src={post.image_url}
-                  alt="Post content"
-                  variant="post"
-                  rounded="lg"
-                />
+              <div className="mb-4 overflow-hidden rounded-lg">
+                {post.media_type === 'video' ? (
+                  <video src={post.image_url} controls className="max-h-[32rem] w-full bg-slate-950" />
+                ) : (
+                  <Image src={post.image_url} alt="Post content" variant="post" rounded="lg" />
+                )}
               </div>
             )}
 

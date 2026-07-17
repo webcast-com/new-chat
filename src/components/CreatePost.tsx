@@ -14,17 +14,25 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB');
+      const isVideo = file.type.startsWith('video/');
+      const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        alert(`${isVideo ? 'Video' : 'Image'} size must be less than ${isVideo ? '50MB' : '5MB'}`);
+        return;
+      }
+      if (!file.type.startsWith('image/') && !isVideo) {
+        alert('Please choose an image or video file');
         return;
       }
 
       setSelectedImage(file);
+      setMediaType(isVideo ? 'video' : 'image');
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -75,6 +83,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           user_id: profile.id,
           content: content.trim(),
           image_url: imageUrl,
+          media_type: mediaType,
         },
       ]);
 
@@ -83,6 +92,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent('');
       setSelectedImage(null);
       setImagePreview(null);
+      setMediaType('image');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -114,11 +124,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
             {imagePreview && (
               <div className="mt-4 relative">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="w-full rounded-xl max-h-96 object-cover"
-                />
+                {mediaType === 'video' ? (
+                  <video src={imagePreview} controls className="w-full rounded-xl max-h-96" />
+                ) : (
+                  <img src={imagePreview} alt="Preview" className="w-full rounded-xl max-h-96 object-cover" />
+                )}
                 <button
                   type="button"
                   onClick={removeImage}
@@ -134,7 +144,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime"
                   onChange={handleImageSelect}
                   className="hidden"
                   id="image-upload"
@@ -144,7 +154,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
                   className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50 cursor-pointer"
                 >
                   <ImageIcon className="w-5 h-5" />
-                  <span className="text-sm font-medium">Photo</span>
+                  <span className="text-sm font-medium">Photo or video</span>
                 </label>
               </div>
               <button
