@@ -121,7 +121,7 @@ function MainApp() {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
         <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-5">
           {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-1">
