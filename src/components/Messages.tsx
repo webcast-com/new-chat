@@ -52,6 +52,15 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const emojiOptions = ['👍', '❤️', '😂', '🎉', '😮', '😢'];
 
+  const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'object' && error !== null) {
+      const details = error as { message?: string; error_description?: string; details?: string; hint?: string };
+      return [details.message || details.error_description, details.details, details.hint].filter(Boolean).join(' — ') || 'Unknown Supabase error';
+    }
+    return String(error);
+  };
+
   useEffect(() => {
     if (!profile) return;
 
@@ -307,7 +316,8 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
       .in('message_id', messageIds);
 
     if (error) {
-      console.error('Error loading message reactions:', error);
+      console.error('Error loading message reactions:', getErrorMessage(error));
+      setReactions({});
       return;
     }
 
@@ -344,18 +354,20 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           .from('message-attachments')
           .upload(path, attachment);
         if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from('message-attachments').getPublicUrl(path);
-        attachmentUrl = data.publicUrl;
+        attachmentUrl = path;
       }
 
-      const { error } = await supabase.from('messages').insert({
+      const messagePayload = {
         sender_id: profile.id,
         recipient_id: selectedConversation,
         content: newMessage.trim(),
-        attachment_url: attachmentUrl,
-        attachment_name: attachment?.name || null,
-        attachment_type: attachment?.type || null,
-      });
+        ...(attachment ? {
+          attachment_url: attachmentUrl,
+          attachment_name: attachment.name,
+          attachment_type: attachment.type,
+        } : {}),
+      };
+      const { error } = await supabase.from('messages').insert(messagePayload);
 
       if (error) throw error;
 
@@ -365,8 +377,11 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
       await loadMessages(selectedConversation);
       await loadConversations();
     } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send message');
+      const message = getErrorMessage(error);
+      console.error('Error sending message:', message);
+      alert(message.includes('Bucket not found')
+        ? 'Attachments are not configured yet. Apply the messaging migration in Supabase, then try again.'
+        : `Failed to send message: ${message}`);
     } finally {
       setSendingMessage(false);
     }
@@ -387,7 +402,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
       : await supabase.from('message_reactions').insert({ message_id: messageId, user_id: profile.id, reaction });
 
     if (result.error) {
-      console.error('Error updating message reaction:', result.error);
+      console.error('Error updating message reaction:', getErrorMessage(result.error));
       return;
     }
     await loadReactions(messages.map((message) => message.id));
