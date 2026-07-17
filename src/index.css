@@ -4,11 +4,64 @@
 
 @layer base {
   body {
-    @apply bg-indigo-50 text-slate-900 antialiased;
+    @apply bg-zinc-950 text-zinc-100 antialiased;
   }
 
   ::selection {
-    @apply bg-violet-200 text-violet-950;
+    @apply bg-violet-500 text-white;
+  }
+}
+
+@layer utilities {
+  .bg-white,
+  .bg-white\/95 {
+    background-color: #18181b !important;
+  }
+
+  .bg-slate-50,
+  .bg-slate-100 {
+    background-color: #27272a !important;
+  }
+
+  .bg-indigo-50,
+  .hover\\:bg-indigo-50:hover,
+  .hover\\:bg-violet-50:hover {
+    background-color: #27272a !important;
+  }
+
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-700 {
+    color: #f4f4f5 !important;
+  }
+
+  .text-slate-600,
+  .text-slate-500 {
+    color: #a1a1aa !important;
+  }
+
+  .border-slate-300,
+  .border-slate-200,
+  .border-indigo-100 {
+    border-color: #27272a !important;
+  }
+
+  .hover\\:bg-slate-100:hover,
+  .hover\\:bg-slate-200:hover {
+    background-color: #3f3f46 !important;
+  }
+
+  input,
+  textarea,
+  select {
+    background-color: #18181b;
+    color: #f4f4f5;
+    border-color: #3f3f46;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #71717a;
   }
 }
 

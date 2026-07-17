@@ -43,7 +43,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-950 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+      <div className="bg-zinc-900 rounded-2xl shadow-xl shadow-black/30 w-full max-w-md p-8 border border-zinc-800">
         <div className="flex justify-center mb-8">
           <div className="bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-4 rounded-2xl">
             {isSignUp ? (

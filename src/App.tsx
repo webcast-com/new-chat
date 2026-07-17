@@ -26,7 +26,7 @@ function MainApp() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950 flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-violet-500" />
       </div>
     );
@@ -38,8 +38,8 @@ function MainApp() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950 flex items-center justify-center p-4">
+        <div className="bg-zinc-900 rounded-2xl shadow-xl shadow-black/30 w-full max-w-md p-8 text-center border border-zinc-800">
           <h2 className="text-2xl font-bold text-slate-800 mb-3">Profile unavailable</h2>
           <p className="text-slate-600 mb-6">
             We couldn’t load your profile from Supabase. Please sign in again.
@@ -56,7 +56,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-indigo-950/90 backdrop-blur-md border-b border-violet-900/40 shadow-2xl text-white">
         <div className="flex justify-between items-center px-4 py-1 bg-gradient-to-r from-indigo-950 via-violet-950 to-indigo-950 border-b border-violet-800/30 text-xs">
