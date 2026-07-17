@@ -125,17 +125,21 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     if (!profile) return;
 
     try {
-      const { data: sent } = await supabase
-        .from('messages')
-        .select('recipient_id, content, created_at, is_read, profiles!messages_recipient_id_fkey(*)')
-        .eq('sender_id', profile.id)
-        .order('created_at', { ascending: false });
+      const [{ data: sent, error: sentError }, { data: received, error: receivedError }] = await Promise.all([
+        supabase
+          .from('messages')
+          .select('recipient_id, content, created_at, is_read, profiles!messages_recipient_id_fkey(*)')
+          .eq('sender_id', profile.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('messages')
+          .select('sender_id, content, created_at, is_read, profiles!messages_sender_id_fkey(*)')
+          .eq('recipient_id', profile.id)
+          .order('created_at', { ascending: false }),
+      ]);
 
-      const { data: received } = await supabase
-        .from('messages')
-        .select('sender_id, content, created_at, is_read, profiles!messages_sender_id_fkey(*)')
-        .eq('recipient_id', profile.id)
-        .order('created_at', { ascending: false });
+      if (sentError) throw sentError;
+      if (receivedError) throw receivedError;
 
       const conversationMap = new Map<string, Conversation>();
 
@@ -212,10 +216,13 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           .map((msg: Message) => msg.id);
 
         if (unreadIds.length > 0) {
-          await supabase
+          const { error } = await supabase
             .from('messages')
             .update({ is_read: true })
             .in('id', unreadIds);
+
+          if (error) throw error;
+          await loadConversations();
         }
       }
     } catch (error) {
@@ -274,10 +281,12 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     if (!confirm('Delete this conversation?')) return;
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('messages')
         .delete()
         .or(`and(sender_id.eq.${profile?.id},recipient_id.eq.${userId}),and(sender_id.eq.${userId},recipient_id.eq.${profile?.id})`);
+
+      if (error) throw error;
 
       setSelectedConversation(null);
       await loadConversations();
