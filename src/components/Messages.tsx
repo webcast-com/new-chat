@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { Send, Search, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, MessageCircle, Plus, Search, Send, Trash2, X } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -28,6 +28,7 @@ interface Conversation {
   isOnline?: boolean;
 }
 
+
 export default function Messages({ initialRecipientId }: MessagesProps) {
   const { profile } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -37,6 +38,10 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [recipientSearch, setRecipientSearch] = useState('');
+  const [recipientCandidates, setRecipientCandidates] = useState<Profile[]>([]);
+  const [showRecipientPicker, setShowRecipientPicker] = useState(false);
+  const [loadingRecipients, setLoadingRecipients] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,10 +149,10 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
       const conversationMap = new Map<string, Conversation>();
 
       if (sent) {
-        sent.forEach((msg: any) => {
+        sent.forEach((msg) => {
           const key = msg.recipient_id;
           if (!conversationMap.has(key)) {
-            const recipient = msg.profiles;
+            const recipient = msg.profiles[0];
             conversationMap.set(key, {
               userId: key,
               username: recipient?.username || 'Unknown',
@@ -161,10 +166,10 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
       }
 
       if (received) {
-        received.forEach((msg: any) => {
+        received.forEach((msg) => {
           const key = msg.sender_id;
           if (!conversationMap.has(key)) {
-            const sender = msg.profiles;
+            const sender = msg.profiles[0];
             conversationMap.set(key, {
               userId: key,
               username: sender?.username || 'Unknown',
@@ -196,6 +201,50 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadRecipientCandidates = async () => {
+    if (!profile) return;
+
+    setLoadingRecipients(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .neq('id', profile.id)
+        .order('username')
+        .limit(20);
+
+      if (error) throw error;
+      setRecipientCandidates(data || []);
+    } catch (error) {
+      console.error('Error loading message recipients:', error);
+    } finally {
+      setLoadingRecipients(false);
+    }
+  };
+
+  const openRecipientPicker = () => {
+    setRecipientSearch('');
+    setShowRecipientPicker(true);
+    void loadRecipientCandidates();
+  };
+
+  const startConversation = (recipient: Profile) => {
+    setConversations((current) => {
+      if (current.some((conversation) => conversation.userId === recipient.id)) return current;
+      return [
+        {
+          userId: recipient.id,
+          username: recipient.username,
+          full_name: recipient.full_name,
+          unreadCount: 0,
+        },
+        ...current,
+      ];
+    });
+    setSelectedConversation(recipient.id);
+    setShowRecipientPicker(false);
   };
 
   const loadMessages = async (userId: string) => {
@@ -312,13 +361,27 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   );
 
   const selectedUser = conversations.find(c => c.userId === selectedConversation);
+  const filteredRecipients = recipientCandidates.filter((recipient) => {
+    const query = recipientSearch.trim().toLowerCase();
+    return !query || recipient.username.toLowerCase().includes(query) || recipient.full_name?.toLowerCase().includes(query);
+  });
 
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 pb-24 md:grid-cols-3 md:gap-6 md:h-[calc(100dvh-150px)] md:pb-0">
       {/* Conversations List */}
-      <div className="flex min-h-0 max-h-[45vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:col-span-1 md:max-h-none">
+      <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} min-h-0 max-h-[45vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:col-span-1 md:max-h-none`}>
         <div className="p-4 border-b border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Messages</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-slate-900">Messages</h2>
+            <button
+              type="button"
+              onClick={openRecipientPicker}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+            >
+              <Plus className="h-4 w-4" />
+              New
+            </button>
+          </div>
           <div className="relative">
             <input
               type="text"
@@ -338,8 +401,16 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
-              <p className="text-slate-600">No conversations yet</p>
-              <p className="text-sm text-slate-500 mt-1">Start a conversation with someone</p>
+              <MessageCircle className="mb-3 h-9 w-9 text-violet-300" />
+              <p className="font-medium text-slate-700">No conversations yet</p>
+              <p className="mt-1 text-sm text-slate-500">Start a private conversation with someone in the community.</p>
+              <button
+                type="button"
+                onClick={openRecipientPicker}
+                className="mt-4 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+              >
+                New message
+              </button>
             </div>
           ) : (
             filteredConversations.map((conversation) => (
@@ -385,6 +456,14 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           {/* Chat Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedConversation(null)}
+                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 md:hidden"
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-semibold">
                 {selectedUser.username.charAt(0).toUpperCase()}
               </div>
@@ -470,10 +549,60 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           </form>
         </div>
       ) : (
-        <div className="flex min-h-[40vh] min-w-0 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm md:min-h-0 md:col-span-2">
-          <div className="text-center">
-            <p className="text-slate-600 text-lg">Select a conversation to start messaging</p>
+        <div className="flex min-h-[40vh] min-w-0 items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:min-h-0 md:col-span-2">
+          <div className="max-w-xs text-center">
+            <MessageCircle className="mx-auto mb-3 h-10 w-10 text-violet-300" />
+            <p className="text-lg font-semibold text-slate-800">Your messages</p>
+            <p className="mt-1 text-sm text-slate-500">Choose an existing conversation or write to someone new.</p>
+            <button
+              type="button"
+              onClick={openRecipientPicker}
+              className="mt-4 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+            >
+              New message
+            </button>
           </div>
+        </div>
+      )}
+
+      {showRecipientPicker && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-4 backdrop-blur-sm sm:items-center" onMouseDown={(event) => event.target === event.currentTarget && setShowRecipientPicker(false)}>
+          <section className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl" role="dialog" aria-modal="true" aria-label="Start a new conversation">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">New message</h2>
+                <p className="mt-1 text-sm text-slate-500">Choose someone to start a conversation.</p>
+              </div>
+              <button type="button" onClick={() => setShowRecipientPicker(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Close new message dialog">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="relative mt-4">
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+              <input
+                autoFocus
+                type="search"
+                value={recipientSearch}
+                onChange={(event) => setRecipientSearch(event.target.value)}
+                placeholder="Search people..."
+                className="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-4 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+              />
+            </div>
+            <div className="mt-3 max-h-72 overflow-y-auto">
+              {loadingRecipients ? (
+                <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-violet-500" /></div>
+              ) : filteredRecipients.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-500">No community members found.</p>
+              ) : (
+                filteredRecipients.map((recipient) => (
+                  <button key={recipient.id} type="button" onClick={() => startConversation(recipient)} className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition hover:bg-violet-50">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 font-semibold text-white">{recipient.username.charAt(0).toUpperCase()}</span>
+                    <span className="min-w-0"><span className="block truncate font-semibold text-slate-900">{recipient.full_name || recipient.username}</span><span className="block truncate text-sm text-slate-500">@{recipient.username}</span></span>
+                  </button>
+                ))
+              )}
+            </div>
+          </section>
         </div>
       )}
     </div>
