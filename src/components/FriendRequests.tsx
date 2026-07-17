@@ -5,6 +5,10 @@ import { UserPlus, Check, X, Loader2, Users } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import MessageButton from './MessageButton';
 
+interface FriendRequestsProps {
+  onStartMessage?: (userId: string) => void;
+}
+
 interface FriendRequest {
   id: string;
   requester: Profile;
@@ -19,7 +23,7 @@ interface Friendship {
   created_at: string;
 }
 
-export default function FriendRequests() {
+export default function FriendRequests({ onStartMessage }: FriendRequestsProps) {
   const { user, profile } = useAuth();
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
@@ -427,7 +431,7 @@ export default function FriendRequests() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MessageButton userId={friendship.friend.id} username={friendship.friend.username} onClick={() => undefined} />
+                      <MessageButton userId={friendship.friend.id} username={friendship.friend.username} onClick={onStartMessage || (() => {})} />
                       <button
                         onClick={() => handleRemoveFriend(friendship.id)}
                         disabled={actionLoading === friendship.id}

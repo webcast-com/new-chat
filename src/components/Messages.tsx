@@ -14,6 +14,10 @@ interface Message {
   recipient?: Profile;
 }
 
+interface MessagesProps {
+  initialRecipientId?: string | null;
+}
+
 interface Conversation {
   userId: string;
   username: string;
@@ -24,7 +28,7 @@ interface Conversation {
   isOnline?: boolean;
 }
 
-export default function Messages() {
+export default function Messages({ initialRecipientId }: MessagesProps) {
   const { profile } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -67,6 +71,41 @@ export default function Messages() {
       supabase.removeChannel(channel);
     };
   }, [profile, selectedConversation]);
+
+  useEffect(() => {
+    if (!profile || !initialRecipientId || initialRecipientId === profile.id) return;
+
+    const openNewConversation = async () => {
+      const { data: recipient, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', initialRecipientId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading message recipient:', error);
+        return;
+      }
+
+      if (!recipient) return;
+
+      setConversations((current) => {
+        if (current.some((conversation) => conversation.userId === recipient.id)) return current;
+        return [
+          {
+            userId: recipient.id,
+            username: recipient.username,
+            full_name: recipient.full_name,
+            unreadCount: 0,
+          },
+          ...current,
+        ];
+      });
+      setSelectedConversation(recipient.id);
+    };
+
+    openNewConversation();
+  }, [initialRecipientId, profile]);
 
   useEffect(() => {
     if (selectedConversation) {

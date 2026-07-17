@@ -52,6 +52,12 @@ function MainApp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [postsRefreshKey, setPostsRefreshKey] = useState(0);
+  const [messageRecipientId, setMessageRecipientId] = useState<string | null>(null);
+
+  const handleStartMessage = (userId: string) => {
+    setMessageRecipientId(userId);
+    setActiveView('messages');
+  };
 
   const handleSignOut = async () => {
     try {
@@ -375,14 +381,14 @@ function MainApp() {
             {activeView === 'tools' && <FutureEnhancements />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
-            {activeView === 'people' && <PeopleDiscovery onStartMessage={() => setActiveView('messages')} />}
-            {activeView === 'friends' && <FriendRequests />}
-            {activeView === 'messages' && user && <Messages />}
+            {activeView === 'people' && <PeopleDiscovery onStartMessage={handleStartMessage} />}
+            {activeView === 'friends' && <FriendRequests onStartMessage={handleStartMessage} />}
+            {activeView === 'messages' && user && <Messages initialRecipientId={messageRecipientId} />}
           </main>
 
           {/* Right Sidebar - Contacts */}
           <aside className="hidden lg:block lg:col-span-1 order-3">
-            <Contacts onStartMessage={() => setActiveView('messages')} />
+            <Contacts onStartMessage={handleStartMessage} />
           </aside>
         </div>
       </div>
