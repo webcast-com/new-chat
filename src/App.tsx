@@ -13,6 +13,39 @@ import Trending from './components/Trending';
 import FutureEnhancements from './components/FutureEnhancements';
 import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell } from 'lucide-react';
 
+function PublicFeed() {
+  const [showAuth, setShowAuth] = useState(false);
+
+  if (showAuth) {
+    return <Auth />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
+      <header className="sticky top-0 z-40 border-b border-violet-900/40 bg-indigo-950/90 text-white shadow-2xl backdrop-blur-md">
+        <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-900/50">
+              <span className="text-2xl">🎅</span>
+            </div>
+            <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-lg">SANTA&apos;S TOY WORKSHOP</h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAuth(true)}
+            className="rounded-lg bg-violet-500 px-4 py-2 font-medium text-white transition-colors hover:bg-violet-400"
+          >
+            Sign In
+          </button>
+        </div>
+      </header>
+      <main className="container mx-auto max-w-3xl px-4 py-6">
+        <Feed refreshKey={0} searchQuery="" />
+      </main>
+    </div>
+  );
+}
+
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
   const [activeView, setActiveView] = useState<'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools'>('feed');
@@ -37,7 +70,7 @@ function MainApp() {
   }
 
   if (!user) {
-    return <Auth />;
+    return <PublicFeed />;
   }
 
   if (!profile) {
