@@ -113,7 +113,6 @@
 
 ## Future Enhancement Opportunities
 - Persistent notification center and delivery for likes, comments, and friend requests
-- User mentions in posts and comments
 - Group chats
 - Video uploads
 - Post scheduling

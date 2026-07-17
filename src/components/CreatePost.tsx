@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Send, Image as ImageIcon, X } from 'lucide-react';
+import MentionInput from './MentionInput';
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -104,12 +105,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
           </div>
           <div className="flex-1">
-            <textarea
+            <MentionInput
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="What's on your mind?"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none"
-              rows={3}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 resize-none"
             />
 
             {imagePreview && (

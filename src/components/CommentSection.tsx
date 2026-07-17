@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Comment } from '../lib/supabase';
 import { Send } from 'lucide-react';
 import LazyImage from './LazyImage';
+import MentionInput, { renderMentions } from './MentionInput';
 
 interface CommentSectionProps {
   postId: string;
@@ -81,7 +82,7 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
                 </span>
                 <span className="text-xs text-slate-500">{formatDate(comment.created_at)}</span>
               </div>
-              <p className="text-slate-700 text-sm">{comment.content}</p>
+              <p className="text-slate-700 text-sm whitespace-pre-wrap">{renderMentions(comment.content)}</p>
             </div>
           </div>
         ))}
@@ -104,12 +105,12 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
             </div>
           </div>
           <div className="flex-1 flex gap-2">
-            <input
-              type="text"
+            <MentionInput
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={setNewComment}
               placeholder="Write a comment..."
-              className="flex-1 px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-sm"
+              rows={1}
+              className="w-full flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 resize-none"
             />
             <button
               type="submit"

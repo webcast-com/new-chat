@@ -7,6 +7,7 @@ import CommentSection from './CommentSection';
 import ReactionButton from './ReactionButton';
 import ShareButton from './ShareButton';
 import Image from './Image';
+import MentionInput, { renderMentions } from './MentionInput';
 
 interface PostCardProps {
   post: Post;
@@ -254,11 +255,12 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
         {isEditing ? (
           <div className="space-y-4">
-            <textarea
+            <MentionInput
               value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none"
+              onChange={setEditContent}
+              placeholder="Update your post"
               rows={4}
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-blue-500 resize-none"
             />
 
             {imagePreview && !removeExistingImage && (
@@ -316,7 +318,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         ) : (
           <>
             <p className="text-slate-800 text-base leading-relaxed whitespace-pre-wrap mb-4">
-              {post.content}
+              {renderMentions(post.content)}
             </p>
 
             {post.image_url && (
