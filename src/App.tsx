@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import Feed from './components/Feed';
@@ -11,8 +11,16 @@ import Dashboard from './components/Dashboard';
 import Contacts from './components/Contacts';
 import Trending from './components/Trending';
 import FutureEnhancements from './components/FutureEnhancements';
-import SnakesAndLadders from './games/snakes-ladders/App';
+const SnakesAndLadders = lazy(() => import('./games/snakes-ladders/App'));
 import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell, Gamepad2 } from 'lucide-react';
+
+function GameView() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center text-sm text-violet-200">Loading game…</div>}>
+      <SnakesAndLadders />
+    </Suspense>
+  );
+}
 
 function PublicFeed() {
   const [showAuth, setShowAuth] = useState(false);
@@ -30,7 +38,7 @@ function PublicFeed() {
             ← Back to community
           </button>
         </div>
-        <SnakesAndLadders />
+        <GameView />
       </div>
     );
   }
@@ -428,7 +436,7 @@ function MainApp() {
             {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
             {activeView === 'trending' && <Trending />}
             {activeView === 'tools' && <FutureEnhancements />}
-            {activeView === 'game' && <SnakesAndLadders />}
+            {activeView === 'game' && <GameView />}
             {activeView === 'dashboard' && user && <Dashboard />}
             {activeView === 'profile' && <UserProfile />}
             {activeView === 'people' && <PeopleDiscovery onStartMessage={handleStartMessage} />}

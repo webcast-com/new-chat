@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, Post } from '../lib/supabase';
 import PostCard from './PostCard';
 import Stories from './Stories';
-import { Loader2 } from 'lucide-react';
+import { SearchX } from 'lucide-react';
 
 interface FeedProps {
   refreshKey: number;
@@ -44,8 +44,25 @@ export default function Feed({ refreshKey, searchQuery }: FeedProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      <div className="space-y-6" aria-label="Loading community feed" aria-busy="true">
+        <div className="flex gap-3 overflow-hidden">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="h-24 w-24 shrink-0 animate-pulse rounded-2xl bg-zinc-800" />
+          ))}
+        </div>
+        {[1, 2].map((item) => (
+          <div key={item} className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+            <div className="flex animate-pulse gap-3">
+              <div className="h-10 w-10 rounded-full bg-zinc-800" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-32 rounded bg-zinc-800" />
+                <div className="h-3 w-20 rounded bg-zinc-800" />
+              </div>
+            </div>
+            <div className="mt-5 h-4 w-11/12 animate-pulse rounded bg-zinc-800" />
+            <div className="mt-2 h-4 w-3/4 animate-pulse rounded bg-zinc-800" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -54,9 +71,13 @@ export default function Feed({ refreshKey, searchQuery }: FeedProps) {
     <div className="space-y-6">
       <Stories />
       {visiblePosts.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
-          <p className="text-slate-600 text-lg">
-            {normalizedSearchQuery ? 'No posts match your search.' : 'No posts yet. Be the first to share something!'}
+        <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/80 p-10 text-center shadow-sm">
+          <SearchX className="mx-auto h-10 w-10 text-violet-400" />
+          <p className="mt-4 text-lg font-semibold text-white">
+            {normalizedSearchQuery ? 'No posts match your search.' : 'Your community is ready for its first post.'}
+          </p>
+          <p className="mt-2 text-sm text-zinc-400">
+            {normalizedSearchQuery ? 'Try a different keyword or browse the latest conversations.' : 'Share a project, toy idea, or bit of workshop magic.'}
           </p>
         </div>
       ) : (

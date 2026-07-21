@@ -124,7 +124,15 @@ export default function Image({
         </div>
       )}
 
-      {imageSrc && <img src={imageSrc} alt={alt} className="w-full h-full object-cover" />}
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover transition-opacity duration-300"
+        />
+      )}
 
       {!isVisible && !imageSrc && (
         <div className={`w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 ${placeholderClassName}`} />
