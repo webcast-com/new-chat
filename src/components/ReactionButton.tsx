@@ -65,32 +65,33 @@ export default function ReactionButton({ postId, onReactionChange }: ReactionBut
     }
     if (!profile || loading) return;
 
+    const previousReaction = userReaction;
+    const nextReaction = previousReaction === reactionType ? null : reactionType;
     setLoading(true);
-    try {
-      if (userReaction === reactionType) {
-        await supabase
-          .from('reactions')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', profile.id);
-        setUserReaction(null);
-      } else if (userReaction) {
-        await supabase
-          .from('reactions')
-          .update({ reaction_type: reactionType })
-          .eq('post_id', postId)
-          .eq('user_id', profile.id);
-        setUserReaction(reactionType);
-      } else {
-        await supabase
-          .from('reactions')
-          .insert([{ post_id: postId, user_id: profile.id, reaction_type: reactionType }]);
-        setUserReaction(reactionType);
-      }
+    setUserReaction(nextReaction);
+    setShowMenu(false);
 
-      setShowMenu(false);
+    try {
+      const { error } = nextReaction === null
+        ? await supabase
+            .from('reactions')
+            .delete()
+            .eq('post_id', postId)
+            .eq('user_id', profile.id)
+        : previousReaction
+          ? await supabase
+              .from('reactions')
+              .update({ reaction_type: nextReaction })
+              .eq('post_id', postId)
+              .eq('user_id', profile.id)
+          : await supabase
+              .from('reactions')
+              .insert([{ post_id: postId, user_id: profile.id, reaction_type: nextReaction }]);
+
+      if (error) throw error;
       onReactionChange();
     } catch (error) {
+      setUserReaction(previousReaction);
       console.error('Error updating reaction:', error);
     } finally {
       setLoading(false);

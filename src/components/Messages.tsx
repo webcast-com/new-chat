@@ -369,16 +369,28 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           attachment_type: attachment.type,
         } : {}),
       };
-      const { error } = await supabase.from('messages').insert(messagePayload);
+      const optimisticId = `pending-${crypto.randomUUID()}`;
+      const optimisticMessage: Message = {
+        id: optimisticId,
+        ...messagePayload,
+        attachment_url: attachment ? URL.createObjectURL(attachment) : null,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        sender: profile,
+      };
 
-      if (error) throw error;
-
+      setMessages((current) => [...current, optimisticMessage]);
       setNewMessage('');
       setAttachment(null);
       if (attachmentInputRef.current) attachmentInputRef.current.value = '';
-      await loadMessages(selectedConversation);
+
+      const { data, error } = await supabase.from('messages').insert(messagePayload).select('*, profiles!messages_sender_id_fkey(*)').single();
+      if (error) throw error;
+
+      setMessages((current) => current.map((message) => message.id === optimisticId ? data : message));
       await loadConversations();
     } catch (error) {
+      setMessages((current) => current.filter((message) => !message.id.startsWith('pending-')));
       const message = getErrorMessage(error);
       console.error('Error sending message:', message);
       alert(message.includes('Bucket not found')

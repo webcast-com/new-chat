@@ -34,6 +34,17 @@
   }
 }
 
+@media (max-width: 640px), (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   .animate-token-pulse {
     animation: token-pulse 1.2s ease-in-out infinite;

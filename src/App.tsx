@@ -2,21 +2,31 @@ import { lazy, Suspense, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import Feed from './components/Feed';
-import CreatePost from './components/CreatePost';
-import UserProfile from './components/UserProfile';
-import PeopleDiscovery from './components/PeopleDiscovery';
-import FriendRequests from './components/FriendRequests';
-import Messages from './components/Messages';
-import Dashboard from './components/Dashboard';
-import Contacts from './components/Contacts';
-import Trending from './components/Trending';
-import FutureEnhancements from './components/FutureEnhancements';
+const CreatePost = lazy(() => import('./components/CreatePost'));
+const UserProfile = lazy(() => import('./components/UserProfile'));
+const PeopleDiscovery = lazy(() => import('./components/PeopleDiscovery'));
+const FriendRequests = lazy(() => import('./components/FriendRequests'));
+const Messages = lazy(() => import('./components/Messages'));
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Contacts = lazy(() => import('./components/Contacts'));
+const Trending = lazy(() => import('./components/Trending'));
+const FutureEnhancements = lazy(() => import('./components/FutureEnhancements'));
 const SnakesAndLadders = lazy(() => import('./games/snakes-ladders/App'));
-import { Loader2, Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell, Gamepad2 } from 'lucide-react';
+import { Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus, Sparkles, Plus, X, Bell, Gamepad2 } from 'lucide-react';
+
+function ContentSkeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 ${className}`} aria-busy="true" aria-label="Loading content">
+      <div className="h-5 w-1/3 animate-pulse rounded bg-zinc-800" />
+      <div className="h-32 animate-pulse rounded-xl bg-zinc-800" />
+      <div className="h-4 w-5/6 animate-pulse rounded bg-zinc-800" />
+    </div>
+  );
+}
 
 function GameView() {
   return (
-    <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center text-sm text-violet-200">Loading game…</div>}>
+    <Suspense fallback={<ContentSkeleton className="mx-auto mt-6 max-w-5xl" />}>
       <SnakesAndLadders />
     </Suspense>
   );
@@ -106,8 +116,12 @@ function MainApp() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-violet-500" />
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950 p-4 sm:p-6">
+        <div className="mx-auto max-w-3xl space-y-6 pt-12" aria-label="Loading community" aria-busy="true">
+          <div className="h-14 animate-pulse rounded-2xl bg-zinc-900" />
+          <ContentSkeleton />
+          <ContentSkeleton />
+        </div>
       </div>
     );
   }
@@ -433,20 +447,24 @@ function MainApp() {
 
           {/* Main Content Area */}
           <main className="order-2 mx-auto min-w-0 w-full max-w-3xl pb-24 lg:order-none lg:col-span-3 lg:max-w-none lg:pb-0">
-            {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
-            {activeView === 'trending' && <Trending />}
-            {activeView === 'tools' && <FutureEnhancements />}
-            {activeView === 'game' && <GameView />}
-            {activeView === 'dashboard' && user && <Dashboard />}
-            {activeView === 'profile' && <UserProfile />}
-            {activeView === 'people' && <PeopleDiscovery onStartMessage={handleStartMessage} />}
-            {activeView === 'friends' && <FriendRequests onStartMessage={handleStartMessage} />}
-            {activeView === 'messages' && user && <Messages initialRecipientId={messageRecipientId} />}
+            <Suspense fallback={<ContentSkeleton />}>
+              {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
+              {activeView === 'trending' && <Trending />}
+              {activeView === 'tools' && <FutureEnhancements />}
+              {activeView === 'game' && <GameView />}
+              {activeView === 'dashboard' && user && <Dashboard />}
+              {activeView === 'profile' && <UserProfile />}
+              {activeView === 'people' && <PeopleDiscovery onStartMessage={handleStartMessage} />}
+              {activeView === 'friends' && <FriendRequests onStartMessage={handleStartMessage} />}
+              {activeView === 'messages' && user && <Messages initialRecipientId={messageRecipientId} />}
+            </Suspense>
           </main>
 
           {/* Right Sidebar - Contacts */}
           <aside className="hidden lg:block lg:col-span-1 order-3">
-            <Contacts onStartMessage={handleStartMessage} />
+            <Suspense fallback={<ContentSkeleton />}>
+              <Contacts onStartMessage={handleStartMessage} />
+            </Suspense>
           </aside>
         </div>
       </div>
@@ -470,12 +488,14 @@ function MainApp() {
             >
               <X className="h-5 w-5" />
             </button>
-            <CreatePost
-              onPostCreated={() => {
-                setIsCreatePostOpen(false);
-                setPostsRefreshKey((key) => key + 1);
-              }}
-            />
+            <Suspense fallback={<ContentSkeleton />}>
+              <CreatePost
+                onPostCreated={() => {
+                  setIsCreatePostOpen(false);
+                  setPostsRefreshKey((key) => key + 1);
+                }}
+              />
+            </Suspense>
           </div>
         </div>
       )}

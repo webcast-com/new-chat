@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRef } from 'react';
 import { supabase, Post } from '../lib/supabase';
 import PostCard from './PostCard';
 import Stories from './Stories';
@@ -9,9 +10,21 @@ interface FeedProps {
   searchQuery: string;
 }
 
+const POSTS_CACHE_KEY = 'community-feed-posts';
+const INITIAL_POST_COUNT = 4;
+const POST_BATCH_SIZE = 4;
+
 export default function Feed({ refreshKey, searchQuery }: FeedProps) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(POSTS_CACHE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => posts.length === 0);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_POST_COUNT);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const loadPosts = async () => {
     try {
@@ -21,7 +34,9 @@ export default function Feed({ refreshKey, searchQuery }: FeedProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      const nextPosts = data || [];
+      setPosts(nextPosts);
+      sessionStorage.setItem(POSTS_CACHE_KEY, JSON.stringify(nextPosts));
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {
@@ -41,6 +56,25 @@ export default function Feed({ refreshKey, searchQuery }: FeedProps) {
         post.profiles?.full_name.toLowerCase().includes(normalizedSearchQuery)
       )
     : posts;
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_POST_COUNT);
+  }, [normalizedSearchQuery]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || visibleCount >= visiblePosts.length) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setVisibleCount((count) => Math.min(count + POST_BATCH_SIZE, visiblePosts.length));
+      },
+      { rootMargin: '400px' }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [visibleCount, visiblePosts.length]);
 
   if (loading) {
     return (
@@ -81,9 +115,17 @@ export default function Feed({ refreshKey, searchQuery }: FeedProps) {
           </p>
         </div>
       ) : (
-        visiblePosts.map((post) => (
-          <PostCard key={post.id} post={post} onUpdate={loadPosts} />
-        ))
+        <>
+          {visiblePosts.slice(0, visibleCount).map((post) => (
+            <PostCard key={post.id} post={post} onUpdate={loadPosts} />
+          ))}
+          {visibleCount < visiblePosts.length && (
+            <div ref={loadMoreRef} className="space-y-3 py-2" aria-label="Loading more posts" aria-busy="true">
+              <div className="h-24 animate-pulse rounded-2xl bg-zinc-900" />
+              <div className="h-24 animate-pulse rounded-2xl bg-zinc-900" />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
