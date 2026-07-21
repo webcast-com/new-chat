@@ -538,7 +538,7 @@ export default function App() {
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Board Area */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="order-2 flex flex-col items-center gap-3 lg:order-1">
             <div className="w-full max-w-[760px]">
               <Board
                 positions={positions}
@@ -581,7 +581,7 @@ export default function App() {
           </div>
 
           {/* Sidebar Panel */}
-          <div className="flex flex-col gap-3">
+          <div className="order-1 flex flex-col gap-3 lg:order-2 lg:sticky lg:top-6 lg:self-start">
             {/* Current turn + 3D dice */}
             <div className="rounded-2xl bg-white/5 p-3 ring-1 ring-white/10 backdrop-blur shadow-xl">
               <div className="mb-2 flex items-center justify-between">
