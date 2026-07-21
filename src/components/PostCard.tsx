@@ -198,10 +198,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="p-6">
+    <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <div className="p-4 sm:p-6">
         <div className="flex items-start justify-between mb-4">
-          <div className="flex gap-3">
+          <div className="flex min-w-0 gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg overflow-hidden flex-shrink-0">
               {post.profiles?.avatar_url ? (
                 <Image
@@ -213,8 +213,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 <span>{post.profiles?.username.charAt(0).toUpperCase()}</span>
               )}
             </div>
-            <div>
-              <h3 className="font-semibold text-slate-900">{post.profiles?.username}</h3>
+            <div className="min-w-0">
+              <h3 className="truncate font-semibold text-slate-900">{post.profiles?.username}</h3>
               <p className="text-sm text-slate-500">{formatDate(post.created_at)}</p>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           </div>
         ) : (
           <>
-            <p className="text-slate-800 text-base leading-relaxed whitespace-pre-wrap mb-4">
+            <p className="mb-4 break-words whitespace-pre-wrap text-base leading-relaxed text-slate-800">
               {renderMentions(post.content)}
             </p>
 

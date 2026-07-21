@@ -21,7 +21,7 @@ function PublicFeed() {
   if (showGame) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
-        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-4">
           <button
             type="button"
             onClick={() => setShowGame(false)}
@@ -42,7 +42,7 @@ function PublicFeed() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
       <header className="sticky top-0 z-40 border-b border-violet-900/40 bg-indigo-950/90 text-white shadow-2xl backdrop-blur-md">
-        <div className="flex w-full items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-900/50">
               <span className="text-2xl">🎅</span>
@@ -53,7 +53,7 @@ function PublicFeed() {
             <button
               type="button"
               onClick={() => setShowGame(true)}
-              className="flex items-center gap-2 rounded-lg border border-violet-400/60 bg-violet-950/70 px-4 py-2 font-medium text-violet-100 transition-colors hover:bg-violet-900"
+              className="flex items-center gap-2 rounded-lg border border-violet-400/60 bg-violet-950/70 px-2.5 py-2 text-sm font-medium text-violet-100 transition-colors hover:bg-violet-900 sm:px-4 sm:text-base"
             >
               <Gamepad2 className="h-4 w-4" />
               Play
@@ -61,14 +61,14 @@ function PublicFeed() {
             <button
               type="button"
               onClick={() => setShowAuth(true)}
-              className="rounded-lg bg-violet-500 px-4 py-2 font-medium text-white transition-colors hover:bg-violet-400"
+              className="rounded-lg bg-violet-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-400 sm:px-4 sm:text-base"
             >
               Sign In
             </button>
           </div>
         </div>
       </header>
-      <main className="w-full px-4 py-6">
+      <main className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6 sm:py-6">
         <Feed refreshKey={0} searchQuery="" />
       </main>
     </div>
@@ -147,12 +147,12 @@ function MainApp() {
           <span className="text-indigo-200 hidden sm:inline">Connect. Create. Belong.</span>
         </div>
 
-        <div className="w-full px-4 py-3">
+        <div className="mx-auto w-full max-w-7xl px-3 py-2.5 sm:px-6 sm:py-3">
           <div className="flex items-center justify-between gap-4">
             <button
               type="button"
               onClick={() => setActiveView('feed')}
-              className="flex min-w-0 items-center space-x-2 sm:space-x-3 cursor-pointer group text-left"
+              className="flex min-w-0 max-w-[58vw] items-center space-x-2 cursor-pointer group text-left sm:max-w-none sm:space-x-3"
             >
               <div className="h-9 w-9 shrink-0 rounded-xl sm:h-10 sm:w-10 bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-indigo-900/50 group-hover:scale-105 transition-transform">
                 <span className="text-2xl">🎅</span>
@@ -196,7 +196,7 @@ function MainApp() {
 
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-4 py-2 text-slate-200 hover:bg-violet-900/50 hover:text-white rounded-lg transition-all"
+              className="flex shrink-0 items-center gap-2 rounded-lg px-2 py-2 text-slate-200 transition-all hover:bg-violet-900/50 hover:text-white sm:px-4"
             >
               <LogOut className="w-5 h-5" />
               <span className="hidden sm:inline">Sign Out</span>
@@ -206,7 +206,7 @@ function MainApp() {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-4 sm:py-6">
+      <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-6 sm:py-6">
         <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-5">
           {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-1">
@@ -334,11 +334,11 @@ function MainApp() {
           </aside>
 
           {/* Mobile Navigation */}
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 border-t border-indigo-100 px-1 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(79,70,229,0.08)] backdrop-blur-md">
-            <div className="grid grid-cols-4 gap-1 sm:grid-cols-8">
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-indigo-100 bg-white/95 px-1 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] shadow-[0_-6px_20px_rgba(79,70,229,0.08)] backdrop-blur-md lg:hidden">
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide sm:grid sm:grid-cols-8">
               <button
                 onClick={() => setActiveView('feed')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'feed'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
@@ -349,7 +349,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('dashboard')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'dashboard'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
@@ -360,7 +360,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('people')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'people'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
@@ -371,7 +371,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('friends')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'friends'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
@@ -382,7 +382,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('messages')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'messages'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
@@ -393,7 +393,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('profile')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'profile'
                     ? 'bg-violet-50 text-violet-700'
                     : 'text-slate-600'
@@ -404,7 +404,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('game')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'game' ? 'bg-violet-50 text-violet-700' : 'text-slate-600'
                 }`}
               >
@@ -413,7 +413,7 @@ function MainApp() {
               </button>
               <button
                 onClick={() => setActiveView('tools')}
-                className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
+                className={`flex min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] leading-none transition-all sm:min-w-0 sm:flex-row sm:gap-2 sm:px-2 sm:text-xs ${
                   activeView === 'tools' ? 'bg-violet-50 text-violet-700' : 'text-slate-600'
                 }`}
               >
@@ -424,7 +424,7 @@ function MainApp() {
           </div>
 
           {/* Main Content Area */}
-          <main className="order-2 min-w-0 pb-24 lg:order-none lg:col-span-3 lg:pb-0">
+          <main className="order-2 mx-auto min-w-0 w-full max-w-3xl pb-24 lg:order-none lg:col-span-3 lg:max-w-none lg:pb-0">
             {activeView === 'feed' && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
             {activeView === 'trending' && <Trending />}
             {activeView === 'tools' && <FutureEnhancements />}
