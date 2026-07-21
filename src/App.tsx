@@ -357,7 +357,7 @@ function PublicFeed() {
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-900/50">
               <span className="text-2xl">🎅</span>
             </div>
-            <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-lg">SANTA&apos;S TOY WORKSHOP</h1>
+            <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-lg">Hyper</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -481,7 +481,7 @@ function MainApp() {
               </div>
               <div>
                 <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-base">
-                  SANTA&apos;S TOY WORKSHOP
+                  Hyper
                 </h1>
                 <p className="hidden text-xs text-slate-400 md:block">Elves at work &bull; <span className="text-violet-400 font-medium">100% Christmas Magic</span></p>
               </div>
