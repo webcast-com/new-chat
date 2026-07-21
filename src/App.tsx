@@ -502,6 +502,16 @@ function MainApp() {
 
             {/* Right actions */}
             <div className="flex items-center gap-1 sm:gap-2">
+              {/* Mobile game shortcut */}
+              <button
+                type="button"
+                onClick={() => setActiveView('game')}
+                aria-label="Play Snakes and Ladders"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-violet-300 transition hover:bg-violet-900/60 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 lg:hidden"
+              >
+                <Gamepad2 className="h-5 w-5" />
+              </button>
+
               {/* Create post */}
               <button
                 type="button"
