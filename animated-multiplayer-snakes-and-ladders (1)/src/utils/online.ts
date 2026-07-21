@@ -245,7 +245,7 @@ export function useOnlineMultiplayer() {
       conn.on("data", (data: unknown) => {
         const msg = data as OnlineMessage;
         if (msg.type === "LOBBY_STATE" || msg.type === "JOIN_ACCEPTED") {
-          const players = (msg as any).players as PlayerInfo[];
+          const players = (msg as Extract<OnlineMessage, { type: "LOBBY_STATE" | "JOIN_ACCEPTED" }>).players;
           setOnlinePlayers(players);
           onlinePlayersRef.current = players;
           if (players.some((p) => p.id === guestUser.id)) {

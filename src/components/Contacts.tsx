@@ -33,9 +33,7 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
 
       if (error) throw error;
 
-      const contactsData = data
-        ?.map((conn: any) => conn.profiles)
-        .filter(Boolean) || [];
+      const contactsData: Profile[] = data?.flatMap((conn) => conn.profiles ?? []) || [];
 
       setContacts(contactsData);
     } catch (error) {

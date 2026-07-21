@@ -42,7 +42,7 @@ function tone(
     gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
     osc.start(t);
     osc.stop(t + dur);
-  } catch (_) {
+  } catch {
     /* audio unavailable */
   }
 }
@@ -85,7 +85,7 @@ function noise(
     gain.connect(c.destination);
     source.start(t);
     source.stop(t + dur);
-  } catch (_) {
+  } catch {
     /* audio unavailable */
   }
 }
@@ -142,7 +142,7 @@ export function playDiceRoll() {
       osc.start(t + 1.2);
       osc.stop(t + 1.5);
     }
-  } catch (_) {}
+  } catch { /* audio unavailable */ }
 }
 
 /** Token landing with a soft tap */
@@ -169,7 +169,7 @@ export function playLadderClimb() {
       osc.start(start);
       osc.stop(start + 0.1);
     }
-  } catch (_) {}
+  } catch { /* audio unavailable */ }
 }
 
 /** Snake slide: descending slide with slight hiss-like noise */
@@ -211,7 +211,7 @@ export function playSnakeSlide() {
     hissGain.connect(c.destination);
     source.start(t);
     source.stop(t + dur);
-  } catch (_) {}
+  } catch { /* audio unavailable */ }
 }
 
 /** Victory fanfare: triumphant arpeggio */
@@ -247,7 +247,7 @@ export function playVictory() {
       osc.start(t + 0.64);
       osc.stop(t + 1.15);
     }
-  } catch (_) {}
+  } catch { /* audio unavailable */ }
 }
 
 /** Notification sounds for online lobby events */

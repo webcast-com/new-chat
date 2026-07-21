@@ -2,7 +2,7 @@ import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import Feed from './components/Feed';
-import { supabase } from './lib/supabase';
+import { supabase, Profile } from './lib/supabase';
 const CreatePost = lazy(() => import('./components/CreatePost'));
 const UserProfile = lazy(() => import('./components/UserProfile'));
 const PeopleDiscovery = lazy(() => import('./components/PeopleDiscovery'));
@@ -60,7 +60,7 @@ function ContentSkeleton({ className = '' }: { className?: string }) {
 }
 
 /* ─── Notification bell ──────────────────────────────────────────── */
-function NotificationBell({ profile }: { profile: any }) {
+function NotificationBell({ profile }: { profile: Profile | null }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotifItem[]>([]);
   const [readIds, setReadIds] = useState<Set<string>>(() => {
@@ -89,14 +89,14 @@ function NotificationBell({ profile }: { profile: any }) {
             .limit(4),
         ]);
         const list: NotifItem[] = [];
-        comments?.forEach((c: any) => list.push({
+        comments?.forEach((c) => list.push({
           id: `c${c.id}`, kind: 'comment',
-          msg: `${c.profiles?.username ?? 'Someone'} commented: "${c.content.slice(0, 45)}${c.content.length > 45 ? '…' : ''}"`,
+          msg: `${c.profiles?.[0]?.username ?? 'Someone'} commented: "${c.content.slice(0, 45)}${c.content.length > 45 ? '…' : ''}"`,
           time: c.created_at,
         }));
-        follows?.forEach((f: any) => list.push({
+        follows?.forEach((f) => list.push({
           id: `f${f.id}`, kind: 'follow',
-          msg: `${f.follower?.username ?? 'Someone'} started following you`,
+          msg: `${f.follower?.[0]?.username ?? 'Someone'} started following you`,
           time: f.created_at,
         }));
         list.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
@@ -181,7 +181,7 @@ function NotificationBell({ profile }: { profile: any }) {
 
 /* ─── Avatar / account menu ──────────────────────────────────────── */
 function AvatarMenu({ profile, onSignOut, onNavigate }: {
-  profile: any;
+  profile: Profile | null;
   onSignOut: () => void;
   onNavigate: (v: ActiveView) => void;
 }) {

@@ -42,7 +42,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
     if (data) {
       const stats: {[key: string]: number} = {};
-      data.forEach((reaction: any) => {
+      data.forEach((reaction) => {
         stats[reaction.reaction_type] = (stats[reaction.reaction_type] || 0) + 1;
       });
       setReactionStats(stats);

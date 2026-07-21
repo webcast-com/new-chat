@@ -56,7 +56,7 @@ export default function Stories() {
 
       if (error) throw error;
 
-      const formattedStories = (data || []).map((story: any) => ({
+      const formattedStories = (data || []).map((story) => ({
         ...story,
         profile: story.profiles
       }));
