@@ -14,6 +14,7 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareError, setShareError] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const shareUrl = (() => {
     const url = new URL(window.location.href);
@@ -28,15 +29,22 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
     }
 
     setLoading(true);
+    setShareError('');
     try {
       const { error } = await supabase
         .from('shares')
         .insert([{ post_id: postId, user_id: user.id }]);
 
-      if (error) return false;
+      if (error) {
+        console.error('Error recording share:', error.message);
+        setShareError('The link was shared, but the activity could not be recorded.');
+        return false;
+      }
       onShareChange();
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Error recording share:', error);
+      setShareError('The link was shared, but the activity could not be recorded.');
       return false;
     } finally {
       setLoading(false);
@@ -45,17 +53,33 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareUrl;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const copiedWithFallback = document.execCommand('copy');
+        textarea.remove();
+        if (!copiedWithFallback) throw new Error('Copy command was rejected');
+      }
+
       await recordShare();
       setCopied(true);
       setShowMenu(false);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
+    } catch (error) {
+      console.error('Error copying share link:', error);
+      setShareError('Unable to copy the link.');
     }
   };
 
   const handleShare = async () => {
+    setShareError('');
     if (!user) {
       setShowAuthPrompt(true);
       return;
@@ -75,7 +99,12 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
   };
 
   const openSocialShare = async (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const shareWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!shareWindow) {
+      setShareError('Your browser blocked the share window.');
+      return;
+    }
+
     await recordShare();
     setShowMenu(false);
   };
@@ -115,6 +144,11 @@ export default function ShareButton({ postId, onShareChange }: ShareButtonProps)
               <Link2 className="h-4 w-4 text-emerald-400" /> WhatsApp
             </button>
           </div>
+        )}
+        {shareError && (
+          <p className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700 shadow" role="status">
+            {shareError}
+          </p>
         )}
       </div>
       <AuthPrompt isOpen={showAuthPrompt} onClose={() => setShowAuthPrompt(false)} action="share posts" />
