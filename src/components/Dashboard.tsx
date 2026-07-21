@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BarChart3, Activity, TrendingUp, Settings } from 'lucide-react';
+import { BarChart3, Activity, TrendingUp, Settings, Bookmark, CalendarDays, Mail, UserPlus, Trophy, ChevronRight, Clock3 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import DashboardOverview from './dashboard/DashboardOverview';
 import DashboardActivity from './dashboard/DashboardActivity';
 import DashboardInsights from './dashboard/DashboardInsights';
@@ -7,7 +8,19 @@ import DashboardSettings from './dashboard/DashboardSettings';
 
 type DashboardTab = 'overview' | 'activity' | 'insights' | 'settings';
 
+const activity = [
+  { text: 'Your workshop post received new reactions', time: '12 min ago', tone: 'bg-violet-500' },
+  { text: 'Maya Winter replied to your comment', time: '1 hr ago', tone: 'bg-fuchsia-500' },
+  { text: 'A new friend request is waiting', time: '3 hrs ago', tone: 'bg-sky-500' },
+];
+
+const events = [
+  { day: '18', month: 'DEC', title: 'Gift exchange planning', time: 'Today · 6:00 PM' },
+  { day: '21', month: 'DEC', title: 'Workshop game night', time: 'Saturday · 7:30 PM' },
+];
+
 export default function Dashboard() {
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
   const tabs = [
@@ -19,45 +32,65 @@ export default function Dashboard() {
 
   return (
     <div className="min-w-0 space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <h1 className="text-2xl font-bold sm:text-3xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <p className="text-slate-600 mt-2">Track your social presence and engagement metrics</p>
-      </div>
+      <section className="relative overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-white via-violet-50 to-fuchsia-50 p-5 shadow-sm dark:border-violet-900/60 dark:from-zinc-900 dark:via-violet-950/50 dark:to-zinc-900 sm:p-7">
+        <div className="relative z-10">
+          <p className="text-sm font-semibold text-violet-600 dark:text-violet-300">YOUR COMMUNITY HUB</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Good to see you, {profile?.full_name || profile?.username}.</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-zinc-300">You have a lively workshop today. Catch up with your people, plans, and saved inspiration.</p>
+        </div>
+        <SparkleDecoration />
+      </section>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-2">
-        <div className="flex gap-2 overflow-x-auto">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-3 text-sm sm:px-4 font-medium transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-                    : 'text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Widget title="Recent activity" icon={Clock3} action="View all">
+          <div className="space-y-3">
+            {activity.map(item => <div key={item.text} className="flex gap-3"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.tone}`} /><div><p className="text-sm font-medium text-slate-700 dark:text-zinc-200">{item.text}</p><p className="mt-0.5 text-xs text-slate-500">{item.time}</p></div></div>)}
+          </div>
+        </Widget>
+
+        <Widget title="Saved posts" icon={Bookmark} action="See saved">
+          <div className="flex items-center gap-4 rounded-xl bg-slate-50 p-3 dark:bg-zinc-800/70">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-lg">🎁</div>
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800 dark:text-zinc-100">Holiday craft ideas</p><p className="text-xs text-slate-500">Saved from Ellie&apos;s workshop</p></div>
+          </div>
+          <p className="mt-3 text-sm text-slate-500">You have <span className="font-semibold text-violet-600 dark:text-violet-300">12 saved posts</span> to revisit.</p>
+        </Widget>
+
+        <Widget title="Friend requests" icon={UserPlus} action="Review">
+          <div className="flex items-center gap-3"><Avatar initials="JW" color="from-sky-500 to-indigo-500" /><div className="flex-1"><p className="text-sm font-semibold text-slate-800 dark:text-zinc-100">Jordan Winter</p><p className="text-xs text-slate-500">3 mutual friends</p></div><button className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-500">Accept</button></div>
+        </Widget>
+
+        <Widget title="Messages" icon={Mail} action="Inbox">
+          <div className="flex items-center gap-3"><Avatar initials="EM" color="from-rose-500 to-orange-400" /><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><p className="truncate text-sm font-semibold text-slate-800 dark:text-zinc-100">Ella Merry</p><span className="text-xs text-slate-400">10:24</span></div><p className="truncate text-xs text-slate-500">The game night plan looks great!</p></div><span className="h-2 w-2 rounded-full bg-violet-500" /></div>
+          <p className="mt-3 text-sm text-slate-500"><span className="font-semibold text-violet-600 dark:text-violet-300">3 unread</span> conversations need you.</p>
+        </Widget>
+
+        <Widget title="Upcoming events" icon={CalendarDays} action="Calendar">
+          <div className="space-y-2.5">{events.map(event => <div key={event.title} className="flex gap-3"><div className="w-10 rounded-lg bg-violet-100 py-1 text-center dark:bg-violet-900/60"><p className="text-sm font-bold text-violet-700 dark:text-violet-200">{event.day}</p><p className="text-[9px] font-bold tracking-wide text-violet-500">{event.month}</p></div><div><p className="text-sm font-semibold text-slate-800 dark:text-zinc-100">{event.title}</p><p className="text-xs text-slate-500">{event.time}</p></div></div>)}</div>
+        </Widget>
+
+        <Widget title="Your score" icon={Trophy} action="Leaderboard">
+          <div className="flex items-end justify-between rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-4 dark:from-amber-950/30 dark:to-orange-950/20"><div><p className="text-3xl font-bold text-amber-600 dark:text-amber-300">1,240</p><p className="text-xs text-slate-500">Workshop points</p></div><div className="text-right"><p className="text-sm font-bold text-slate-800 dark:text-zinc-100">#14</p><p className="text-xs text-emerald-600 dark:text-emerald-400">↑ 3 this week</p></div></div>
+        </Widget>
+      </section>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex gap-1 overflow-x-auto">
+          {tabs.map(tab => { const Icon = tab.icon; const isActive = activeTab === tab.id; return <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 dark:text-zinc-300 dark:hover:bg-zinc-800'}`}><Icon className="h-4 w-4" />{tab.label}</button>; })}
         </div>
       </div>
 
-      {/* Content */}
-      <div>
-        {activeTab === 'overview' && <DashboardOverview />}
-        {activeTab === 'activity' && <DashboardActivity />}
-        {activeTab === 'insights' && <DashboardInsights />}
-        {activeTab === 'settings' && <DashboardSettings />}
-      </div>
+      {activeTab === 'overview' && <DashboardOverview />}
+      {activeTab === 'activity' && <DashboardActivity />}
+      {activeTab === 'insights' && <DashboardInsights />}
+      {activeTab === 'settings' && <DashboardSettings />}
     </div>
   );
 }
+
+function Widget({ title, icon: Icon, action, children }: { title: string; icon: React.ElementType; action: string; children: React.ReactNode }) {
+  return <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"><div className="mb-4 flex items-center justify-between"><div className="flex items-center gap-2 text-slate-900 dark:text-zinc-100"><span className="rounded-lg bg-violet-100 p-2 text-violet-600 dark:bg-violet-900/50 dark:text-violet-300"><Icon className="h-4 w-4" /></span><h2 className="text-sm font-bold">{title}</h2></div><button className="flex items-center gap-0.5 text-xs font-semibold text-violet-600 hover:text-violet-500 dark:text-violet-300">{action}<ChevronRight className="h-3.5 w-3.5" /></button></div>{children}</section>;
+}
+
+function Avatar({ initials, color }: { initials: string; color: string }) { return <span className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${color} text-xs font-bold text-white`}>{initials}</span>; }
+function SparkleDecoration() { return <div aria-hidden="true" className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-violet-300/30 blur-2xl dark:bg-violet-500/20" />; }

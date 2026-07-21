@@ -534,6 +534,23 @@ function MainApp() {
               />
             </div>
           </div>
+          <nav aria-label="Primary navigation" className="mt-3 hidden items-center gap-1 overflow-x-auto border-t border-violet-900/30 pt-2 lg:flex">
+            {navItems.slice(0, 7).map(item => {
+              const Icon = item.icon;
+              const active = activeView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveView(item.id)}
+                  className={`relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${active ? 'bg-violet-600 text-white shadow-sm' : dark ? 'text-zinc-400 hover:bg-zinc-800 hover:text-white' : 'text-slate-600 hover:bg-violet-50 hover:text-violet-700'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                  {active && <span className="absolute inset-x-3 -bottom-2 h-0.5 rounded-full bg-violet-300" />}
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </header>
 
