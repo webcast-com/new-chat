@@ -8,12 +8,14 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -21,7 +23,10 @@ export default function Auth() {
         if (!username.trim()) {
           throw new Error('Username is required');
         }
-        await signUp(email, password, username);
+        const needsEmailConfirmation = await signUp(email, password, username);
+        if (needsEmailConfirmation) {
+          setSuccess('Account created. Check your email to confirm your account, then sign in.');
+        }
       } else {
         await signIn(email, password);
       }
@@ -114,6 +119,11 @@ export default function Auth() {
               {error}
             </div>
           )}
+          {success && (
+            <div className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status">
+              {success}
+            </div>
+          )}
 
           <button
             type="submit"
@@ -129,6 +139,7 @@ export default function Auth() {
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError('');
+              setSuccess('');
             }}
             className="text-indigo-600 hover:text-violet-700 font-medium transition-colors"
           >

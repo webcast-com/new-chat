@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<void>;
+  signUp: (email: string, password: string, username: string) => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -90,9 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-    if (data.user && data.session) {
-      await loadProfile(data.user);
-    }
+      if (data.user && data.session) {
+        await loadProfile(data.user);
+      }
+      return !data.session;
     } catch (err: unknown) {
       console.error('SignUp error:', err instanceof Error ? err.message : JSON.stringify(err));
       throw err;
