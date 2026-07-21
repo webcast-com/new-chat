@@ -539,7 +539,7 @@ export default function App() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Board Area */}
           <div className="order-2 flex flex-col items-center gap-3 lg:order-1">
-            <div className="w-full max-w-[760px]">
+            <div className="hidden w-full max-w-[760px] lg:block">
               <Board
                 positions={positions}
                 currentPlayer={currentPlayer}
@@ -635,6 +635,14 @@ export default function App() {
                         ? `${currentParticipant.username} is thinking...`
                         : `Roll Dice (${currentParticipant.username})`}
               </button>
+            </div>
+
+            <div className="w-full lg:hidden">
+              <Board
+                positions={positions}
+                currentPlayer={currentPlayer}
+                winner={winner}
+              />
             </div>
 
             {/* Players memory & scoreboard */}
