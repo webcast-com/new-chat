@@ -55,26 +55,30 @@ export default function OnlineModal({
 
   const inviteUrl = roomCode ? `${window.location.origin}${window.location.pathname}?invite=${roomCode}` : "";
 
-  const handleCopyInvite = () => {
+  const handleCopyInvite = async () => {
     if (!inviteUrl) return;
-    navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="online-lobby-title">
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-slate-900 p-6 text-slate-100 shadow-2xl ring-1 ring-white/15 sm:p-8">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
             <span className="text-3xl">🌐</span>
             <div>
-              <h2 className="text-2xl font-bold text-white">Online Play &amp; Invite</h2>
+              <h2 id="online-lobby-title" className="text-2xl font-bold text-white">Online Play &amp; Invite</h2>
               <p className="text-xs text-slate-400">Live P2P matchmaking with friends</p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-full bg-white/10 p-2 text-slate-400 transition hover:bg-white/20 hover:text-white">✕</button>
+          <button onClick={onClose} aria-label="Close online lobby" className="rounded-full bg-white/10 p-2 text-slate-400 transition hover:bg-white/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-300">✕</button>
         </div>
 
         {/* Active Player Badge */}
@@ -204,6 +208,10 @@ export default function OnlineModal({
               <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Room Code</div>
               <div className="mt-1 font-mono text-4xl font-black tracking-[0.2em] text-white drop-shadow-lg">{roomCode}</div>
               <p className="mt-2 text-xs text-emerald-200/70">{statusMsg}</p>
+              <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-bold text-emerald-200">
+                <span className={`h-2 w-2 rounded-full ${hostConnected ? "bg-emerald-400" : "bg-rose-400"}`} />
+                {hostConnected ? "Connection active — invite friends to fill the table." : "Connecting to the room…"}
+              </div>
 
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <button
@@ -231,7 +239,11 @@ export default function OnlineModal({
               </div>
               <div className="space-y-2">
                 {onlinePlayers.length === 0 && (
-                  <div className="text-xs text-slate-500 italic py-3 text-center">Waiting for players to join...</div>
+                  <div className="rounded-xl border border-dashed border-white/15 px-4 py-5 text-center">
+                    <div className="text-lg">👋</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-300">Your lobby is ready for players.</div>
+                    <div className="mt-1 text-xs text-slate-500">Copy the invite link above and share it with up to three friends.</div>
+                  </div>
                 )}
                 {onlinePlayers.map((p, idx) => (
                   <div
@@ -256,13 +268,8 @@ export default function OnlineModal({
                           HOST
                         </span>
                       )}
-                      {isHost && idx > 0 && (
-                        <button
-                          className="rounded bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-300 ring-1 ring-rose-500/30 cursor-not-allowed opacity-50"
-                          title="Kick (coming soon)"
-                        >
-                          Kick
-                        </button>
+                      {idx > 0 && (
+                        <span className="text-[10px] font-semibold text-emerald-300">READY</span>
                       )}
                     </div>
                   </div>

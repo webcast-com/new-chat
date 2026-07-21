@@ -4,6 +4,17 @@
  */
 
 let _ctx: AudioContext | null = null;
+let muted = localStorage.getItem("snakes_ladders_sound_muted") === "true";
+
+export function isSoundMuted() {
+  return muted;
+}
+
+export function setSoundMuted(value: boolean) {
+  muted = value;
+  localStorage.setItem("snakes_ladders_sound_muted", String(value));
+}
+
 function ctx(): AudioContext {
   if (!_ctx) _ctx = new AudioContext();
   return _ctx;
@@ -94,6 +105,7 @@ function noise(
 
 /** 3D dice tumbling: repeated short clatter bursts simulating a die rolling on wood. */
 export function playDiceRoll() {
+  if (muted) return;
   try {
     const c = ctx();
     const t = c.currentTime;
@@ -147,11 +159,13 @@ export function playDiceRoll() {
 
 /** Token landing with a soft tap */
 export function playTokenStep() {
+  if (muted) return;
   noise(0.07, 0.06, 200, 3000);
 }
 
 /** Ladder climb: ascending wooden tapping */
 export function playLadderClimb() {
+  if (muted) return;
   try {
     const c = ctx();
     const t = c.currentTime;
@@ -174,6 +188,7 @@ export function playLadderClimb() {
 
 /** Snake slide: descending slide with slight hiss-like noise */
 export function playSnakeSlide() {
+  if (muted) return;
   try {
     const c = ctx();
     const t = c.currentTime;
@@ -216,6 +231,7 @@ export function playSnakeSlide() {
 
 /** Victory fanfare: triumphant arpeggio */
 export function playVictory() {
+  if (muted) return;
   try {
     const c = ctx();
     const t = c.currentTime;
@@ -254,6 +270,7 @@ export function playVictory() {
 export function playNotificationSound(
   type: "request" | "joined" | "left" | "info",
 ) {
+  if (muted) return;
   if (type === "request") {
     tone([660, 880], "sine", 0.2, 0.45);
   } else if (type === "joined") {
@@ -279,6 +296,7 @@ export function playNotificationSound(
 
 /** Unique sound per emote reaction */
 export function playEmoteSound(emote: string) {
+  if (muted) return;
   switch (emote) {
     case "🎉":
       // Quick ascending whistle + pop
@@ -323,5 +341,6 @@ export function playEmoteSound(emote: string) {
 
 /** Generic UI click */
 export function playClick() {
+  if (muted) return;
   tone(660, "sine", 0.05, 0.08);
 }

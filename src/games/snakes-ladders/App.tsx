@@ -19,7 +19,7 @@ import ProfileModal from "./components/ProfileModal";
 import LeaderboardModal from "./components/LeaderboardModal";
 import OnlineModal from "./components/OnlineModal";
 import EmoteBar from "./components/EmoteBar";
-import { playDiceRoll, playTokenStep, playLadderClimb, playSnakeSlide, playVictory } from "./audio/sounds";
+import { isSoundMuted, playDiceRoll, playTokenStep, playLadderClimb, playSnakeSlide, playVictory, setSoundMuted } from "./audio/sounds";
 
 type Phase = "idle" | "rolling" | "moving" | "landed" | "finished";
 
@@ -76,6 +76,10 @@ export default function App() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [showOnlineModal, setShowOnlineModal] = useState(false);
+  const [muted, setMuted] = useState(() => isSoundMuted());
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+  const [dailyProgress, setDailyProgress] = useState(() => Number(localStorage.getItem("snakes_ladders_daily_ladders") || "0"));
 
   // Online Multiplayer hook
   const online = useOnlineMultiplayer();
@@ -122,6 +126,16 @@ export default function App() {
   const appendLog = useCallback((entry: string) => {
     setLog((prev) => [...prev.slice(-30), entry]);
   }, []);
+
+  const advanceDailyChallenge = useCallback((playerId: string) => {
+    if (playerId !== activeProfile.id) return;
+    setDailyProgress((progress) => {
+      const next = Math.min(3, progress + 1);
+      localStorage.setItem("snakes_ladders_daily_ladders", String(next));
+      if (next === 3 && progress < 3) setToast("Daily challenge complete — Ladder Seeker badge earned!");
+      return next;
+    });
+  }, [activeProfile.id]);
 
   const resetGame = useCallback(() => {
     const pCount = participants.length || numPlayers;
@@ -202,6 +216,7 @@ export default function App() {
       if (landed in LADDERS) {
         const dest = LADDERS[landed];
         gameEventsRef.current[profileId].ladders += 1;
+        advanceDailyChallenge(profileId);
         appendLog(`🪜 ${profile.username} climbed a ladder from ${landed} to ${dest}! (+10 XP)`);
         playLadderClimb();
         await wait(280);
@@ -229,7 +244,7 @@ export default function App() {
       setPhase("idle");
       setCurrentPlayer((p) => (p + 1) % participants.length);
     },
-    [participants, positions, activeProfile, isOnlineMode, appendLog]
+    [participants, positions, activeProfile, isOnlineMode, appendLog, advanceDailyChallenge]
   );
 
   // Handle local human/host clicking Roll Dice
@@ -341,6 +356,15 @@ export default function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const requestRestart = () => setConfirmRestart(true);
+
+  const confirmNewMatch = () => {
+    if (isOnlineMode) online.sendMessage({ type: "RESTART_GAME" });
+    resetGame();
+    setConfirmRestart(false);
+    setToast("New match ready. Good luck!");
+  };
+
   const canRoll =
     phase === "idle" &&
     winner === null &&
@@ -382,6 +406,19 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => {
+                const nextMuted = !muted;
+                setMuted(nextMuted);
+                setSoundMuted(nextMuted);
+                setToast(nextMuted ? "Sound muted" : "Sound on");
+              }}
+              aria-label={muted ? "Turn sound on" : "Mute sound"}
+              aria-pressed={muted}
+              className="rounded-xl bg-white/10 px-3 py-2 text-sm text-white ring-1 ring-white/15 transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+            >
+              {muted ? "🔇" : "🔊"}
+            </button>
             {/* Active User Memory Badge */}
             <button
               onClick={() => setShowProfileModal(true)}
@@ -440,6 +477,13 @@ export default function App() {
             )}
           </div>
         </header>
+
+        {toast && (
+          <div role="status" className="fixed right-4 top-5 z-50 max-w-sm rounded-2xl bg-slate-950/95 px-4 py-3 text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-400/60 backdrop-blur">
+            {toast}
+            <button onClick={() => setToast(null)} aria-label="Dismiss notification" className="ml-3 text-emerald-300 hover:text-white">✕</button>
+          </div>
+        )}
 
         {/* Floating Emote Notification */}
         {online.lastEmote && (
@@ -511,6 +555,29 @@ export default function App() {
                 }}
               />
             </div>
+            <div className="grid w-full max-w-[760px] grid-cols-1 gap-3 sm:grid-cols-2">
+              <section className="rounded-2xl bg-emerald-950/40 p-4 ring-1 ring-emerald-400/25" aria-label="Daily challenge">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-black uppercase tracking-widest text-emerald-300">Daily challenge</h2>
+                  <span className="text-lg">{dailyProgress >= 3 ? "✓" : "☀"}</span>
+                </div>
+                <p className="mt-2 text-sm font-bold text-white">Climb 3 ladders</p>
+                <p className="mt-1 text-xs text-emerald-100/75">Complete it to collect the Ladder Seeker badge.</p>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/25">
+                  <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-amber-300 transition-all" style={{ width: `${(dailyProgress / 3) * 100}%` }} />
+                </div>
+                <div className="mt-1 text-right text-xs font-bold text-emerald-200">{dailyProgress}/3</div>
+              </section>
+              <section className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10" aria-label="Collectible rewards">
+                <h2 className="text-xs font-black uppercase tracking-widest text-amber-300">Collectibles</h2>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${activeProfile.stats.wins > 0 ? "bg-amber-400/20 ring-1 ring-amber-300/60" : "bg-white/5 opacity-40"}`} title="First Victory">🏆</div>
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${activeProfile.stats.laddersClimbed >= 5 ? "bg-sky-400/20 ring-1 ring-sky-300/60" : "bg-white/5 opacity-40"}`} title="Ladder Climber">🪜</div>
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-xl ${dailyProgress >= 3 ? "bg-emerald-400/20 ring-1 ring-emerald-300/60" : "bg-white/5 opacity-40"}`} title="Ladder Seeker">🌟</div>
+                  <p className="text-xs text-slate-300">{activeProfile.stats.wins > 0 ? "Keep playing to fill your collection." : "Win a match to unlock your first reward."}</p>
+                </div>
+              </section>
+            </div>
           </div>
 
           {/* Sidebar Panel */}
@@ -534,10 +601,14 @@ export default function App() {
                 </div>
                 <div className="text-right">
                   <div className="text-xs uppercase tracking-widest text-emerald-300/70 font-bold">
-                    Landed On
+                    Last Roll
                   </div>
                   <div className="text-xl font-black tabular-nums text-amber-300">{diceValue}</div>
                 </div>
+              </div>
+
+              <div className="mb-2 rounded-xl bg-black/15 px-3 py-2 text-center text-xs font-semibold text-emerald-100">
+                {winner !== null ? "The board remembers this victory." : phase === "idle" ? `${currentParticipant.username}, it’s your turn — roll when ready.` : "Dice in motion — follow the highlighted token."}
               </div>
 
               <div className="flex items-center justify-center py-1">
@@ -643,12 +714,7 @@ export default function App() {
                 ))}
               </div>
               <button
-                onClick={() => {
-                  if (isOnlineMode) {
-                    online.sendMessage({ type: "RESTART_GAME" });
-                  }
-                  resetGame();
-                }}
+                onClick={requestRestart}
                 disabled={phase === "rolling" || phase === "moving"}
                 className="mt-3.5 w-full rounded-xl bg-white/10 px-3 py-2.5 text-xs font-bold text-white transition hover:bg-white/20 disabled:opacity-40"
               >
@@ -696,6 +762,19 @@ export default function App() {
         onRejectPlayer={online.rejectPlayer}
         onDismissNotification={online.dismissNotification}
       />
+
+      {confirmRestart && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="restart-title">
+          <div className="w-full max-w-sm rounded-3xl bg-slate-900 p-6 shadow-2xl ring-1 ring-white/15">
+            <h2 id="restart-title" className="text-lg font-black text-white">Start a new match?</h2>
+            <p className="mt-2 text-sm text-slate-300">Your current board position will be reset. Completed match history and rewards stay saved.</p>
+            <div className="mt-6 flex gap-3">
+              <button autoFocus onClick={() => setConfirmRestart(false)} className="flex-1 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/20">Keep playing</button>
+              <button onClick={confirmNewMatch} className="flex-1 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-black text-amber-950 hover:bg-amber-300">Start new</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Winner Confetti & Performance XP Celebration Overlay */}
       {winner !== null && confetti && (
@@ -757,10 +836,7 @@ export default function App() {
                   🏆 View Hall of Fame
                 </button>
                 <button
-                  onClick={() => {
-                    if (isOnlineMode) online.sendMessage({ type: "RESTART_GAME" });
-                    resetGame();
-                  }}
+                  onClick={requestRestart}
                   className="flex-1 rounded-2xl bg-gradient-to-r from-amber-400 to-rose-400 px-4 py-3 text-xs font-bold text-amber-950 shadow hover:brightness-110"
                 >
                   Play Again
