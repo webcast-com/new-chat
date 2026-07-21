@@ -11,6 +11,20 @@ interface CommentSectionProps {
   onCommentAdded: () => void;
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null) {
+    const details = error as Record<string, unknown>;
+    const message = [details.message, details.details, details.hint]
+      .filter((value): value is string => typeof value === 'string' && value.length > 0)
+      .join(' ');
+
+    if (message) return details.code ? `${message} (code ${String(details.code)})` : message;
+  }
+
+  return 'Unable to add your comment.';
+}
+
 export default function CommentSection({ postId, comments, onCommentAdded }: CommentSectionProps) {
   const { user, profile } = useAuth();
   const [newComment, setNewComment] = useState('');
@@ -24,21 +38,19 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
     setLoading(true);
     setErrorMessage('');
     try {
-      const { error } = await supabase.from('comments').insert([
-        {
-          post_id: postId,
-          user_id: user.id,
-          content: newComment.trim(),
-        },
-      ]);
+      const { error } = await supabase.from('comments').insert({
+        post_id: postId,
+        user_id: user.id,
+        content: newComment.trim(),
+      });
 
       if (error) throw error;
 
       setNewComment('');
       onCommentAdded();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unable to add your comment.';
-      console.error('Error adding comment:', error);
+      const message = getErrorMessage(error);
+      console.error('Error adding comment:', { error, postId, userId: user.id });
       setErrorMessage(message);
     } finally {
       setLoading(false);
