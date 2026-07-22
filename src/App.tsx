@@ -14,14 +14,15 @@ const Trending = lazy(() => import('./components/Trending'));
 const FutureEnhancements = lazy(() => import('./components/FutureEnhancements'));
 const CreatorAbout = lazy(() => import('./components/CreatorAbout'));
 const SnakesAndLadders = lazy(() => import('./games/snakes-ladders/App'));
+const MoviesApp = lazy(() => import('./movies/MoviesApp'));
 import {
   Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus,
-  Sparkles, Plus, X, Bell, Gamepad2, Moon, Sun, ChevronDown,
+  Sparkles, Plus, X, Bell, Gamepad2, Film, Moon, Sun, ChevronDown,
   Bookmark, Settings, CheckCheck, TrendingUp, Info,
 } from 'lucide-react';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
-type ActiveView = 'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'about' | 'game';
+type ActiveView = 'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'about' | 'game' | 'movies';
 
 type NotifItem = {
   id: string;
@@ -454,13 +455,14 @@ function MainApp() {
     { id: 'friends',   icon: UserPlus,   label: 'Friends' },
     { id: 'messages',  icon: Mail,       label: 'Messages' },
     { id: 'game',      icon: Gamepad2,   label: 'Play' },
+    { id: 'movies',    icon: Film,       label: 'Movies' },
     { id: 'tools',     icon: Sparkles,   label: 'Community' },
     { id: 'about',     icon: Info,       label: 'About creator' },
     { id: 'profile',   icon: User,       label: 'Profile' },
   ];
 
   const mobileNavItems = navItems.filter(n =>
-    ['feed', 'dashboard', 'people', 'friends', 'messages', 'profile', 'game', 'trending', 'about'].includes(n.id)
+    ['feed', 'dashboard', 'people', 'friends', 'messages', 'profile', 'game', 'movies', 'trending', 'about'].includes(n.id)
   );
 
   return (
@@ -641,6 +643,7 @@ function MainApp() {
               {activeView === 'tools'     && <FutureEnhancements />}
               {activeView === 'about'     && <CreatorAbout />}
               {activeView === 'game'      && <GameView />}
+              {activeView === 'movies'    && <MoviesApp />}
               {activeView === 'dashboard' && user && <Dashboard />}
               {activeView === 'profile'   && <UserProfile />}
               {activeView === 'people'    && <PeopleDiscovery onStartMessage={handleStartMessage} />}
