@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@movies': path.resolve(process.cwd(), 'src/movies'),
+      '@/app': path.resolve(process.cwd(), 'src/livescore'),
+      '@/lib/supabase': path.resolve(process.cwd(), 'src/livescore-lib/supabase.ts'),
+      '@/utils': path.resolve(process.cwd(), 'src/livescore-utils'),
+      '/utils/supabase/info': path.resolve(process.cwd(), 'src/livescore-supabase/info.ts'),
     },
   },
   optimizeDeps: {

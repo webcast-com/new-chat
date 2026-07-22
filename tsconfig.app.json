@@ -21,7 +21,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@movies/*": ["src/movies/*"]
+      "@movies/*": ["src/movies/*"],
+      "@/app/*": ["src/livescore/*"],
+      "@/lib/supabase": ["src/livescore-lib/supabase.ts"],
+      "@/utils/*": ["src/livescore-utils/*"],
+      "/utils/supabase/info": ["src/livescore-supabase/info.ts"]
     }
   },
   "include": ["src"]
