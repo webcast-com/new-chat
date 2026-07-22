@@ -3,31 +3,31 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <!-- Main Pages -->
   <url>
-    <loc>https://socialhub.app/</loc>
+    <loc>https://hyperlink.hyper.co.ke/</loc>
     <lastmod>2026-06-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://socialhub.app/feed</loc>
+    <loc>https://hyperlink.hyper.co.ke/feed</loc>
     <lastmod>2026-06-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://socialhub.app/discover</loc>
+    <loc>https://hyperlink.hyper.co.ke/discover</loc>
     <lastmod>2026-06-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://socialhub.app/login</loc>
+    <loc>https://hyperlink.hyper.co.ke/login</loc>
     <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://socialhub.app/signup</loc>
+    <loc>https://hyperlink.hyper.co.ke/signup</loc>
     <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
