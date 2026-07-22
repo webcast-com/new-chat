@@ -32,7 +32,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       if (data) {
-        setProfile(data);
+        const profileDetails = authUser.user_metadata?.profile_details;
+        setProfile({
+          ...data,
+          ...(profileDetails && typeof profileDetails === 'object' ? profileDetails : {}),
+        });
         return;
       }
 

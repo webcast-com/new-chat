@@ -7,7 +7,7 @@ import LazyImage from './LazyImage';
 import ProfileShareButton from './ProfileShareButton';
 
 export default function UserProfile() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     full_name: '',
@@ -90,21 +90,32 @@ export default function UserProfile() {
         .update({
           full_name: editForm.full_name,
           bio: editForm.bio,
-          location: editForm.location,
-          age: editForm.age ? Number(editForm.age) : null,
-          work: editForm.work,
-          education: editForm.education,
-          gender: editForm.gender,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
 
       if (error) throw error;
+      if (!user) throw new Error('Your session has expired. Please sign in again.');
 
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          profile_details: {
+            location: editForm.location || null,
+            age: editForm.age ? Number(editForm.age) : null,
+            work: editForm.work || null,
+            education: editForm.education || null,
+            gender: editForm.gender || null,
+          },
+        },
+      });
+
+      if (metadataError) throw metadataError;
       setEditing(false);
       window.location.reload();
-    } catch (error) {
-      console.error('Error updating profile:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error updating profile:', message);
+      window.alert(`Unable to update profile: ${message}`);
     }
   };
 
