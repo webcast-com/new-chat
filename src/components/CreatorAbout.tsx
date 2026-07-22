@@ -38,7 +38,7 @@ export default function CreatorAbout() {
 
       <section className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/80 shadow-xl sm:flex">
         <img
-          src="https://images.pexels.com/photos/33176070/pexels-photo-33176070.jpeg"
+          src="/steve01.jpeg"
           alt="Creative developer working on a project"
           className="h-56 w-full object-cover sm:h-auto sm:w-2/5"
           loading="lazy"
