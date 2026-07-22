@@ -63,6 +63,10 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     return String(error);
   };
 
+  const getRelatedProfile = (relatedProfile: Profile | Profile[] | null | undefined) => (
+    Array.isArray(relatedProfile) ? relatedProfile[0] : relatedProfile
+  );
+
   useEffect(() => {
     if (!profile) return;
 
@@ -171,7 +175,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
         sent.forEach((msg) => {
           const key = msg.recipient_id;
           if (!conversationMap.has(key)) {
-            const recipient = msg.profiles[0];
+            const recipient = getRelatedProfile(msg.profiles);
             conversationMap.set(key, {
               userId: key,
               username: recipient?.username || 'Unknown',
@@ -188,7 +192,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
         received.forEach((msg) => {
           const key = msg.sender_id;
           if (!conversationMap.has(key)) {
-            const sender = msg.profiles[0];
+            const sender = getRelatedProfile(msg.profiles);
             conversationMap.set(key, {
               userId: key,
               username: sender?.username || 'Unknown',
