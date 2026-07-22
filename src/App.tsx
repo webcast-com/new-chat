@@ -12,15 +12,16 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const Contacts = lazy(() => import('./components/Contacts'));
 const Trending = lazy(() => import('./components/Trending'));
 const FutureEnhancements = lazy(() => import('./components/FutureEnhancements'));
+const CreatorAbout = lazy(() => import('./components/CreatorAbout'));
 const SnakesAndLadders = lazy(() => import('./games/snakes-ladders/App'));
 import {
   Home, Users, User, LogOut, Search, Mail, BarChart3, UserPlus,
   Sparkles, Plus, X, Bell, Gamepad2, Moon, Sun, ChevronDown,
-  Bookmark, Settings, CheckCheck, TrendingUp,
+  Bookmark, Settings, CheckCheck, TrendingUp, Info,
 } from 'lucide-react';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
-type ActiveView = 'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'game';
+type ActiveView = 'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'about' | 'game';
 
 type NotifItem = {
   id: string;
@@ -201,6 +202,7 @@ function AvatarMenu({ profile, onSignOut, onNavigate }: {
     { label: 'Dashboard', icon: BarChart3, view: 'dashboard' },
     { label: 'Saved Posts', icon: Bookmark, view: 'feed' },
     { label: 'Settings', icon: Settings, view: 'tools' },
+    { label: 'About the creator', icon: Info, view: 'about' },
   ];
 
   return (
@@ -453,11 +455,12 @@ function MainApp() {
     { id: 'messages',  icon: Mail,       label: 'Messages' },
     { id: 'game',      icon: Gamepad2,   label: 'Play' },
     { id: 'tools',     icon: Sparkles,   label: 'Community' },
+    { id: 'about',     icon: Info,       label: 'About creator' },
     { id: 'profile',   icon: User,       label: 'Profile' },
   ];
 
   const mobileNavItems = navItems.filter(n =>
-    ['feed', 'dashboard', 'people', 'friends', 'messages', 'profile', 'game', 'trending'].includes(n.id)
+    ['feed', 'dashboard', 'people', 'friends', 'messages', 'profile', 'game', 'trending', 'about'].includes(n.id)
   );
 
   return (
@@ -629,6 +632,7 @@ function MainApp() {
               {activeView === 'feed'      && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
               {activeView === 'trending'  && <Trending />}
               {activeView === 'tools'     && <FutureEnhancements />}
+              {activeView === 'about'     && <CreatorAbout />}
               {activeView === 'game'      && <GameView />}
               {activeView === 'dashboard' && user && <Dashboard />}
               {activeView === 'profile'   && <UserProfile />}
