@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
 import { CreditCard as Edit2, Check, X, Loader2, Users, Search, ArrowUpDown } from 'lucide-react';
 import LazyImage from './LazyImage';
+import ProfileShareButton from './ProfileShareButton';
 
 export default function UserProfile() {
   const { profile } = useAuth();
@@ -123,13 +124,16 @@ export default function UserProfile() {
             )}
           </div>
           {!editing ? (
-            <button
-              onClick={() => setEditing(true)}
-              className="mt-14 flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-all"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span>Edit Profile</span>
-            </button>
+            <div className="mt-14 flex gap-2">
+              <ProfileShareButton username={profile?.username || ''} fullName={profile?.full_name || ''} />
+              <button
+                onClick={() => setEditing(true)}
+                className="flex items-center gap-2 rounded-lg bg-indigo-50 px-4 py-2 text-indigo-700 transition-all hover:bg-indigo-100"
+              >
+                <Edit2 className="w-4 h-4" />
+                <span>Edit Profile</span>
+              </button>
+            </div>
           ) : (
             <div className="mt-14 flex gap-2">
               <button

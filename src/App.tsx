@@ -389,8 +389,17 @@ function PublicFeed() {
 function MainApp() {
   const { user, profile, loading, signOut } = useAuth();
   const [dark, toggleDark] = useDarkMode();
-  const [activeView, setActiveView] = useState<ActiveView>('feed');
+  const [activeView, setActiveView] = useState<ActiveView>(() => window.location.hash.startsWith('#profile-') ? 'profile' : 'feed');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash.startsWith('#profile-')) setActiveView('profile');
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [postsRefreshKey, setPostsRefreshKey] = useState(0);
   const [messageRecipientId, setMessageRecipientId] = useState<string | null>(null);
