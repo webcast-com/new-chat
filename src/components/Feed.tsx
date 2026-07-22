@@ -8,13 +8,15 @@ import { SearchX } from 'lucide-react';
 interface FeedProps {
   refreshKey: number;
   searchQuery: string;
+  onCreatePost?: () => void;
+  onAboutCreator?: () => void;
 }
 
 const POSTS_CACHE_KEY = 'community-feed-posts';
 const INITIAL_POST_COUNT = 4;
 const POST_BATCH_SIZE = 4;
 
-export default function Feed({ refreshKey, searchQuery }: FeedProps) {
+export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCreator }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>(() => {
     try {
       return JSON.parse(sessionStorage.getItem(POSTS_CACHE_KEY) || '[]');
@@ -103,7 +105,7 @@ export default function Feed({ refreshKey, searchQuery }: FeedProps) {
 
   return (
     <div className="space-y-6">
-      <Stories />
+      <Stories onCreatePost={onCreatePost} onAboutCreator={onAboutCreator} />
       {visiblePosts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/80 p-10 text-center shadow-sm">
           <SearchX className="mx-auto h-10 w-10 text-violet-400" />

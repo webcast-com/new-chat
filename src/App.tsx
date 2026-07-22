@@ -629,7 +629,14 @@ function MainApp() {
           {/* Main content */}
           <main className="order-2 mx-auto min-w-0 w-full max-w-3xl pb-24 lg:order-none lg:col-span-3 lg:max-w-none lg:pb-0">
             <Suspense fallback={<ContentSkeleton />}>
-              {activeView === 'feed'      && <Feed refreshKey={postsRefreshKey} searchQuery={searchQuery} />}
+              {activeView === 'feed'      && (
+                <Feed
+                  refreshKey={postsRefreshKey}
+                  searchQuery={searchQuery}
+                  onCreatePost={() => setIsCreatePostOpen(true)}
+                  onAboutCreator={() => setActiveView('about')}
+                />
+              )}
               {activeView === 'trending'  && <Trending />}
               {activeView === 'tools'     && <FutureEnhancements />}
               {activeView === 'about'     && <CreatorAbout />}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { Plus, X, Loader2, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { Plus, X, Loader2, ChevronLeft, ChevronRight, Heart, Info } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import Image from './Image';
 
@@ -37,7 +37,12 @@ const reactionOptions = [
   { type: 'angry', emoji: '😠', label: 'Angry' },
 ];
 
-export default function Stories() {
+interface StoriesProps {
+  onCreatePost?: () => void;
+  onAboutCreator?: () => void;
+}
+
+export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) {
   const { user, profile } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [selectedStoryGroup, setSelectedStoryGroup] = useState<StoryGroup | null>(null);
@@ -267,6 +272,26 @@ export default function Stories() {
               <Plus className="w-8 h-8" />
             )}
             <span className="text-xs">{uploading ? 'Uploading...' : 'Your Story'}</span>
+          </button>
+        )}
+
+        {onCreatePost && (
+          <button
+            onClick={onCreatePost}
+            className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] bg-gradient-to-br from-violet-600 to-fuchsia-600 flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0"
+          >
+            <Plus className="h-8 w-8" />
+            <span className="text-xs">Create</span>
+          </button>
+        )}
+
+        {onAboutCreator && (
+          <button
+            onClick={onAboutCreator}
+            className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] bg-gradient-to-br from-indigo-600 to-slate-700 flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0"
+          >
+            <Info className="h-8 w-8" />
+            <span className="text-xs">About</span>
           </button>
         )}
 
