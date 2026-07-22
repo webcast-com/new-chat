@@ -490,7 +490,7 @@ function MainApp() {
               </div>
               <div>
                 <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-base">
-                  Hyper
+                  hyperlink
                 </h1>
                 <p className="hidden text-xs text-slate-400 md:block">Elves at work &bull; <span className="text-violet-400 font-medium">100% Christmas Magic</span></p>
               </div>
