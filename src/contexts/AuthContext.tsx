@@ -88,18 +88,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, username: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { username } },
+      const { data, error } = await supabase.functions.invoke('auth-sign-up', {
+        body: { email, password, username },
       });
 
       if (error) throw error;
 
-      if (data.user && data.session) {
-        await loadProfile(data.user);
+      if (data?.session) {
+        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (sessionError) throw sessionError;
+        if (sessionData.user) await loadProfile(sessionData.user);
       }
-      return !data.session;
+      return !data?.session;
     } catch (err: unknown) {
       console.error('SignUp error:', err instanceof Error ? err.message : JSON.stringify(err));
       throw err;
