@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, Profile } from '../lib/supabase';
 
@@ -17,6 +17,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const loadingProfileFor = useRef<string | null>(null);
+
+  const loadProfile = async (authUser: User) => {
+    if (loadingProfileFor.current === authUser.id) return;
+    loadingProfileFor.current = authUser.id;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setProfile(data);
+        return;
+      }
+
+      const username =
+        authUser.user_metadata?.username ||
+        authUser.email?.split('@')[0] ||
+        'user';
+
+      const { data: createdProfile, error: createError } = await supabase
+        .from('profiles')
+        .upsert(
+          { id: authUser.id, username, full_name: '', bio: '', avatar_url: '' },
+          { onConflict: 'id' }
+        )
+        .select()
+        .single();
+
+      if (createError) throw createError;
+      setProfile(createdProfile);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error loading profile:', message);
+      setProfile(null);
+    } finally {
+      loadingProfileFor.current = null;
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,46 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  const loadProfile = async (authUser: User) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setProfile(data);
-        return;
-      }
-
-      const username = authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'user';
-      const { data: createdProfile, error: createError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: authUser.id,
-          username,
-          full_name: '',
-          bio: '',
-          avatar_url: '',
-        }, { onConflict: 'id' })
-        .select()
-        .single();
-
-      if (createError) throw createError;
-      setProfile(createdProfile);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : JSON.stringify(error);
-      console.error('Error loading profile:', message);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // loadProfile is defined outside useEffect but is stable (uses refs/state setters only)
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const signUp = async (email: string, password: string, username: string) => {
     try {
