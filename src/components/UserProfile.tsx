@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { CreditCard as Edit2, Check, X, Loader2, Users, Search, ArrowUpDown } from 'lucide-react';
+import { useRef } from 'react';
+import { CreditCard as Edit2, Check, X, Loader2, Users, Search, ArrowUpDown, Camera } from 'lucide-react';
 import LazyImage from './LazyImage';
 import ProfileShareButton from './ProfileShareButton';
 
@@ -11,7 +12,15 @@ export default function UserProfile() {
   const [editForm, setEditForm] = useState({
     full_name: '',
     bio: '',
+    location: '',
+    age: '',
+    work: '',
+    education: '',
+    gender: '',
   });
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stats, setStats] = useState({ posts: 0, friends: 0, following: 0, followers: 0 });
   const [following, setFollowing] = useState<Profile[]>([]);
   const [followers, setFollowers] = useState<Profile[]>([]);
@@ -25,6 +34,11 @@ export default function UserProfile() {
       setEditForm({
         full_name: profile.full_name,
         bio: profile.bio,
+        location: profile.location || '',
+        age: profile.age?.toString() || '',
+        work: profile.work || '',
+        education: profile.education || '',
+        gender: profile.gender || '',
       });
       loadStats();
     }
@@ -76,6 +90,11 @@ export default function UserProfile() {
         .update({
           full_name: editForm.full_name,
           bio: editForm.bio,
+          location: editForm.location,
+          age: editForm.age ? Number(editForm.age) : null,
+          work: editForm.work,
+          education: editForm.education,
+          gender: editForm.gender,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -86,6 +105,42 @@ export default function UserProfile() {
       window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
+    }
+  };
+
+  const handlePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile) return;
+    if (!file.type.startsWith('image/')) {
+      window.alert('Please select an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      window.alert('Image must be smaller than 5MB.');
+      return;
+    }
+
+    setUploadingPicture(true);
+    setPreviewUrl(URL.createObjectURL(file));
+    try {
+      const extension = file.name.split('.').pop() || 'jpg';
+      const fileName = `${profile.id}/profile.${extension}`;
+      const { error: uploadError } = await supabase.storage.from('profile-pictures').upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('profile-pictures').getPublicUrl(fileName);
+      const { error: updateError } = await supabase.from('profiles').update({
+        avatar_url: `${data.publicUrl}?v=${Date.now()}`,
+        updated_at: new Date().toISOString(),
+      }).eq('id', profile.id);
+      if (updateError) throw updateError;
+      window.location.reload();
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      setPreviewUrl(null);
+      window.alert('Unable to update your profile picture.');
+    } finally {
+      setUploadingPicture(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -112,16 +167,18 @@ export default function UserProfile() {
       <div className="h-32 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500"></div>
       <div className="px-6 pb-6">
         <div className="flex justify-between items-start -mt-12 mb-4">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-xl overflow-hidden">
-            {profile?.avatar_url ? (
-              <LazyImage
-                src={profile.avatar_url}
-                alt={profile.username}
-                className="w-24 h-24"
-              />
-            ) : (
-              <span>{profile?.username.charAt(0).toUpperCase()}</span>
-            )}
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-3xl border-4 border-white shadow-xl overflow-hidden">
+              {previewUrl || profile?.avatar_url ? (
+                <LazyImage src={previewUrl || profile?.avatar_url || ''} alt={profile?.username || 'Profile picture'} className="w-24 h-24" />
+              ) : (
+                <span>{profile?.username.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingPicture} className="absolute bottom-0 right-0 rounded-full bg-violet-600 p-2 text-white shadow-lg transition hover:bg-violet-700 disabled:opacity-50" aria-label="Upload profile picture">
+              {uploadingPicture ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePictureUpload} className="hidden" />
           </div>
           {!editing ? (
             <div className="mt-14 flex gap-2">
@@ -172,6 +229,13 @@ export default function UserProfile() {
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none resize-none"
               />
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="text-sm font-medium text-slate-700">Location<input type="text" value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} placeholder="City, country" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
+              <label className="text-sm font-medium text-slate-700">Age<input type="number" min="13" max="120" value={editForm.age} onChange={(e) => setEditForm({ ...editForm, age: e.target.value })} placeholder="Age" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
+              <label className="text-sm font-medium text-slate-700">Work<input type="text" value={editForm.work} onChange={(e) => setEditForm({ ...editForm, work: e.target.value })} placeholder="Company or role" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
+              <label className="text-sm font-medium text-slate-700">Education<input type="text" value={editForm.education} onChange={(e) => setEditForm({ ...editForm, education: e.target.value })} placeholder="School or institution" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
+              <label className="text-sm font-medium text-slate-700 sm:col-span-2">Gender<select value={editForm.gender} onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200"><option value="">Prefer not to say</option><option>Woman</option><option>Man</option><option>Non-binary</option><option>Another identity</option></select></label>
+            </div>
           </div>
         ) : (
           <div className="mt-4">
@@ -182,6 +246,13 @@ export default function UserProfile() {
             {profile?.bio && (
               <p className="text-slate-700 mt-3 leading-relaxed">{profile.bio}</p>
             )}
+            <div className="mt-4 flex flex-wrap gap-2 text-sm text-slate-600">
+              {profile?.location && <span className="rounded-full bg-indigo-50 px-3 py-1">{profile.location}</span>}
+              {profile?.work && <span className="rounded-full bg-indigo-50 px-3 py-1">Works at {profile.work}</span>}
+              {profile?.education && <span className="rounded-full bg-indigo-50 px-3 py-1">Studied at {profile.education}</span>}
+              {profile?.age && <span className="rounded-full bg-indigo-50 px-3 py-1">{profile.age} years old</span>}
+              {profile?.gender && <span className="rounded-full bg-indigo-50 px-3 py-1">{profile.gender}</span>}
+            </div>
           </div>
         )}
 

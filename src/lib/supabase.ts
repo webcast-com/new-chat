@@ -15,6 +15,11 @@ export type Profile = {
   full_name: string;
   bio: string;
   avatar_url: string;
+  location?: string | null;
+  age?: number | null;
+  work?: string | null;
+  education?: string | null;
+  gender?: string | null;
   created_at: string;
   updated_at: string;
 };
