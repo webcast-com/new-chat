@@ -36,6 +36,23 @@ export default function CreatorAbout() {
         </div>
       </section>
 
+      <section className="overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/80 shadow-xl sm:flex">
+        <img
+          src="https://images.pexels.com/photos/33176070/pexels-photo-33176070.jpeg"
+          alt="Creative developer working on a project"
+          className="h-56 w-full object-cover sm:h-auto sm:w-2/5"
+          loading="lazy"
+        />
+        <div className="p-6 sm:flex-1 sm:p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-400">Creator spotlight</p>
+          <h2 className="mt-2 text-2xl font-bold text-zinc-100">Steve Nganga</h2>
+          <p className="mt-3 leading-7 text-zinc-400">
+            Steve Nganga created hyperlink with a focus on bringing people together through thoughtful design and useful community tools.
+          </p>
+          <p className="mt-4 text-sm font-medium text-violet-300">Creator of hyperlink</p>
+        </div>
+      </section>
+
       <section className="rounded-3xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-xl sm:p-8">
         <div className="flex items-start gap-4">
           <div className="rounded-xl bg-violet-500/15 p-3 text-violet-300">
