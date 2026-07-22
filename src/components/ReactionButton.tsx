@@ -90,9 +90,11 @@ export default function ReactionButton({ postId, onReactionChange }: ReactionBut
 
       if (error) throw error;
       onReactionChange();
-    } catch (error) {
+    } catch (error: unknown) {
       setUserReaction(previousReaction);
-      console.error('Error updating reaction:', error);
+      const message = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error updating reaction:', message);
+      window.alert(`Unable to update reaction: ${message}`);
     } finally {
       setLoading(false);
     }
