@@ -11,6 +11,12 @@ type ReplyTarget = Pick<Comment, 'id' | 'profiles'>;
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null) {
+    const details = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+    const message = typeof details.message === 'string' ? details.message : 'Unable to add your comment.';
+    const context = [details.details, details.hint].filter(value => typeof value === 'string' && value).join(' ');
+    return context ? `${message} ${context}` : message;
+  }
   return 'Unable to add your comment.';
 }
 
@@ -21,7 +27,6 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
   const [errorMessage, setErrorMessage] = useState('');
   const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
-  const [threadedIds, setThreadedIds] = useState<Set<string>>(new Set());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,19 +34,19 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
     setLoading(true);
     setErrorMessage('');
     try {
-      const { data, error } = await supabase.from('comments').insert({
+      const { error } = await supabase.from('comments').insert({
         post_id: postId,
         user_id: user.id,
         content: replyTo ? `@${replyTo.profiles?.username || 'member'} ${newComment.trim()}` : newComment.trim(),
-      }).select('id').single();
+      });
       if (error) throw error;
-      if (replyTo && data?.id) setThreadedIds(ids => new Set(ids).add(data.id));
       setNewComment('');
       setReplyTo(null);
       onCommentAdded();
     } catch (error: unknown) {
-      console.error('Error adding comment:', { error, postId, userId: user.id });
-      setErrorMessage(getErrorMessage(error));
+      const message = getErrorMessage(error);
+      console.error(`Error adding comment: ${message}`, { error, postId, userId: user.id });
+      setErrorMessage(message);
     } finally { setLoading(false); }
   };
 
@@ -63,7 +68,7 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
       <div className="max-h-[30rem] space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
         {comments.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-zinc-700">Start the conversation.</p>}
         {comments.map(comment => {
-          const isReply = threadedIds.has(comment.id) || comments.some(parent => parent.id !== comment.id && comment.content.startsWith(`@${parent.profiles?.username || ''} `));
+          const isReply = comments.some(parent => parent.id !== comment.id && comment.content.startsWith(`@${parent.profiles?.username || ''} `));
           const liked = likedComments.has(comment.id);
           return <article key={comment.id} className={`flex gap-3 ${isReply ? 'ml-7 border-l-2 border-violet-200 pl-3 dark:border-violet-900' : ''}`}>
             <Avatar profile={comment.profiles} />
