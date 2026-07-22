@@ -34,10 +34,11 @@ export default function CommentSection({ postId, comments, onCommentAdded }: Com
     setLoading(true);
     setErrorMessage('');
     try {
-      const { error } = await supabase.from('comments').insert({
-        post_id: postId,
-        user_id: user.id,
-        content: replyTo ? `@${replyTo.profiles?.username || 'member'} ${newComment.trim()}` : newComment.trim(),
+      const content = replyTo
+        ? `@${replyTo.profiles?.username || 'member'} ${newComment.trim()}`
+        : newComment.trim();
+      const { error } = await supabase.functions.invoke('add-comment', {
+        body: { postId, content },
       });
       if (error) throw error;
       setNewComment('');
