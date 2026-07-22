@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { Plus, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, X, Loader2, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import Image from './Image';
 
@@ -23,6 +23,20 @@ interface StoryGroup {
   hasUnviewed: boolean;
 }
 
+interface StoryReactionState {
+  count: number;
+  userReaction: string | null;
+}
+
+const reactionOptions = [
+  { type: 'like', emoji: '👍', label: 'Like' },
+  { type: 'love', emoji: '❤️', label: 'Love' },
+  { type: 'haha', emoji: '😂', label: 'Haha' },
+  { type: 'wow', emoji: '😮', label: 'Wow' },
+  { type: 'sad', emoji: '😢', label: 'Sad' },
+  { type: 'angry', emoji: '😠', label: 'Angry' },
+];
+
 export default function Stories() {
   const { user, profile } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
@@ -31,11 +45,14 @@ export default function Stories() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [storyReactions, setStoryReactions] = useState<Record<string, StoryReactionState>>({});
+  const [showReactionMenu, setShowReactionMenu] = useState(false);
+  const [reacting, setReacting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadStories();
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (selectedStoryGroup) {
@@ -62,8 +79,68 @@ export default function Stories() {
       }));
 
       setStories(formattedStories);
+      await loadStoryReactions(formattedStories.map((story) => story.id));
     } catch (error) {
       console.error('Error loading stories:', error);
+    }
+  };
+
+  const loadStoryReactions = async (storyIds: string[]) => {
+    if (storyIds.length === 0) {
+      setStoryReactions({});
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('story_reactions')
+      .select('story_id, user_id, reaction_type')
+      .in('story_id', storyIds);
+
+    if (error) throw error;
+
+    const reactionsByStory = (data || []).reduce<Record<string, StoryReactionState>>((result, reaction) => {
+      const current = result[reaction.story_id] || { count: 0, userReaction: null };
+      result[reaction.story_id] = {
+        count: current.count + 1,
+        userReaction: reaction.user_id === user?.id ? reaction.reaction_type : current.userReaction,
+      };
+      return result;
+    }, {});
+
+    setStoryReactions(reactionsByStory);
+  };
+
+  const handleReaction = async (reactionType: string) => {
+    if (!user || !currentStory || reacting) {
+      if (!user) setShowAuthPrompt(true);
+      return;
+    }
+
+    const storyId = currentStory.id;
+    const previous = storyReactions[storyId] || { count: 0, userReaction: null };
+    const nextReaction = previous.userReaction === reactionType ? null : reactionType;
+    const nextCount = previous.count + (nextReaction && !previous.userReaction ? 1 : !nextReaction ? -1 : 0);
+
+    setReacting(true);
+    setShowReactionMenu(false);
+    setStoryReactions((current) => ({
+      ...current,
+      [storyId]: { count: nextCount, userReaction: nextReaction },
+    }));
+
+    try {
+      const { error } = nextReaction === null
+        ? await supabase.from('story_reactions').delete().eq('story_id', storyId).eq('user_id', user.id)
+        : previous.userReaction
+          ? await supabase.from('story_reactions').update({ reaction_type: nextReaction }).eq('story_id', storyId).eq('user_id', user.id)
+          : await supabase.from('story_reactions').insert({ story_id: storyId, user_id: user.id, reaction_type: nextReaction });
+
+      if (error) throw error;
+    } catch (error) {
+      setStoryReactions((current) => ({ ...current, [storyId]: previous }));
+      console.error('Error updating story reaction:', error);
+    } finally {
+      setReacting(false);
     }
   };
 
@@ -171,6 +248,8 @@ export default function Stories() {
   }));
 
   const currentStory = selectedStoryGroup?.stories[currentStoryIndex];
+  const currentReaction = currentStory ? storyReactions[currentStory.id] : undefined;
+  const currentReactionEmoji = reactionOptions.find((reaction) => reaction.type === currentReaction?.userReaction)?.emoji;
 
   return (
     <>
@@ -265,6 +344,35 @@ export default function Stories() {
                 </button>
               </>
             )}
+
+            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between p-4 bg-gradient-to-t from-black/70 to-transparent">
+              <div className="relative">
+                <button
+                  onClick={() => user ? setShowReactionMenu((isOpen) => !isOpen) : setShowAuthPrompt(true)}
+                  disabled={reacting}
+                  className="flex items-center gap-2 rounded-full bg-black/45 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-black/65 disabled:opacity-60"
+                >
+                  {currentReactionEmoji ? <span className="text-lg">{currentReactionEmoji}</span> : <Heart className="h-5 w-5" />}
+                  <span>{currentReaction?.count || 'React'}</span>
+                </button>
+
+                {showReactionMenu && (
+                  <div className="absolute bottom-full left-0 mb-3 flex gap-1 rounded-full border border-white/20 bg-slate-900/95 p-2 shadow-xl">
+                    {reactionOptions.map((reaction) => (
+                      <button
+                        key={reaction.type}
+                        onClick={() => handleReaction(reaction.type)}
+                        className="text-2xl transition-transform hover:scale-125"
+                        title={reaction.label}
+                      >
+                        {reaction.emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {currentStory.caption && <p className="max-w-[60%] text-right text-sm text-white">{currentStory.caption}</p>}
+            </div>
 
             <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/40 to-transparent">
               <div className="flex items-center gap-3">
