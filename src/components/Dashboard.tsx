@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BarChart3, Activity, TrendingUp, Settings, Bookmark, CalendarDays, Mail, UserPlus, Trophy, ChevronRight, Clock3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import DashboardOverview from './dashboard/DashboardOverview';
 import DashboardActivity from './dashboard/DashboardActivity';
 import DashboardInsights from './dashboard/DashboardInsights';
@@ -8,11 +9,12 @@ import DashboardSettings from './dashboard/DashboardSettings';
 
 type DashboardTab = 'overview' | 'activity' | 'insights' | 'settings';
 
-const activity = [
-  { text: 'Your workshop post received new reactions', time: '12 min ago', tone: 'bg-violet-500' },
-  { text: 'Maya Winter replied to your comment', time: '1 hr ago', tone: 'bg-fuchsia-500' },
-  { text: 'A new friend request is waiting', time: '3 hrs ago', tone: 'bg-sky-500' },
-];
+type RecentActivityItem = {
+  id: string;
+  text: string;
+  createdAt: string;
+  tone: string;
+};
 
 const events = [
   { day: '18', month: 'DEC', title: 'Gift exchange planning', time: 'Today · 6:00 PM' },
@@ -43,9 +45,7 @@ export default function Dashboard() {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Widget title="Recent activity" icon={Clock3} action="View all">
-          <div className="space-y-3">
-            {activity.map(item => <div key={item.text} className="flex gap-3"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.tone}`} /><div><p className="text-sm font-medium text-slate-700 dark:text-zinc-200">{item.text}</p><p className="mt-0.5 text-xs text-slate-500">{item.time}</p></div></div>)}
-          </div>
+          <RecentActivity userId={profile?.id} />
         </Widget>
 
         <Widget title="Saved posts" icon={Bookmark} action="See saved">
@@ -84,6 +84,69 @@ export default function Dashboard() {
       {activeTab === 'activity' && <DashboardActivity />}
       {activeTab === 'insights' && <DashboardInsights />}
       {activeTab === 'settings' && <DashboardSettings />}
+    </div>
+  );
+}
+
+function RecentActivity({ userId }: { userId?: string }) {
+  const [items, setItems] = useState<RecentActivityItem[]>([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    Promise.all([
+      supabase
+        .from('activity_events')
+        .select('id, kind, title, detail, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(6),
+      supabase
+        .from('notification_events')
+        .select('id, kind, title, body, created_at')
+        .eq('recipient_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(6),
+    ]).then(([activityResult, notificationResult]) => {
+      if (!active) return;
+      const activityItems: RecentActivityItem[] = (activityResult.data || []).map((item) => ({
+        id: `activity-${item.id}`,
+        text: item.detail ? `${item.title}: ${item.detail}` : item.title,
+        createdAt: item.created_at,
+        tone: item.kind === 'comment' ? 'bg-fuchsia-500' : 'bg-violet-500',
+      }));
+      const notificationItems: RecentActivityItem[] = (notificationResult.data || []).map((item) => ({
+        id: `notification-${item.id}`,
+        text: item.body ? `${item.title}: ${item.body}` : item.title,
+        createdAt: item.created_at,
+        tone: item.kind === 'friend_request' ? 'bg-sky-500' : 'bg-violet-500',
+      }));
+      setItems([...activityItems, ...notificationItems].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ).slice(0, 3));
+    });
+    return () => { active = false; };
+  }, [userId]);
+
+  if (items.length === 0) {
+    return <p className="text-sm text-slate-500 dark:text-zinc-400">No recent activity yet.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => {
+        const minutes = Math.max(0, Math.floor((Date.now() - new Date(item.createdAt).getTime()) / 60000));
+        const time = minutes < 1 ? 'Just now' : minutes < 60 ? `${minutes} min ago` : minutes < 1440 ? `${Math.floor(minutes / 60)} hr ago` : `${Math.floor(minutes / 1440)} days ago`;
+        return (
+          <div key={item.id} className="flex gap-3">
+            <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.tone}`} />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-slate-700 dark:text-zinc-200">{item.text}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{time}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
