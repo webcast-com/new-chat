@@ -194,12 +194,17 @@ function Groups({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<GroupMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const loadGroups = async () => {
-    const { data: memberships } = await supabase
+    const { data: memberships, error: membershipsError } = await supabase
       .from("chat_group_members")
       .select("group_id")
       .eq("user_id", userId);
+    if (membershipsError) {
+      setErrorMessage(membershipsError.message);
+      return;
+    }
     const groupIds = (memberships || []).map(
       (membership) => membership.group_id,
     );
@@ -207,11 +212,15 @@ function Groups({ userId }: { userId: string }) {
       `owner_id.eq.${userId}`,
       ...(groupIds.length ? [`id.in.(${groupIds.join(",")})`] : []),
     ];
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("chat_groups")
       .select("*")
       .or(filters.join(","))
       .order("created_at", { ascending: false });
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
     setGroups(data || []);
   };
 
@@ -232,9 +241,11 @@ function Groups({ userId }: { userId: string }) {
       .select("*")
       .eq("group_id", selectedGroup.id)
       .order("created_at", { ascending: true })
-      .then(({ data }) => {
-        if (active) setMessages(data || []);
-        if (active) setLoadingMessages(false);
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) setErrorMessage(error.message);
+        else setMessages(data || []);
+        setLoadingMessages(false);
       });
     const channel = supabase
       .channel(`group-messages:${selectedGroup.id}`)
@@ -264,6 +275,7 @@ function Groups({ userId }: { userId: string }) {
   const create = async (event: FormEvent) => {
     event.preventDefault();
     if (!name.trim()) return;
+    setErrorMessage("");
     setBusy(true);
     const { data, error } = await supabase
       .from("chat_groups")
@@ -274,11 +286,15 @@ function Groups({ userId }: { userId: string }) {
       })
       .select()
       .single();
-    if (!error && data) {
+    if (error) {
+      setErrorMessage(error.message);
+    } else if (data) {
       const { error: membershipError } = await supabase
         .from("chat_group_members")
         .insert({ group_id: data.id, user_id: userId });
-      if (!membershipError) {
+      if (membershipError) {
+        setErrorMessage(membershipError.message);
+      } else {
         setName("");
         setDescription("");
         await loadGroups();
@@ -292,6 +308,7 @@ function Groups({ userId }: { userId: string }) {
     event.preventDefault();
     const trimmed = content.trim();
     if (!selectedGroup || !trimmed || busy) return;
+    setErrorMessage("");
     setBusy(true);
     const { data, error } = await supabase
       .from("chat_group_messages")
@@ -302,7 +319,9 @@ function Groups({ userId }: { userId: string }) {
       })
       .select()
       .single();
-    if (!error && data) {
+    if (error) {
+      setErrorMessage(error.message);
+    } else if (data) {
       setMessages((current) =>
         current.some((item) => item.id === data.id)
           ? current
@@ -315,6 +334,11 @@ function Groups({ userId }: { userId: string }) {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+      {errorMessage && (
+        <p className="lg:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          {errorMessage}
+        </p>
+      )}
       <Panel>
         <h2 className="mb-1 text-lg font-bold text-slate-900">
           Create a group chat
