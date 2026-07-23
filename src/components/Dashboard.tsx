@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BarChart3, Activity, TrendingUp, Settings, Bookmark, CalendarDays, Mail, UserPlus, Trophy, ChevronRight, Clock3 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
