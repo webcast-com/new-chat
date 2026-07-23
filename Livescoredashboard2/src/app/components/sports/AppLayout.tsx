@@ -56,13 +56,40 @@ const informationalPages: Record<InformationalPage, React.ComponentType> = {
   accessibility: AccessibilityStatement,
 };
 
+const getInformationalPage = (): InformationalPage | null => {
+  const page = window.location.pathname.slice(1) as InformationalPage;
+  return page in informationalPages ? page : null;
+};
+
 const AppLayout: React.FC = () => {
   const [activeSport, setActiveSport] = useState<Sport>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatch, setSelectedMatch] = useState<LiveMatch | null>(null);
   const [activeTab, setActiveTab] = useState<MainTab>('dashboard');
-  const [activePage, setActivePage] = useState<InformationalPage | null>(null);
+  const [activePage, setActivePage] = useState<InformationalPage | null>(getInformationalPage);
   const [showPricingPopup, setShowPricingPopup] = useState(false);
+
+  const navigateToPage = (href: string) => {
+    const page = href.slice(1) as InformationalPage;
+    if (!(page in informationalPages)) return;
+
+    window.history.pushState({}, '', href);
+    setActivePage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleTabChange = (tab: MainTab) => {
+    window.history.pushState({}, '', '/');
+    setActivePage(null);
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const handlePopState = () => setActivePage(getInformationalPage());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const { user, loading: authLoading } = useAuth();
   const { matches: simulatedMatches, source, loading, error } = useScoreSimulator();
@@ -91,22 +118,21 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
-        <Header
-          activeSport={activeSport}
-          onSportChange={setActiveSport}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-
         {activePage ? (
           React.createElement(informationalPages[activePage])
         ) : (
           <>
+            <Header
+              activeSport={activeSport}
+              onSportChange={setActiveSport}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
             {/* Breadcrumb Navigation */}
             <Breadcrumb activeTab={activeTab} activeSport={activeSport} />
 
         {/* Main tab nav */}
-        <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
+        <TabNavigation activeTab={activeTab} onChange={handleTabChange} />
 
         {activeTab !== 'premium' && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-2" aria-label="Premium predictions promotion">
@@ -127,7 +153,7 @@ const AppLayout: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('premium')}
+                  onClick={() => handleTabChange('premium')}
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#00d4ff] to-[#00ff88] px-4 py-2.5 text-sm font-bold text-[#0d1117] shadow-lg shadow-[#00d4ff]/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Unlock Premium
@@ -196,19 +222,19 @@ const AppLayout: React.FC = () => {
 
         {activeTab === 'predictions' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <PredictionsList setActiveTab={setActiveTab} />
+            <PredictionsList setActiveTab={handleTabChange} />
           </div>
         )}
 
         {activeTab === 'results' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <SlideResults setActiveTab={setActiveTab} />
+            <SlideResults setActiveTab={handleTabChange} />
           </div>
         )}
 
         {activeTab === 'sure-bets' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <SureBets onUpgrade={() => setActiveTab('premium')} />
+            <SureBets onUpgrade={() => handleTabChange('premium')} />
           </div>
         )}
 
@@ -220,7 +246,7 @@ const AppLayout: React.FC = () => {
 
         {activeTab === 'premium' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <PremiumUpgrade setActiveTab={setActiveTab} />
+            <PremiumUpgrade setActiveTab={handleTabChange} />
           </div>
         )}
 
@@ -232,7 +258,7 @@ const AppLayout: React.FC = () => {
 
         {activeTab === 'subscription' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <SubscriptionManagement setActiveTab={setActiveTab} />
+            <SubscriptionManagement setActiveTab={handleTabChange} />
           </div>
         )}
 
@@ -246,10 +272,10 @@ const AppLayout: React.FC = () => {
           </>
         )}
 
-        <Footer onNavigate={(href) => setActivePage(href.slice(1) as InformationalPage)} />
+        {!activePage && <Footer onNavigate={navigateToPage} />}
         <BackToTop />
 
-        {showPricingPopup && user?.plan !== 'premium' && (
+        {!activePage && showPricingPopup && user?.plan !== 'premium' && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="pricing-popup-title">
             <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 text-gray-800 shadow-[0_24px_40px_-12px_rgba(139,92,246,0.25)] transition-transform duration-300 hover:-translate-y-2">
               <button
@@ -272,7 +298,7 @@ const AppLayout: React.FC = () => {
               </ul>
               <button
                 type="button"
-                onClick={() => { setShowPricingPopup(false); setActiveTab('premium'); }}
+                onClick={() => { setShowPricingPopup(false); handleTabChange('premium'); }}
                 className="w-full rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gradient-to-br hover:from-violet-500 hover:to-pink-500"
               >
                 Choose Pro
