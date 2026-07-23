@@ -21,8 +21,26 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeTab, activeSport }) => {
           breadcrumbs.push({ label: formatSportName(activeSport) });
         }
         break;
-      case 'sure-bets':
-        breadcrumbs.push({ label: 'Sure Bets' });
+      case 'predictions':
+        breadcrumbs.push({ label: 'Predictions' });
+        break;
+      case 'results':
+        breadcrumbs.push({ label: 'Results & Performance' });
+        break;
+      case 'leaderboard':
+        breadcrumbs.push({ label: 'Leaderboard' });
+        break;
+      case 'premium':
+        breadcrumbs.push({ label: 'Premium' });
+        break;
+      case 'settings':
+        breadcrumbs.push({ label: 'Settings' });
+        break;
+      case 'subscription':
+        breadcrumbs.push({ label: 'Subscription Management' });
+        break;
+      case 'webhook':
+        breadcrumbs.push({ label: 'Webhook Simulator' });
         break;
     }
 
