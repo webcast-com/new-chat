@@ -639,6 +639,7 @@ function MainApp() {
                   searchQuery={searchQuery}
                   onCreatePost={() => setIsCreatePostOpen(true)}
                   onAboutCreator={() => setActiveView('about')}
+                  onBrowseMovies={() => setActiveView('movies')}
                 />
               )}
               {activeView === 'trending'  && <Trending />}
