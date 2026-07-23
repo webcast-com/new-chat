@@ -44,11 +44,15 @@ export const WatchlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [user]);
 
   const loadReviewsForMovie = useCallback(async (movieId: number) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('reviews')
       .select('*')
       .eq('movie_id', movieId)
       .order('created_at', { ascending: false });
+    if (error) {
+      setUserReviews(prev => ({ ...prev, [movieId]: [] }));
+      return;
+    }
     const mapped: DBReview[] = (data || []).map((r: any) => ({
       id: String(r.id),
       author: r.author_name,
@@ -91,7 +95,10 @@ export const WatchlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       })
       .select()
       .single();
-    if (error) return { error: error.message };
+    if (error) {
+      const unavailable = error.message.includes('schema cache') || error.message.includes('does not exist');
+      return { error: unavailable ? 'Public reviews are temporarily unavailable. Please try again shortly.' : error.message };
+    }
     if (data) {
       const newReview: DBReview = {
         id: String(data.id),
