@@ -182,7 +182,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <li key={item.label}>
                   <button
                     type="button"
-                    onClick={() => onNavigate?.(item.href)}
+                    onClick={() => onNavigate ? onNavigate(item.href) : handleNavigation(item.href)}
                     className="text-gray-500 text-sm hover:text-[#00d4ff] transition-colors"
                   >
                     {item.label}
@@ -200,7 +200,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <li key={item.label}>
                   <button
                     type="button"
-                    onClick={() => onNavigate?.(item.href)}
+                    onClick={() => onNavigate ? onNavigate(item.href) : handleNavigation(item.href)}
                     className="text-gray-500 text-sm hover:text-[#00d4ff] transition-colors"
                   >
                     {item.label}

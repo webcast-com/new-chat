@@ -77,12 +77,14 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
-        <Header
-          activeSport={activeSport}
-          onSportChange={setActiveSport}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
+        {!activePage && (
+          <Header
+            activeSport={activeSport}
+            onSportChange={setActiveSport}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+        )}
 
         {activePage ? (
           React.createElement(informationalPages[activePage])
@@ -189,7 +191,7 @@ const AppLayout: React.FC = () => {
           </>
         )}
 
-        <Footer onNavigate={(href) => setActivePage(href.slice(1) as InformationalPage)} />
+        {!activePage && <Footer onNavigate={(href) => setActivePage(href.slice(1) as InformationalPage)} />}
         <BackToTop />
 
         {showPricingPopup && user?.plan !== 'premium' && (

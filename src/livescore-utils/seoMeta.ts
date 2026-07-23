@@ -9,7 +9,6 @@ interface SEOMeta {
 }
 
 const DEFAULT_OG_IMAGE = 'https://livescoresgames.netlify.app/og-image.png';
-const SITE_NAME = 'ScoreHub';
 const DOMAIN = 'https://livescoresgames.netlify.app';
 
 export const seoMetaData: Record<string, SEOMeta> = {

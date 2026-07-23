@@ -1,6 +1,6 @@
 import { Prediction } from '../../data/mockData';
 import { format } from 'date-fns';
-import { Lock, LockOpen, Info, Bookmark } from 'lucide-react';
+import { Lock, Unlock, Info, Bookmark } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSavedPredictions } from '../../hooks/useSavedPredictions';
 
@@ -60,7 +60,7 @@ export function PredictionCard({ prediction, onUpgrade, forceLocked = false, onS
               </span>
             ) : (
               <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-semibold">
-                <LockOpen className="w-3 h-3" /> Free
+                <Unlock className="w-3 h-3" /> Free
               </span>
             )}
           </div>
