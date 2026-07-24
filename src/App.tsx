@@ -518,6 +518,21 @@ function MainApp() {
 
             {/* Right actions */}
             <div className="flex items-center gap-1 sm:gap-2">
+              {/* Mobile Live Scores shortcut */}
+              <button
+                type="button"
+                onClick={() => setActiveView('live-scores')}
+                aria-label="Open Live Scores"
+                title="Live Scores"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-emerald-300 transition hover:bg-emerald-900/60 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 lg:hidden"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m12 7 2 1.5-.75 2.4h-2.5L10 8.5 12 7Z" fill="currentColor" stroke="none" />
+                  <path d="m5.8 8.5 4.2 2.4M18.2 8.5 14 10.9M8.2 17.5l2.1-5.6M15.8 17.5l-2.1-5.6M8.2 17.5h7.6" />
+                </svg>
+              </button>
+
               {/* Mobile game shortcut */}
               <button
                 type="button"
