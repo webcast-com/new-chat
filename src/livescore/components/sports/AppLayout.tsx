@@ -22,6 +22,7 @@ import { SureBets } from './SureBets';
 import { RecentResultsSlider } from '../RecentResultsSlider';
 import { SlideResults } from '../SlideResults';
 import { PredictionsList } from '@/app/pages/PredictionsList';
+import { PremiumUpgrade } from '@/app/pages/PremiumUpgrade';
 import { MainTab } from './TabNavigation';
 import About from '@/app/pages/About';
 import AccessibilityStatement from '@/app/pages/AccessibilityStatement';
@@ -59,6 +60,7 @@ const getInformationalPage = (): InformationalPage | null => {
 const getActiveTab = (): MainTab => {
   if (window.location.pathname === '/sure-bets') return 'sure-bets';
   if (window.location.pathname === '/predictions') return 'predictions';
+  if (window.location.pathname === '/premium') return 'premium';
   if (window.location.pathname === '/results') return 'results';
   return 'dashboard';
 };
@@ -103,7 +105,7 @@ const AppLayout: React.FC = () => {
       return;
     }
 
-    setPageMeta(activeTab === 'dashboard' ? 'home' : activeTab === 'predictions' ? 'predictions' : activeTab === 'results' ? 'results' : 'sureBets');
+    setPageMeta(activeTab === 'dashboard' ? 'home' : activeTab === 'predictions' ? 'predictions' : activeTab === 'premium' ? 'premium' : activeTab === 'results' ? 'results' : 'sureBets');
   }, [activePage, activeTab]);
 
   return (
@@ -127,10 +129,10 @@ const AppLayout: React.FC = () => {
         {/* Main tab nav */}
         <TabNavigation
           activeTab={activeTab}
-          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'results' ? '/results' : '/')}
+          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'premium' ? '/premium' : tab === 'results' ? '/results' : '/')}
         />
 
-        {activeTab !== 'sure-bets' && (
+        {activeTab !== 'sure-bets' && activeTab !== 'premium' && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-2" aria-label="Premium predictions promotion">
             <div className="relative overflow-hidden rounded-2xl border border-[#00d4ff]/20 bg-gradient-to-r from-[#00d4ff]/10 via-[#161b22] to-[#00ff88]/10 px-5 py-4 sm:px-7 sm:py-5 shadow-lg shadow-[#00d4ff]/5">
               <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#00ff88]/10 blur-3xl" />
@@ -149,7 +151,7 @@ const AppLayout: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate('/sure-bets')}
+                  onClick={() => navigate('/premium')}
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#00d4ff] to-[#00ff88] px-4 py-2.5 text-sm font-bold text-[#0d1117] shadow-lg shadow-[#00d4ff]/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Unlock Premium
@@ -219,20 +221,26 @@ const AppLayout: React.FC = () => {
           <>
             <RecentResultsSlider />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-              <SureBets onUpgrade={() => setShowPricingPopup(true)} />
+              <SureBets onUpgrade={() => navigate('/premium')} />
             </div>
           </>
         )}
 
+        {activeTab === 'premium' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <PremiumUpgrade setActiveTab={(tab) => navigate(tab === 'predictions' ? '/predictions' : tab === 'premium' ? '/premium' : '/')} />
+          </div>
+        )}
+
         {activeTab === 'predictions' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <PredictionsList setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'results' ? '/results' : '/')} />
+            <PredictionsList setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'premium' ? '/premium' : tab === 'results' ? '/results' : '/')} />
           </div>
         )}
 
         {activeTab === 'results' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <SlideResults setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'results' ? '/results' : '/')} />
+            <SlideResults setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'premium' ? '/premium' : tab === 'results' ? '/results' : '/')} />
           </div>
         )}
 
@@ -266,7 +274,7 @@ const AppLayout: React.FC = () => {
               </ul>
               <button
                 type="button"
-                onClick={() => setShowPricingPopup(false)}
+                onClick={() => navigate('/premium')}
                 className="w-full rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gradient-to-br hover:from-violet-500 hover:to-pink-500"
               >
                 Choose Pro
