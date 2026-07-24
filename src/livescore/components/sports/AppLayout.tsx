@@ -21,6 +21,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { SureBets } from './SureBets';
 import { RecentResultsSlider } from '../RecentResultsSlider';
 import { SlideResults } from '../SlideResults';
+import { PredictionsList } from '@/app/pages/PredictionsList';
 import { MainTab } from './TabNavigation';
 import About from '@/app/pages/About';
 import AccessibilityStatement from '@/app/pages/AccessibilityStatement';
@@ -57,6 +58,7 @@ const getInformationalPage = (): InformationalPage | null => {
 
 const getActiveTab = (): MainTab => {
   if (window.location.pathname === '/sure-bets') return 'sure-bets';
+  if (window.location.pathname === '/predictions') return 'predictions';
   if (window.location.pathname === '/results') return 'results';
   return 'dashboard';
 };
@@ -101,7 +103,7 @@ const AppLayout: React.FC = () => {
       return;
     }
 
-    setPageMeta(activeTab === 'dashboard' ? 'home' : activeTab === 'results' ? 'results' : 'sureBets');
+    setPageMeta(activeTab === 'dashboard' ? 'home' : activeTab === 'predictions' ? 'predictions' : activeTab === 'results' ? 'results' : 'sureBets');
   }, [activePage, activeTab]);
 
   return (
@@ -125,7 +127,7 @@ const AppLayout: React.FC = () => {
         {/* Main tab nav */}
         <TabNavigation
           activeTab={activeTab}
-          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'results' ? '/results' : '/')}
+          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'results' ? '/results' : '/')}
         />
 
         {activeTab !== 'sure-bets' && (
@@ -222,9 +224,15 @@ const AppLayout: React.FC = () => {
           </>
         )}
 
+        {activeTab === 'predictions' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <PredictionsList setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'results' ? '/results' : '/')} />
+          </div>
+        )}
+
         {activeTab === 'results' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <SlideResults setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'results' ? '/results' : '/')} />
+            <SlideResults setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'predictions' ? '/predictions' : tab === 'results' ? '/results' : '/')} />
           </div>
         )}
 

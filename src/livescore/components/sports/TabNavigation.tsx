@@ -1,7 +1,7 @@
 import React from 'react';
-import { BarChart3, Radio, Zap } from 'lucide-react';
+import { BarChart3, Radio, Target, Zap } from 'lucide-react';
 
-export type MainTab = 'dashboard' | 'sure-bets' | 'results';
+export type MainTab = 'dashboard' | 'sure-bets' | 'predictions' | 'results';
 
 interface Tab {
   key: MainTab;
@@ -12,6 +12,7 @@ interface Tab {
 const TABS: Tab[] = [
   { key: 'dashboard', label: 'Live Scores', icon: <Radio className="w-4 h-4" /> },
   { key: 'sure-bets', label: 'Sure Bets', icon: <Zap className="w-4 h-4" /> },
+  { key: 'predictions', label: 'Predictions', icon: <Target className="w-4 h-4" /> },
   { key: 'results', label: 'Results', icon: <BarChart3 className="w-4 h-4" /> },
 ];
 
