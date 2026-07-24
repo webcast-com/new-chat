@@ -19,6 +19,7 @@ import { useScoreSimulator } from './ScoreSimulator';
 import { Wifi, WifiOff, Loader2, Database, Radio, Crown, Sparkles, ArrowRight, Check, X } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext';
 import { SureBets } from './SureBets';
+import { RecentResultsSlider } from '../RecentResultsSlider';
 import { MainTab } from './TabNavigation';
 import About from '@/app/pages/About';
 import AccessibilityStatement from '@/app/pages/AccessibilityStatement';
@@ -208,9 +209,12 @@ const AppLayout: React.FC = () => {
         )}
 
         {activeTab === 'sure-bets' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <SureBets onUpgrade={() => setShowPricingPopup(true)} />
-          </div>
+          <>
+            <RecentResultsSlider />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+              <SureBets onUpgrade={() => setShowPricingPopup(true)} />
+            </div>
+          </>
         )}
 
         <FeaturedMatch match={selectedMatch} onClose={() => setSelectedMatch(null)} />
