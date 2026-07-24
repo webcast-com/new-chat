@@ -20,6 +20,7 @@ import { Wifi, WifiOff, Loader2, Database, Radio, Crown, Sparkles, ArrowRight, C
 import { useAuth } from '@/app/context/AuthContext';
 import { SureBets } from './SureBets';
 import { RecentResultsSlider } from '../RecentResultsSlider';
+import { SlideResults } from '../SlideResults';
 import { MainTab } from './TabNavigation';
 import About from '@/app/pages/About';
 import AccessibilityStatement from '@/app/pages/AccessibilityStatement';
@@ -54,7 +55,11 @@ const getInformationalPage = (): InformationalPage | null => {
   return page in informationalPages ? page : null;
 };
 
-const getActiveTab = (): MainTab => window.location.pathname === '/sure-bets' ? 'sure-bets' : 'dashboard';
+const getActiveTab = (): MainTab => {
+  if (window.location.pathname === '/sure-bets') return 'sure-bets';
+  if (window.location.pathname === '/results') return 'results';
+  return 'dashboard';
+};
 
 const AppLayout: React.FC = () => {
   const [activeSport, setActiveSport] = useState<Sport>('all');
@@ -96,7 +101,7 @@ const AppLayout: React.FC = () => {
       return;
     }
 
-    setPageMeta(activeTab === 'dashboard' ? 'home' : 'sureBets');
+    setPageMeta(activeTab === 'dashboard' ? 'home' : activeTab === 'results' ? 'results' : 'sureBets');
   }, [activePage, activeTab]);
 
   return (
@@ -120,7 +125,7 @@ const AppLayout: React.FC = () => {
         {/* Main tab nav */}
         <TabNavigation
           activeTab={activeTab}
-          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : '/')}
+          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'results' ? '/results' : '/')}
         />
 
         {activeTab !== 'sure-bets' && (
@@ -215,6 +220,12 @@ const AppLayout: React.FC = () => {
               <SureBets onUpgrade={() => setShowPricingPopup(true)} />
             </div>
           </>
+        )}
+
+        {activeTab === 'results' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <SlideResults setActiveTab={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : tab === 'results' ? '/results' : '/')} />
+          </div>
         )}
 
         <FeaturedMatch match={selectedMatch} onClose={() => setSelectedMatch(null)} />
