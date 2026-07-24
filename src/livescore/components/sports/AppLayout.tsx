@@ -48,13 +48,36 @@ const informationalPages: Record<InformationalPage, React.ComponentType> = {
   accessibility: AccessibilityStatement,
 };
 
+const getInformationalPage = (): InformationalPage | null => {
+  const page = window.location.pathname.slice(1) as InformationalPage;
+  return page in informationalPages ? page : null;
+};
+
+const getActiveTab = (): MainTab => window.location.pathname === '/sure-bets' ? 'sure-bets' : 'dashboard';
+
 const AppLayout: React.FC = () => {
   const [activeSport, setActiveSport] = useState<Sport>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatch, setSelectedMatch] = useState<LiveMatch | null>(null);
-  const [activeTab, setActiveTab] = useState<MainTab>('dashboard');
-  const [activePage, setActivePage] = useState<InformationalPage | null>(null);
+  const [activeTab, setActiveTab] = useState<MainTab>(getActiveTab);
+  const [activePage, setActivePage] = useState<InformationalPage | null>(getInformationalPage);
   const [showPricingPopup, setShowPricingPopup] = useState(false);
+
+  const navigate = (href: string) => {
+    window.history.pushState({}, '', href);
+    setActivePage(getInformationalPage());
+    setActiveTab(getActiveTab());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActivePage(getInformationalPage());
+      setActiveTab(getActiveTab());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const { user, loading: authLoading } = useAuth();
   const { matches: simulatedMatches, source, loading, error } = useScoreSimulator();
@@ -91,10 +114,13 @@ const AppLayout: React.FC = () => {
         ) : (
           <>
             {/* Breadcrumb Navigation */}
-            <Breadcrumb activeTab={activeTab} activeSport={activeSport} />
+            <Breadcrumb activeTab={activeTab} activeSport={activeSport} onNavigate={navigate} />
 
         {/* Main tab nav */}
-        <TabNavigation activeTab={activeTab} onChange={setActiveTab} />
+        <TabNavigation
+          activeTab={activeTab}
+          onChange={(tab) => navigate(tab === 'sure-bets' ? '/sure-bets' : '/')}
+        />
 
         {activeTab !== 'sure-bets' && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-2" aria-label="Premium predictions promotion">
@@ -115,7 +141,7 @@ const AppLayout: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('sure-bets')}
+                  onClick={() => navigate('/sure-bets')}
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#00d4ff] to-[#00ff88] px-4 py-2.5 text-sm font-bold text-[#0d1117] shadow-lg shadow-[#00d4ff]/20 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Unlock Premium
@@ -191,10 +217,10 @@ const AppLayout: React.FC = () => {
           </>
         )}
 
-        {!activePage && <Footer onNavigate={(href) => setActivePage(href.slice(1) as InformationalPage)} />}
+        {!activePage && <Footer onNavigate={navigate} />}
         <BackToTop />
 
-        {showPricingPopup && user?.plan !== 'premium' && (
+        {!activePage && showPricingPopup && user?.plan !== 'premium' && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="pricing-popup-title">
             <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 text-gray-800 shadow-[0_24px_40px_-12px_rgba(139,92,246,0.25)] transition-transform duration-300 hover:-translate-y-2">
               <button
