@@ -20,7 +20,6 @@ import { Wifi, WifiOff, Loader2, Database, Radio, Crown, Sparkles, ArrowRight, C
 import { useAuth } from '@/app/context/AuthContext';
 import { PredictionsList } from '@/app/pages/PredictionsList';
 import { PremiumUpgrade } from '@/app/pages/PremiumUpgrade';
-import { LeaderboardPage } from '@/app/components/LeaderboardPage';
 import { Settings } from '@/app/pages/Settings';
 import { WebhookSimulator } from '@/app/pages/WebhookSimulator';
 import { SubscriptionManagement } from '@/app/pages/SubscriptionManagement';
@@ -56,37 +55,58 @@ const informationalPages: Record<InformationalPage, React.ComponentType> = {
   accessibility: AccessibilityStatement,
 };
 
+const tabPaths: Record<MainTab, string> = {
+  dashboard: '/',
+  predictions: '/predictions',
+  results: '/results',
+  'sure-bets': '/sure-bets',
+  premium: '/premium',
+  settings: '/settings',
+  subscription: '/subscription',
+  webhook: '/webhook',
+};
+
 const getInformationalPage = (): InformationalPage | null => {
   const page = window.location.pathname.slice(1) as InformationalPage;
   return page in informationalPages ? page : null;
+};
+
+const getActiveTab = (): MainTab => {
+  const tab = (Object.keys(tabPaths) as MainTab[]).find((key) => tabPaths[key] === window.location.pathname);
+  return tab || 'dashboard';
 };
 
 const AppLayout: React.FC = () => {
   const [activeSport, setActiveSport] = useState<Sport>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatch, setSelectedMatch] = useState<LiveMatch | null>(null);
-  const [activeTab, setActiveTab] = useState<MainTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<MainTab>(getActiveTab);
   const [activePage, setActivePage] = useState<InformationalPage | null>(getInformationalPage);
   const [showPricingPopup, setShowPricingPopup] = useState(false);
 
   const navigateToPage = (href: string) => {
+    const tab = (Object.keys(tabPaths) as MainTab[]).find((key) => tabPaths[key] === href);
     const page = href.slice(1) as InformationalPage;
-    if (!(page in informationalPages)) return;
+    if (!tab && !(page in informationalPages)) return;
 
     window.history.pushState({}, '', href);
-    setActivePage(page);
+    setActivePage(tab ? null : page);
+    if (tab) setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleTabChange = (tab: MainTab) => {
-    window.history.pushState({}, '', '/');
+    window.history.pushState({}, '', tabPaths[tab]);
     setActivePage(null);
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
-    const handlePopState = () => setActivePage(getInformationalPage());
+    const handlePopState = () => {
+      setActivePage(getInformationalPage());
+      setActiveTab(getActiveTab());
+    };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -129,7 +149,7 @@ const AppLayout: React.FC = () => {
               onSearchChange={setSearchQuery}
             />
             {/* Breadcrumb Navigation */}
-            <Breadcrumb activeTab={activeTab} activeSport={activeSport} />
+            <Breadcrumb activeTab={activeTab} activeSport={activeSport} onNavigate={navigateToPage} />
 
         {/* Main tab nav */}
         <TabNavigation activeTab={activeTab} onChange={handleTabChange} />
@@ -235,12 +255,6 @@ const AppLayout: React.FC = () => {
         {activeTab === 'sure-bets' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
             <SureBets onUpgrade={() => handleTabChange('premium')} />
-          </div>
-        )}
-
-        {activeTab === 'leaderboard' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <LeaderboardPage />
           </div>
         )}
 

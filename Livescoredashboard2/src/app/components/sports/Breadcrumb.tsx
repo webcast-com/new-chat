@@ -6,9 +6,10 @@ import { Sport } from '@/app/data/sportsData';
 interface BreadcrumbProps {
   activeTab: MainTab;
   activeSport?: Sport;
+  onNavigate?: (href: string) => void;
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeTab, activeSport }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeTab, activeSport, onNavigate }) => {
   const getBreadcrumbs = (): Array<{ label: string; href?: string }> => {
     const breadcrumbs: Array<{ label: string; href?: string }> = [
       { label: 'Home', href: '/' },
@@ -16,31 +17,31 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeTab, activeSport }) => {
 
     switch (activeTab) {
       case 'dashboard':
-        breadcrumbs.push({ label: 'Dashboard' });
+        breadcrumbs.push({ label: 'Dashboard', href: '/' });
         if (activeSport && activeSport !== 'all') {
           breadcrumbs.push({ label: formatSportName(activeSport) });
         }
         break;
+      case 'sure-bets':
+        breadcrumbs.push({ label: 'Sure Bets', href: '/sure-bets' });
+        break;
       case 'predictions':
-        breadcrumbs.push({ label: 'Predictions' });
+        breadcrumbs.push({ label: 'Predictions', href: '/predictions' });
         break;
       case 'results':
-        breadcrumbs.push({ label: 'Results & Performance' });
-        break;
-      case 'leaderboard':
-        breadcrumbs.push({ label: 'Leaderboard' });
+        breadcrumbs.push({ label: 'Results & Performance', href: '/results' });
         break;
       case 'premium':
-        breadcrumbs.push({ label: 'Premium' });
+        breadcrumbs.push({ label: 'Premium', href: '/premium' });
         break;
       case 'settings':
-        breadcrumbs.push({ label: 'Settings' });
+        breadcrumbs.push({ label: 'Settings', href: '/settings' });
         break;
       case 'subscription':
-        breadcrumbs.push({ label: 'Subscription Management' });
+        breadcrumbs.push({ label: 'Subscription Management', href: '/subscription' });
         break;
       case 'webhook':
-        breadcrumbs.push({ label: 'Webhook Simulator' });
+        breadcrumbs.push({ label: 'Webhook Simulator', href: '/webhook' });
         break;
     }
 
@@ -61,6 +62,11 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeTab, activeSport }) => {
             {index === 0 ? (
               <a
                 href={breadcrumb.href}
+                onClick={(event) => {
+                  if (!onNavigate || !breadcrumb.href) return;
+                  event.preventDefault();
+                  onNavigate(breadcrumb.href);
+                }}
                 className="flex items-center gap-1 text-gray-400 hover:text-[#00d4ff] transition-colors"
               >
                 <Home className="w-4 h-4" />
@@ -69,15 +75,21 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeTab, activeSport }) => {
             ) : (
               <>
                 <ChevronRight className="w-4 h-4 text-gray-600" />
-                <span
-                  className={
-                    index === breadcrumbs.length - 1
-                      ? 'text-[#00d4ff] font-medium'
-                      : 'text-gray-400 hover:text-[#00d4ff] transition-colors'
-                  }
-                >
-                  {breadcrumb.label}
-                </span>
+                {breadcrumb.href ? (
+                  <a
+                    href={breadcrumb.href}
+                    onClick={(event) => {
+                      if (!onNavigate) return;
+                      event.preventDefault();
+                      onNavigate(breadcrumb.href!);
+                    }}
+                    className="text-gray-400 hover:text-[#00d4ff] transition-colors"
+                  >
+                    {breadcrumb.label}
+                  </a>
+                ) : (
+                  <span className="text-[#00d4ff] font-medium">{breadcrumb.label}</span>
+                )}
               </>
             )}
           </li>
