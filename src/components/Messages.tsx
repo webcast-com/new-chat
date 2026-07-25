@@ -615,7 +615,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/70">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-slate-500">
                 <p>No messages yet. Start the conversation!</p>
@@ -625,12 +625,12 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                 const isSent = message.sender_id === profile?.id;
                 return (
                   <div key={message.id} className={`flex ${isSent ? 'justify-end' : 'justify-start'}`}>
-                    <div className="group relative max-w-xs">
+                    <div className="group relative max-w-[80%] sm:max-w-xs">
                       <div
-                        className={`px-4 py-2 rounded-lg ${
+                        className={`px-3.5 py-2.5 shadow-sm ${
                           isSent
-                            ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-br-none'
-                            : 'bg-slate-100 text-slate-900 rounded-bl-none'
+                            ? 'ios-bubble-sent bg-[#007AFF] text-white'
+                            : 'ios-bubble-received bg-[#E9E9EB] text-slate-900'
                         }`}
                       >
                         {message.content && <p className="break-words whitespace-pre-wrap">{message.content}</p>}
@@ -640,7 +640,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                             <span className="max-w-48 truncate">{message.attachment_name || 'Attachment'}</span>
                           </a>
                         )}
-                        <p className={`text-xs mt-1 ${isSent ? 'text-indigo-100' : 'text-slate-500'}`}>
+                        <p className={`mt-1 px-1 text-[11px] ${isSent ? 'text-blue-100' : 'text-slate-500'}`}>
                           {formatTime(message.created_at)}
                         </p>
                       </div>
@@ -666,11 +666,18 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                 );
               })
             )}
+            {sendingMessage && (
+              <div className="flex justify-end">
+                <div className="ios-bubble-sent inline-flex items-center gap-1.5 bg-[#007AFF] px-4 py-3 shadow-sm" aria-label="Sending message">
+                  {[0, 1, 2].map((dot) => <span key={dot} className="typing-dot h-1.5 w-1.5 rounded-full bg-white/85" style={{ animationDelay: `${dot * 0.18}s` }} />)}
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Message Input */}
-          <form onSubmit={handleSendMessage} className="border-t border-slate-200 p-3 sm:p-4">
+          <form onSubmit={handleSendMessage} className="border-t border-slate-200 bg-white p-3 sm:p-4">
             {attachment && <div className="mb-2 flex items-center justify-between rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700"><span className="truncate">{attachment.name}</span><button type="button" onClick={() => setAttachment(null)} className="p-1" aria-label="Remove attachment"><X className="h-4 w-4" /></button></div>}
             <div className="flex gap-2">
               <input ref={attachmentInputRef} type="file" onChange={handleAttachmentChange} className="hidden" />
@@ -681,7 +688,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 pr-10 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-violet-500"
+                  className="w-full rounded-full border border-slate-300 px-4 py-2.5 pr-10 outline-none transition-all focus:border-[#007AFF] focus:ring-2 focus:ring-blue-100"
                 />
                 <button type="button" onClick={() => setShowEmojiPicker((visible) => !visible)} className="absolute right-2 top-2 rounded p-1 text-slate-500 hover:bg-slate-100" aria-label="Add emoji"><Smile className="h-5 w-5" /></button>
                 {showEmojiPicker && <div className="absolute bottom-12 right-0 z-10 flex gap-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">{emojiOptions.map((emoji) => <button key={emoji} type="button" onClick={() => { setNewMessage((value) => value + emoji); setShowEmojiPicker(false); }} className="p-1 text-xl hover:bg-slate-100">{emoji}</button>)}</div>}
@@ -689,7 +696,7 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
               <button
                 type="submit"
                 disabled={sendingMessage || (!newMessage.trim() && !attachment)}
-                className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white px-4 py-2 rounded-lg hover:from-indigo-600 hover:to-violet-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                className="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-[#007AFF] px-4 py-2 text-white shadow-sm transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {sendingMessage ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
