@@ -103,7 +103,6 @@ export default function UserProfile() {
         .update({
           full_name: editForm.full_name,
           bio: editForm.bio,
-          location: selectedLocation,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
