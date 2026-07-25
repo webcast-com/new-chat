@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
 import { useRef } from 'react';
+import { kenyaLocations } from '../data/kenyaLocations';
 import { CreditCard as Edit2, Check, X, Loader2, Users, Search, ArrowUpDown, Camera } from 'lucide-react';
 import LazyImage from './LazyImage';
 import ProfileShareButton from './ProfileShareButton';
@@ -9,6 +10,8 @@ import ProfileShareButton from './ProfileShareButton';
 export default function UserProfile() {
   const { profile, user } = useAuth();
   const [editing, setEditing] = useState(false);
+  const [county, setCounty] = useState('');
+  const [constituency, setConstituency] = useState('');
   const [editForm, setEditForm] = useState({
     full_name: '',
     bio: '',
@@ -40,6 +43,14 @@ export default function UserProfile() {
         education: profile.education || '',
         gender: profile.gender || '',
       });
+      const [savedConstituency = '', savedCounty = ''] = (profile.location || '').split(', ').map((value) => value.trim());
+      if (kenyaLocations[savedCounty]?.includes(savedConstituency)) {
+        setCounty(savedCounty);
+        setConstituency(savedConstituency);
+      } else {
+        setCounty('');
+        setConstituency('');
+      }
       loadStats();
     }
   }, [profile]);
@@ -84,12 +95,15 @@ export default function UserProfile() {
   const handleSave = async () => {
     if (!profile) return;
 
+    const selectedLocation = constituency && county ? `${constituency}, ${county}` : editForm.location || null;
+
     try {
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: editForm.full_name,
           bio: editForm.bio,
+          location: selectedLocation,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -100,7 +114,7 @@ export default function UserProfile() {
       const { error: metadataError } = await supabase.auth.updateUser({
         data: {
           profile_details: {
-            location: editForm.location || null,
+            location: selectedLocation,
             age: editForm.age ? Number(editForm.age) : null,
             work: editForm.work || null,
             education: editForm.education || null,
@@ -241,7 +255,8 @@ export default function UserProfile() {
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="text-sm font-medium text-slate-700">Location<input type="text" value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} placeholder="City, country" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
+              <label className="text-sm font-medium text-slate-700">County<select value={county} onChange={(e) => { setCounty(e.target.value); setConstituency(''); }} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200"><option value="">Select county</option>{Object.keys(kenyaLocations).map((countyName) => <option key={countyName} value={countyName}>{countyName}</option>)}</select></label>
+              <label className="text-sm font-medium text-slate-700">Constituency<select value={constituency} onChange={(e) => setConstituency(e.target.value)} disabled={!county} className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2 font-normal outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200"><option value="">{county ? 'Select constituency' : 'Choose county first'}</option>{county && kenyaLocations[county].map((constituencyName) => <option key={constituencyName} value={constituencyName}>{constituencyName}</option>)}</select></label>
               <label className="text-sm font-medium text-slate-700">Age<input type="number" min="13" max="120" value={editForm.age} onChange={(e) => setEditForm({ ...editForm, age: e.target.value })} placeholder="Age" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
               <label className="text-sm font-medium text-slate-700">Work<input type="text" value={editForm.work} onChange={(e) => setEditForm({ ...editForm, work: e.target.value })} placeholder="Company or role" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
               <label className="text-sm font-medium text-slate-700">Education<input type="text" value={editForm.education} onChange={(e) => setEditForm({ ...editForm, education: e.target.value })} placeholder="School or institution" className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2 font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200" /></label>
