@@ -14,20 +14,13 @@ interface FeedProps {
   onBrowseMovies?: () => void;
 }
 
-const POSTS_CACHE_KEY = 'community-feed-posts';
 const INITIAL_POST_COUNT = 4;
 const POST_BATCH_SIZE = 4;
 
 export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCreator, onBrowseMovies }: FeedProps) {
   const featuredMovies = movies.slice(0, 5);
-  const [posts, setPosts] = useState<Post[]>(() => {
-    try {
-      return JSON.parse(sessionStorage.getItem(POSTS_CACHE_KEY) || '[]');
-    } catch {
-      return [];
-    }
-  });
-  const [loading, setLoading] = useState(() => posts.length === 0);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(INITIAL_POST_COUNT);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +34,6 @@ export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCre
       if (error) throw error;
       const nextPosts = data || [];
       setPosts(nextPosts);
-      sessionStorage.setItem(POSTS_CACHE_KEY, JSON.stringify(nextPosts));
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {

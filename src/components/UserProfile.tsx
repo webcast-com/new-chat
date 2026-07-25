@@ -103,6 +103,9 @@ export default function UserProfile() {
         .update({
           full_name: editForm.full_name,
           bio: editForm.bio,
+          location: selectedLocation,
+          county: county || null,
+          constituency: constituency || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -114,6 +117,8 @@ export default function UserProfile() {
         data: {
           profile_details: {
             location: selectedLocation,
+            county: county || null,
+            constituency: constituency || null,
             age: editForm.age ? Number(editForm.age) : null,
             work: editForm.work || null,
             education: editForm.education || null,

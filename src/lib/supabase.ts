@@ -16,6 +16,8 @@ export type Profile = {
   bio: string;
   avatar_url: string;
   location?: string | null;
+  county?: string | null;
+  constituency?: string | null;
   age?: number | null;
   work?: string | null;
   education?: string | null;
@@ -30,6 +32,9 @@ export type Post = {
   content: string;
   image_url: string;
   media_type?: 'image' | 'video';
+  visibility?: 'public' | 'county' | 'constituency';
+  county?: string | null;
+  constituency?: string | null;
   likes_count: number;
   comments_count: number;
   shares_count?: number;

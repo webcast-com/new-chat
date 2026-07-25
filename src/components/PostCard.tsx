@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check, Bookmark, Flag } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check, Bookmark, Flag, MapPin } from 'lucide-react';
 import { Post, Comment } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -230,6 +230,9 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             <div className="min-w-0">
               <h3 className="truncate font-semibold text-slate-900">{post.profiles?.username}</h3>
               <p className="text-sm text-slate-500">{formatDate(post.created_at)}</p>
+              {post.visibility !== 'public' && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-blue-600"><MapPin className="h-3.5 w-3.5" />{post.visibility === 'constituency' ? post.constituency : post.county}</p>
+              )}
             </div>
           </div>
 

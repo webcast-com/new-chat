@@ -15,7 +15,10 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+  const [visibility, setVisibility] = useState<'public' | 'county' | 'constituency'>('public');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasCounty = Boolean(profile?.county);
+  const hasConstituency = Boolean(profile?.county && profile?.constituency);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,6 +87,9 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           content: content.trim(),
           image_url: imageUrl,
           media_type: mediaType,
+          visibility,
+          county: visibility === 'public' ? null : profile.county,
+          constituency: visibility === 'constituency' ? profile.constituency : null,
         },
       ]);
 
@@ -93,6 +99,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       setSelectedImage(null);
       setImagePreview(null);
       setMediaType('image');
+      setVisibility('public');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -139,7 +146,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             )}
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <input
                   ref={fileInputRef}
@@ -157,6 +164,18 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
                   <span className="text-sm font-medium">Photo or video</span>
                 </label>
               </div>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                Audience
+                <select
+                  value={visibility}
+                  onChange={(event) => setVisibility(event.target.value as typeof visibility)}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="public">Everyone</option>
+                  <option value="county" disabled={!hasCounty}>My county{hasCounty ? '' : ' (set your location first)'}</option>
+                  <option value="constituency" disabled={!hasConstituency}>My constituency{hasConstituency ? '' : ' (set your location first)'}</option>
+                </select>
+              </label>
               <button
                 type="submit"
                 disabled={loading || !content.trim()}
