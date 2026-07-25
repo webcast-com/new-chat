@@ -44,9 +44,14 @@ export default function UserProfile() {
         gender: profile.gender || '',
       });
       const [savedConstituency = '', savedCounty = ''] = (profile.location || '').split(', ').map((value) => value.trim());
-      if (kenyaLocations[savedCounty]?.includes(savedConstituency)) {
-        setCounty(savedCounty);
-        setConstituency(savedConstituency);
+      const selectedCounty = profile.county || savedCounty;
+      const selectedConstituency = profile.constituency || savedConstituency;
+      if (kenyaLocations[selectedCounty]?.includes(selectedConstituency)) {
+        setCounty(selectedCounty);
+        setConstituency(selectedConstituency);
+      } else if (kenyaLocations[selectedCounty]) {
+        setCounty(selectedCounty);
+        setConstituency('');
       } else {
         setCounty('');
         setConstituency('');
@@ -95,7 +100,7 @@ export default function UserProfile() {
   const handleSave = async () => {
     if (!profile) return;
 
-    const selectedLocation = constituency && county ? `${constituency}, ${county}` : editForm.location || null;
+    const selectedLocation = constituency && county ? `${constituency}, ${county}` : county || null;
 
     try {
       const { error } = await supabase

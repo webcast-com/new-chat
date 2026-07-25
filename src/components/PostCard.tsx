@@ -194,6 +194,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const tags = Array.from(new Set(post.content.match(/#[\p{L}\p{N}_-]+/gu) || [])).slice(0, 4);
+  const audienceLocation = post.visibility === 'constituency' ? post.constituency : post.county;
 
   const getReactionEmojis = () => {
     const reactions: {[key: string]: string} = {
@@ -230,8 +231,8 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             <div className="min-w-0">
               <h3 className="truncate font-semibold text-slate-900">{post.profiles?.username}</h3>
               <p className="text-sm text-slate-500">{formatDate(post.created_at)}</p>
-              {post.visibility !== 'public' && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-blue-600"><MapPin className="h-3.5 w-3.5" />{post.visibility === 'constituency' ? post.constituency : post.county}</p>
+              {post.visibility !== 'public' && audienceLocation && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-blue-600"><MapPin className="h-3.5 w-3.5" />{audienceLocation}</p>
               )}
             </div>
           </div>
