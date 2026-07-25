@@ -333,6 +333,34 @@ function GameView() {
 function PublicFeed() {
   const [showAuth, setShowAuth] = useState(false);
   const [showGame, setShowGame] = useState(false);
+  const [showMovies, setShowMovies] = useState(false);
+  const [showFreeBets, setShowFreeBets] = useState(false);
+
+  const returnToCommunity = () => {
+    window.history.pushState({}, '', '/');
+    setShowGame(false);
+    setShowMovies(false);
+    setShowFreeBets(false);
+  };
+
+  if (showMovies || showFreeBets) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
+        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-4">
+          <button
+            type="button"
+            onClick={returnToCommunity}
+            className="rounded-lg border border-violet-500/40 bg-violet-950/80 px-4 py-2 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+          >
+            ← Back to community
+          </button>
+        </div>
+        <Suspense fallback={<ContentSkeleton className="mx-auto mt-6 max-w-5xl" />}>
+          {showMovies ? <MoviesApp /> : <LiveScoreDashboard />}
+        </Suspense>
+      </div>
+    );
+  }
 
   if (showGame) {
     return (
@@ -340,7 +368,7 @@ function PublicFeed() {
         <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-4">
           <button
             type="button"
-            onClick={() => setShowGame(false)}
+            onClick={returnToCommunity}
             className="rounded-lg border border-violet-500/40 bg-violet-950/80 px-4 py-2 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
           >
             ← Back to community
@@ -363,11 +391,27 @@ function PublicFeed() {
             </div>
             <h1 className="truncate text-sm font-extrabold tracking-tight sm:text-lg">Hyper</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setShowMovies(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-fuchsia-400/60 bg-fuchsia-950/70 px-2 py-2 text-xs font-medium text-fuchsia-100 transition-colors hover:bg-fuchsia-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 sm:gap-2 sm:px-3 sm:text-sm"
+            >
+              <Film className="h-4 w-4" />
+              <span>Watch Movies</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { window.history.pushState({}, '', '/sure-bets'); setShowFreeBets(true); }}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-400/60 bg-emerald-950/70 px-2 py-2 text-xs font-medium text-emerald-100 transition-colors hover:bg-emerald-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:gap-2 sm:px-3 sm:text-sm"
+            >
+              <TrendingUp className="h-4 w-4" />
+              <span>Today&apos;s Free Bets</span>
+            </button>
             <button
               type="button"
               onClick={() => setShowGame(true)}
-              className="flex items-center gap-2 rounded-lg border border-violet-400/60 bg-violet-950/70 px-2.5 py-2 text-sm font-medium text-violet-100 transition-colors hover:bg-violet-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 sm:px-4 sm:text-base"
+              className="hidden items-center gap-2 rounded-lg border border-violet-400/60 bg-violet-950/70 px-3 py-2 text-sm font-medium text-violet-100 transition-colors hover:bg-violet-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 sm:flex"
             >
               <Gamepad2 className="h-4 w-4" />
               Play
@@ -375,7 +419,7 @@ function PublicFeed() {
             <button
               type="button"
               onClick={() => setShowAuth(true)}
-              className="rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-500 active:scale-95 active:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 sm:px-4 sm:text-base"
+              className="rounded-lg bg-violet-600 px-2.5 py-2 text-xs font-medium text-white transition-colors hover:bg-violet-500 active:scale-95 active:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 sm:px-4 sm:text-sm"
             >
               Sign In
             </button>
