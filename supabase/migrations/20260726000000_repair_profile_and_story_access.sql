@@ -7,12 +7,25 @@ alter table public.posts
   add column if not exists county text,
   add column if not exists constituency text;
 
-update public.profiles
-set
-  county = split_part(location, ', ', 2),
-  constituency = split_part(location, ', ', 1)
-where location like '%,%'
-  and (county is null or constituency is null);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'profiles'
+      and column_name = 'location'
+  ) then
+    execute $sql$
+      update public.profiles
+      set
+        county = split_part(location, ', ', 2),
+        constituency = split_part(location, ', ', 1)
+      where location like '%,%'
+        and (county is null or constituency is null)
+    $sql$;
+  end if;
+end $$;
 
 insert into storage.buckets (id, name, public)
 values ('post-images', 'post-images', true)
