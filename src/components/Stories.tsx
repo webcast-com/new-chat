@@ -291,10 +291,18 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
         {onAboutCreator && (
           <button
             onClick={onAboutCreator}
-            className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] bg-gradient-to-br from-indigo-600 to-slate-700 flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0"
+            className="relative h-44 min-w-[96px] overflow-hidden rounded-2xl sm:h-56 sm:min-w-[120px] flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0"
           >
-            <Info className="h-8 w-8" />
-            <span className="text-xs">About</span>
+            <img
+              src="/steve01.jpeg"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/10" />
+            <div className="relative flex flex-col items-center gap-2">
+              <Info className="h-8 w-8" />
+              <span className="text-xs">About</span>
+            </div>
           </button>
         )}
 
