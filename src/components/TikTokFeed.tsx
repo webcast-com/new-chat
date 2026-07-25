@@ -46,8 +46,14 @@ export default function TikTokFeed() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('/api/tiktok-feed?region=ke&count=10');
-      const payload = await response.json() as TikTokResponse;
+      const response = await fetch('/api/tiktok-feed?count=10');
+      const rawBody = await response.text();
+      let payload: TikTokResponse;
+      try {
+        payload = JSON.parse(rawBody) as TikTokResponse;
+      } catch {
+        throw new Error('TikTok feed returned an invalid response');
+      }
       if (!response.ok) throw new Error(payload.error || 'Unable to load TikTok feed');
       setItems(normalizeItems(payload));
     } catch (loadError) {

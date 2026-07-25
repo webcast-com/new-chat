@@ -22,12 +22,12 @@ export default async function handler(req: Request, res: Response) {
     return;
   }
 
-  const region = typeof req.query?.region === 'string' ? req.query.region : 'ke';
   const countValue = typeof req.query?.count === 'string' ? Number(req.query.count) : 10;
   const count = Number.isInteger(countValue) ? Math.min(Math.max(countValue, 1), 20) : 10;
-  const url = new URL(`https://${apiHost}/feed/list`);
-  url.searchParams.set('region', region);
+  const url = new URL(`https://${apiHost}/challenge/posts`);
+  url.searchParams.set('challenge_id', '33380');
   url.searchParams.set('count', String(count));
+  url.searchParams.set('cursor', '0');
 
   try {
     const response = await fetch(url, {
