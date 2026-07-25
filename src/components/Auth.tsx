@@ -10,7 +10,7 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resendConfirmation } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +34,11 @@ export default function Auth() {
       const message = err instanceof Error ? err.message : String(err);
       const normalizedMessage = message.toLowerCase();
 
-      if (normalizedMessage.includes('user already registered')) {
+      if (normalizedMessage.includes('email not confirmed')) {
+        setError('Please confirm your email before signing in.');
+      } else if (normalizedMessage.includes('invalid login credentials')) {
+        setError('The email or password is incorrect.');
+      } else if (normalizedMessage.includes('user already registered')) {
         setError('This email is already registered. Switch to Sign In instead.');
       } else if (normalizedMessage.includes('failed to fetch')) {
         setError('Unable to reach Supabase right now. Check your connection and try again.');
@@ -115,8 +119,25 @@ export default function Auth() {
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
-              {error}
+            <div className="space-y-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+              <p>{error}</p>
+              {!isSignUp && error === 'Please confirm your email before signing in.' && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await resendConfirmation(email);
+                      setSuccess('Confirmation email sent. Check your inbox and spam folder.');
+                      setError('');
+                    } catch (resendError: unknown) {
+                      setError(resendError instanceof Error ? resendError.message : String(resendError));
+                    }
+                  }}
+                  className="font-medium text-red-700 underline underline-offset-2"
+                >
+                  Resend confirmation email
+                </button>
+              )}
             </div>
           )}
           {success && (

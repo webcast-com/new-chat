@@ -159,7 +159,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !profile) return;
+    if (!file || !profile) return;
     if (!file.type.startsWith('image/')) {
       setUploadError('Please choose an image file.');
       return;
@@ -172,8 +172,11 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
     setUploading(true);
     setUploadError('');
     try {
+      const { data: { user: authenticatedUser } } = await supabase.auth.getUser();
+      if (!authenticatedUser) throw new Error('Your session has expired. Please sign in again.');
+
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${authenticatedUser.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('post-images')
@@ -191,7 +194,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
       const { error: insertError } = await supabase
         .from('stories')
         .insert({
-          user_id: user.id,
+          user_id: authenticatedUser.id,
           image_url: publicUrl,
           expires_at: expiresAt.toISOString()
         });
