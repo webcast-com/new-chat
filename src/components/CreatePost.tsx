@@ -81,17 +81,19 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
         imageUrl = await uploadImage(selectedImage);
       }
 
-      const { error } = await supabase.from('posts').insert([
-        {
-          user_id: profile.id,
-          content: content.trim(),
-          image_url: imageUrl,
-          media_type: mediaType,
+      const post = {
+        user_id: profile.id,
+        content: content.trim(),
+        image_url: imageUrl,
+        media_type: mediaType,
+        ...(visibility !== 'public' && {
           visibility,
-          county: visibility === 'public' ? null : profile.county,
+          county: profile.county,
           constituency: visibility === 'constituency' ? profile.constituency : null,
-        },
-      ]);
+        }),
+      };
+
+      const { error } = await supabase.from('posts').insert([post]);
 
       if (error) throw error;
 
@@ -104,9 +106,12 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
         fileInputRef.current.value = '';
       }
       onPostCreated();
-    } catch (error) {
+    } catch (error: unknown) {
+      const details = error && typeof error === 'object' ? error as { message?: string; details?: string; hint?: string } : null;
+      const message = details?.message || (error instanceof Error ? error.message : String(error));
+      const context = [details?.details, details?.hint].filter(Boolean).join(' ');
       console.error('Error creating post:', error);
-      alert('Error creating post. Please try again.');
+      alert(`Error creating post: ${[message, context].filter(Boolean).join(' ')}`);
     } finally {
       setLoading(false);
     }
