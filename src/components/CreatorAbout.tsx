@@ -1,4 +1,4 @@
-import { Code2, Heart, Lightbulb, ShieldCheck, Sparkles } from 'lucide-react';
+import { Code2, Film, Gamepad2, Heart, Lightbulb, Radio, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
 
 const highlights = [
   {
@@ -64,6 +64,28 @@ export default function CreatorAbout() {
               Hyperlink is the builder and developer behind this experience, bringing together the product vision, interface, and interactive features that power Zoza Nation.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-zinc-900 via-indigo-950/40 to-zinc-900 p-6 shadow-xl sm:p-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-400">More to explore</p>
+        <h2 className="mt-2 text-2xl font-bold text-zinc-100">One community, many ways to connect</h2>
+        <p className="mt-3 max-w-3xl leading-7 text-zinc-400">
+          Hyperlink brings social connection together with live sports, entertainment, and play — so there is always something useful, exciting, or fun to discover.
+        </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {[
+            { icon: Radio, title: 'Live football matches', description: 'Follow live scores, match updates, fixtures, results, standings, and the moments that matter as games unfold.' },
+            { icon: Trophy, title: 'Free predictions', description: 'Explore free match predictions and betting insights to support your own decisions. Predictions are for entertainment and are never guaranteed.' },
+            { icon: Film, title: 'Movies to discover', description: 'Browse featured films, explore genres, and find something new to watch whenever you want a break from the feed.' },
+            { icon: Gamepad2, title: 'Games and play', description: 'Take a break with interactive games designed to bring a little friendly competition and fun to the community.' },
+          ].map(({ icon: Icon, title, description }) => (
+            <article key={title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 transition-colors hover:border-violet-400/40 hover:bg-white/[0.07]">
+              <Icon className="h-6 w-6 text-violet-300" />
+              <h3 className="mt-4 font-bold text-zinc-100">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p>
+            </article>
+          ))}
         </div>
       </section>
 
