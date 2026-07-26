@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, User, Cloud, Activity, TrendingUp, Loader2 } from 'lucide-react';
+import { X, MapPin, User, Cloud, Activity, TrendingUp, Loader2, Play, ExternalLink } from 'lucide-react';
 import { LiveMatch } from '@/app/data/sportsData';
 
 interface FeaturedMatchProps {
@@ -41,6 +41,28 @@ interface MatchDetails {
 const FeaturedMatch: React.FC<FeaturedMatchProps> = ({ match, onClose }) => {
   const [details, setDetails] = useState<MatchDetails | null>(null);
   const [loading, setLoading] = useState(false);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [streamLoading, setStreamLoading] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
+
+  const loadStream = async () => {
+    if (!match?.streamSlug) return;
+    setStreamLoading(true);
+    setStreamError(null);
+    setStreamUrl(null);
+    try {
+      const response = await fetch(`/api/sports-stream?matchSlug=${encodeURIComponent(match.streamSlug)}`);
+      const payload = await response.json() as { data?: unknown; url?: unknown; link?: unknown; stream_url?: unknown; error?: string };
+      if (!response.ok) throw new Error(payload.error || 'Stream unavailable');
+      const candidate = payload.url || payload.link || payload.stream_url || (payload.data && typeof payload.data === 'object' ? (payload.data as { url?: unknown; link?: unknown; stream_url?: unknown }).url || (payload.data as { link?: unknown }).link || (payload.data as { stream_url?: unknown }).stream_url : null);
+      if (typeof candidate !== 'string' || !candidate.startsWith('http')) throw new Error('No stream link is available for this match');
+      setStreamUrl(candidate);
+    } catch (error) {
+      setStreamError(error instanceof Error ? error.message : 'Stream unavailable');
+    } finally {
+      setStreamLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!match) return;
@@ -312,6 +334,40 @@ const FeaturedMatch: React.FC<FeaturedMatchProps> = ({ match, onClose }) => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {match.streamSlug && (
+            <div className="mt-4 rounded-lg border border-[#00d4ff]/20 bg-[#00d4ff]/5 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-white text-sm font-semibold">Live stream</p>
+                  <p className="mt-1 text-gray-400 text-xs">Open the available stream for this match.</p>
+                </div>
+                {!streamUrl && (
+                  <button
+                    type="button"
+                    onClick={loadStream}
+                    disabled={streamLoading}
+                    className="flex items-center gap-2 rounded-lg bg-[#00d4ff] px-3 py-2 text-sm font-bold text-[#071018] transition hover:bg-[#72e7ff] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {streamLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                    {streamLoading ? 'Finding stream...' : 'Watch Stream'}
+                  </button>
+                )}
+                {streamUrl && (
+                  <a
+                    href={streamUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 rounded-lg bg-[#00d4ff] px-3 py-2 text-sm font-bold text-[#071018] transition hover:bg-[#72e7ff]"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Open Stream
+                  </a>
+                )}
+              </div>
+              {streamError && <p className="mt-3 text-xs text-red-300" role="alert">{streamError}</p>}
             </div>
           )}
 

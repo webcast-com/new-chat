@@ -196,6 +196,15 @@ function mapSupabaseMatchToLiveMatch(dbMatch: any): LiveMatch | null {
       awayLogo,
       leagueLogo,
       countryLogo,
+      streamSlug: typeof dbMatch.streamSlug === 'string'
+        ? dbMatch.streamSlug
+        : typeof dbMatch.stream_slug === 'string'
+          ? dbMatch.stream_slug
+          : typeof dbMatch.match_slug === 'string'
+            ? dbMatch.match_slug
+            : typeof dbMatch.slug === 'string'
+              ? dbMatch.slug
+              : undefined,
     };
   } catch (err) {
     console.error('❌ Error mapping match:', err, dbMatch);

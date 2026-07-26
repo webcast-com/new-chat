@@ -33,6 +33,15 @@ export default defineConfig(({ mode }) => {
           ...(rapidApiKey ? { 'x-rapidapi-key': rapidApiKey } : {}),
         },
       },
+      '/api/sports-stream': {
+        target: 'https://sport-streaming-api.p.rapidapi.com',
+        changeOrigin: true,
+        rewrite: (path) => `/streams/${new URLSearchParams(path.split('?')[1]).get('matchSlug') ?? ''}`,
+        headers: {
+          'x-rapidapi-host': 'sport-streaming-api.p.rapidapi.com',
+          ...(rapidApiKey ? { 'x-rapidapi-key': rapidApiKey } : {}),
+        },
+      },
     },
   },
   };
