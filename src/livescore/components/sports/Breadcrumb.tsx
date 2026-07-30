@@ -3,8 +3,10 @@ import { ChevronRight, Home } from 'lucide-react';
 import { MainTab } from './TabNavigation';
 import { Sport } from '@/app/data/sportsData';
 
+type BreadcrumbTab = MainTab | 'leaderboard' | 'settings' | 'subscription' | 'webhook';
+
 interface BreadcrumbProps {
-  activeTab: MainTab;
+  activeTab: BreadcrumbTab;
   activeSport?: Sport;
   onNavigate?: (href: string) => void;
 }

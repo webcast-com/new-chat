@@ -152,7 +152,7 @@ export function useUpcomingMatches() {
       console.log('Response structure:', Object.keys(data));
 
       // Handle different API response formats
-      let apiMatches = [];
+      let apiMatches: unknown[] = [];
 
       if (Array.isArray(data)) {
         console.log('📊 Response is array, length:', data.length);
@@ -176,7 +176,7 @@ export function useUpcomingMatches() {
         // Map and filter for upcoming matches only
         const mappedMatches = apiMatches
           .map(mapApiMatchToUpcomingMatch)
-          .filter((m): m is UpcomingMatch => m !== null);
+          .filter((match: UpcomingMatch | null): match is UpcomingMatch => match !== null);
 
         console.log(`✅ Mapped ${mappedMatches.length} upcoming matches`);
 

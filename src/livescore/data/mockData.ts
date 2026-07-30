@@ -1,4 +1,4 @@
-export interface Prediction {
+export interface PredictionOdds {
   homeWinOdds: number;
   drawOdds: number;
   awayWinOdds: number;
@@ -16,7 +16,7 @@ export interface Match {
   time: string;
   league: string;
   minute?: string;
-  prediction?: Prediction;
+  prediction?: PredictionOdds;
 }
 
 export interface Standing {

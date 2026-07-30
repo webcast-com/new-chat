@@ -1,7 +1,5 @@
 import { corsFetch } from './apiClient';
 
-import { corsFetch } from './apiClient';
-
 const API_HOST = import.meta.env.VITE_ALLSPORTS_API_HOST || 'allsportsapi2.p.rapidapi.com';
 const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 const LIVE_MATCHES_URL = 'https://allsportsapi2.p.rapidapi.com/api/matches/live';
