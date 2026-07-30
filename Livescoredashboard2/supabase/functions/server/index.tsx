@@ -19,9 +19,27 @@ app.use(
   }),
 );
 
-// Health check endpoint
+// Phase 3: Cache-Control middleware for edge caching
+app.use("/make-server-ed1dd9fb/matches/*", async (c, next) => {
+  await next();
+  // Live data: cache 30s at CDN, 30s stale-while-revalidate
+  c.header("Cache-Control", "public, max-age=30, s-maxage=30, stale-while-revalidate=60");
+  c.header("CDN-Cache-Control", "public, max-age=60");
+});
+
+app.use("/make-server-ed1dd9fb/standings/*", async (c, next) => {
+  await next();
+  c.header("Cache-Control", "public, max-age=300, s-maxage=300, stale-while-revalidate=600");
+});
+
+app.use("/make-server-ed1dd9fb/highlights*", async (c, next) => {
+  await next();
+  c.header("Cache-Control", "public, max-age=600, s-maxage=600");
+});
+
+// Health check endpoint with cache bypass
 app.get("/make-server-ed1dd9fb/health", (c) => {
-  return c.json({ status: "ok" });
+  return c.json({ status: "ok", phase: "3", features: ["favorites", "realtime", "caching", "zod-validation", "secure-payments"] });
 });
 
 // Test endpoint to verify API key is set

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getEdgeFunctionUrl, SUPABASE_ANON_KEY } from '@/lib/supabase';
 
 export interface Transfer {
   id: string;
@@ -9,8 +10,8 @@ export interface Transfer {
   date: string;
 }
 
-const POLL_INTERVAL = 300000;
-const LIVE_TRANSFERS_API_ENABLED = import.meta.env.VITE_ENABLE_LIVE_TRANSFERS_API === 'true';
+const POLL_INTERVAL = 5 * 60 * 1000;
+const LIVE_TRANSFERS_API_ENABLED = import.meta.env.VITE_ENABLE_LIVE_TRANSFERS_API !== 'false';
 const fallbackTransfers: Transfer[] = [
   { id: 'demo-1', player: 'Recent transfer updates', from: 'Transfer window', to: 'Live feed', fee: 'Check back soon', date: 'Demo data' },
   { id: 'demo-2', player: 'Football transfer news', from: 'Clubs and leagues', to: 'Worldwide', fee: 'Latest moves', date: 'Demo data' },
@@ -28,12 +29,10 @@ function readValue(value: unknown): string {
 function mapTransfer(item: Record<string, unknown>, index: number): Transfer | null {
   const player = readValue(item.player ?? item.player_name ?? item.name ?? item.athlete);
   if (!player) return null;
-
   const from = readValue(item.from ?? item.from_team ?? item.old_team ?? item.previous_team ?? item.source) || 'Free agent';
   const to = readValue(item.to ?? item.to_team ?? item.new_team ?? item.current_team ?? item.destination) || 'Undisclosed';
   const fee = readValue(item.fee ?? item.transfer_fee ?? item.price ?? item.amount) || 'Undisclosed';
   const date = readValue(item.date ?? item.transfer_date ?? item.created_at) || 'Recent';
-
   return { id: readValue(item.id) || `${player}-${index}`, player, from, to, fee, date };
 }
 
@@ -47,62 +46,36 @@ function getTransferList(data: unknown): Record<string, unknown>[] {
   return [];
 }
 
+async function fetchTransfersFromAPI(): Promise<{ transfers: Transfer[]; source: 'api-live' | 'fallback-demo' }> {
+  if (!LIVE_TRANSFERS_API_ENABLED) return { transfers: fallbackTransfers, source: 'fallback-demo' };
+  const response = await fetch(getEdgeFunctionUrl('football-transfers'), {
+    headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+    credentials: 'omit',
+  });
+  if (!response.ok) throw new Error(`Transfer API returned ${response.status}`);
+  const mapped = getTransferList(await response.json())
+    .map(mapTransfer)
+    .filter((t): t is Transfer => t !== null)
+    .slice(0, 8);
+  if (mapped.length > 0) return { transfers: mapped, source: 'api-live' };
+  return { transfers: fallbackTransfers, source: 'fallback-demo' };
+}
+
 export function useTransfers() {
-  const [transfers, setTransfers] = useState<Transfer[]>(fallbackTransfers);
-  const [source, setSource] = useState<'loading' | 'api-live' | 'fallback-demo'>('loading');
-  const [loading, setLoading] = useState(true);
-  const unavailableUntilRef = useRef(0);
+  const query = useQuery({
+    queryKey: ['football-transfers'],
+    queryFn: fetchTransfersFromAPI,
+    refetchInterval: POLL_INTERVAL,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    initialData: { transfers: fallbackTransfers, source: 'fallback-demo' as const },
+  });
 
-  const fetchTransfers = useCallback(async () => {
-    if (!LIVE_TRANSFERS_API_ENABLED) {
-      setTransfers(fallbackTransfers);
-      setSource('fallback-demo');
-      setLoading(false);
-      return;
-    }
-
-    if (Date.now() < unavailableUntilRef.current) return;
-
-    try {
-      const { projectId, publicAnonKey } = await import('/utils/supabase/info');
-      if (!projectId || !publicAnonKey) throw new Error('Supabase configuration missing');
-
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/football-transfers`, {
-        headers: {
-          Authorization: `Bearer ${publicAnonKey}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'omit',
-      });
-
-      if (!response.ok) throw new Error(`Transfer API returned ${response.status}`);
-
-      const mappedTransfers = getTransferList(await response.json())
-        .map(mapTransfer)
-        .filter((transfer): transfer is Transfer => transfer !== null)
-        .slice(0, 8);
-
-      if (mappedTransfers.length > 0) {
-        setTransfers(mappedTransfers);
-        setSource('api-live');
-      } else {
-        setTransfers(fallbackTransfers);
-        setSource('fallback-demo');
-      }
-    } catch {
-      unavailableUntilRef.current = Date.now() + POLL_INTERVAL;
-      setTransfers(fallbackTransfers);
-      setSource('fallback-demo');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTransfers();
-    const intervalId = window.setInterval(fetchTransfers, POLL_INTERVAL);
-    return () => window.clearInterval(intervalId);
-  }, [fetchTransfers]);
-
-  return { transfers, source, loading };
+  return {
+    transfers: (query.data as any)?.transfers || fallbackTransfers,
+    source: (query.data as any)?.source || 'loading',
+    loading: query.isLoading,
+    isFetching: query.isFetching,
+    refetch: query.refetch,
+  };
 }

@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import Header from '@/app/components/sports/Header';
 import Footer from '@/app/components/sports/Footer';
 import type { Sport } from '@/app/data/sportsData';
+import SEO, { getFAQJsonLd, getBreadcrumbJsonLd, getOrganizationJsonLd } from '@/app/components/SEO';
 
 interface FAQItem {
   question: string;
@@ -59,6 +60,7 @@ const HelpCenter: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
+      <SEO pageKey="help" jsonLd={[getOrganizationJsonLd(), getBreadcrumbJsonLd([{ label: 'Home', href: '/' }, { label: 'Help Center', href: '/help' }]), getFAQJsonLd(faqs)]} />
       <Header activeSport={activeSport} onSportChange={setActiveSport} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
