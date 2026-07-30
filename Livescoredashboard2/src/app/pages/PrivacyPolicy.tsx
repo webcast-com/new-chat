@@ -9,6 +9,7 @@ const PrivacyPolicy: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
+      <SEO pageKey="privacy" />
       <Header activeSport={activeSport} onSportChange={setActiveSport} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
@@ -66,6 +67,7 @@ const PrivacyPolicy: React.FC = () => {
             <h2 className="text-2xl font-bold text-white mb-4">4. Security of Data</h2>
             <p className="text-gray-300 leading-relaxed">
               The security of your data is important to us, but remember that no method of transmission over the Internet or method of electronic storage is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.
+import SEO from '@/app/components/SEO';
             </p>
           </section>
 

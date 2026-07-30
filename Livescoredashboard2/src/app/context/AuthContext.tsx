@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, getEdgeFunctionUrl, SUPABASE_ANON_KEY } from '@/lib/supabase';
+import { PaystackRefSchema } from '@/app/services/validators';
 
 export type Plan = 'free' | 'premium';
 
@@ -35,8 +36,10 @@ interface AuthContextValue {
   planLoading: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
+  signInWithOAuth: (provider: 'google' | 'github' | 'facebook' | 'twitter') => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
-  upgrade: (paystackRef: string) => Promise<void>;
+  upgrade: (paystackRef: string) => Promise<{ status: 'success' | 'pending' | 'failed'; message: string }>;
   refreshPlan: () => Promise<void>;
   updateProfile: (data: { name?: string; country?: string; bio?: string; preferences?: Partial<UserPreferences> }) => Promise<void>;
 }
@@ -59,7 +62,7 @@ async function fetchUserPlan(userId: string): Promise<UserPlan> {
     if (new Date(data.plan_expires_at) < new Date()) {
       await supabase
         .from('user_plans')
-        .update({ plan: 'free', plan_expires_at: null })
+        .update({ plan: 'free', plan_expires_at: null, updated_at: new Date().toISOString() })
         .eq('user_id', userId);
       return { plan: 'free', plan_expires_at: null };
     }
@@ -68,32 +71,24 @@ async function fetchUserPlan(userId: string): Promise<UserPlan> {
   return { plan: data.plan ?? 'free', plan_expires_at: data.plan_expires_at ?? null };
 }
 
-async function upsertUserPlan(userId: string, plan: Plan, expiresAt: string | null) {
-  const { error } = await supabase
-    .from('user_plans')
-    .upsert(
-      { user_id: userId, plan, plan_expires_at: expiresAt, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id' }
-    );
-  if (error) throw error;
-}
-
-async function fetchUserPreferences(userId: string): Promise<UserPreferences | null> {
+async function fetchUserPreferences(userId: string): Promise<UserPreferences | undefined> {
   const { data } = await supabase
     .from('user_preferences')
     .select('*')
     .eq('user_id', userId)
     .maybeSingle();
 
-  return data ? {
-    email_notifications: data.email_notifications ?? true,
-    push_notifications: data.push_notifications ?? true,
-    sms_notifications: data.sms_notifications ?? false,
-    favorite_teams: data.favorite_teams ?? [],
-    favorite_leagues: data.favorite_leagues ?? [],
-    dark_mode: data.dark_mode ?? false,
-    language: data.language ?? 'en',
-  } : undefined;
+  return data
+    ? {
+        email_notifications: data.email_notifications ?? true,
+        push_notifications: data.push_notifications ?? true,
+        sms_notifications: data.sms_notifications ?? false,
+        favorite_teams: data.favorite_teams ?? [],
+        favorite_leagues: data.favorite_leagues ?? [],
+        dark_mode: data.dark_mode ?? false,
+        language: data.language ?? 'en',
+      }
+    : undefined;
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -103,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [planLoading, setPlanLoading] = useState(false);
+  const realtimeChannelRef = useRef<any>(null);
 
   const buildAuthUser = (u: User, planData: UserPlan, prefsData?: UserPreferences): AuthUser => ({
     ...u,
@@ -117,10 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadPlan = useCallback(async (u: User) => {
     setPlanLoading(true);
     try {
-      const [planData, prefsData] = await Promise.all([
-        fetchUserPlan(u.id),
-        fetchUserPreferences(u.id),
-      ]);
+      const [planData, prefsData] = await Promise.all([fetchUserPlan(u.id), fetchUserPreferences(u.id)]);
       setUser(buildAuthUser(u, planData, prefsData));
     } catch {
       setUser(buildAuthUser(u, { plan: 'free', plan_expires_at: null }));
@@ -129,22 +122,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Realtime subscription for user_plans to auto-upgrade when webhook fires
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        loadPlan(session.user).finally(() => setLoading(false));
-      } else {
+    if (!user?.id) {
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+        realtimeChannelRef.current = null;
+      }
+      return;
+    }
+
+    // Subscribe to user_plans changes for this user
+    const channel = supabase
+      .channel(`user_plans-${user.id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_plans', filter: `user_id=eq.${user.id}` }, async (payload) => {
+        console.log('[Realtime] user_plans updated', payload.new);
+        // Auto-refresh plan
+        if (payload.new) {
+          const newPlan = payload.new.plan as Plan;
+          const expires = payload.new.plan_expires_at as string | null;
+          setUser((prev) => (prev ? { ...prev, plan: newPlan, plan_expires_at: expires } : prev));
+          // Also reload full plan to ensure consistency
+          const freshUser = await supabase.auth.getUser().then(r => r.data.user);
+          if (freshUser) await loadPlan(freshUser);
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'payment_logs', filter: `user_id=eq.${user.id}` }, (payload) => {
+        console.log('[Realtime] payment_logs updated', payload.new);
+        if ((payload.new as any)?.status === 'success') {
+          // Payment succeeded via webhook - refresh plan
+          supabase.auth.getUser().then(({ data }) => {
+            if (data.user) loadPlan(data.user);
+          });
+        }
+      })
+      .subscribe((status) => {
+        if (import.meta.env.DEV) console.log(`[Realtime] user_plans channel status: ${status}`);
+      });
+
+    realtimeChannelRef.current = channel;
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [user?.id, loadPlan]);
+
+  useEffect(() => {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        if (session?.user) {
+          loadPlan(session.user).finally(() => setLoading(false));
+        } else {
+          setUser(null);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setSession(null);
         setUser(null);
         setLoading(false);
-      }
-    }).catch(() => {
-      setSession(null);
-      setUser(null);
-      setLoading(false);
-    });
+      });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
         loadPlan(session.user);
@@ -178,6 +221,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'github' | 'facebook' | 'twitter') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: 'offline',
+            prompt: provider === 'google' ? 'consent' : undefined,
+          },
+        },
+      });
+      return { error };
+    } catch {
+      return { error: { message: `Unable to sign in with ${provider}. Please try again.` } as AuthError };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    return signInWithOAuth('google');
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -187,25 +252,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const upgrade = async (paystackRef: string) => {
+  // Phase 3: Secure upgrade flow - pending + verify via edge function + webhook
+  const upgrade = async (paystackRef: string): Promise<{ status: 'success' | 'pending' | 'failed'; message: string }> => {
     if (!user) throw new Error('Not authenticated');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-    await upsertUserPlan(user.id, 'premium', expiresAt);
+    // Validate reference format
+    const refValidation = PaystackRefSchema.safeParse(paystackRef);
+    if (!refValidation.success) {
+      throw new Error('Invalid payment reference format');
+    }
 
-    // Log the payment reference
-    await supabase.from('payment_logs').insert({
+    // Step 1: Insert pending payment log (client can only insert pending, not success)
+    const pendingExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const { error: insertError } = await supabase.from('payment_logs').insert({
       user_id: user.id,
       provider: 'paystack',
       reference: paystackRef,
+      plan: 'premium',
       amount: 100,
       currency: 'KES',
-      plan: 'premium',
-      expires_at: expiresAt,
+      status: 'pending',
+      expires_at: pendingExpiresAt,
       created_at: new Date().toISOString(),
-    }).then(() => {}); // Non-blocking — ignore errors
+    });
 
-    setUser((u) => u ? { ...u, plan: 'premium', plan_expires_at: expiresAt } : null);
+    if (insertError) {
+      // If duplicate reference (already exists), continue to verification
+      if (insertError.code !== '23505') {
+        console.warn('Failed to insert pending payment log', insertError.message);
+        // Don't throw, continue to verification - log may already exist
+      }
+    }
+
+    // Step 2: Try to verify via edge function verify-paystack
+    try {
+      const verifyUrl = getEdgeFunctionUrl('verify-paystack');
+      const verifyRes = await fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ reference: paystackRef }),
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (verifyRes.ok && verifyData.status === 'success') {
+        // Verified - refresh plan from DB (should now be premium via webhook or direct update)
+        await loadPlan(user);
+        // Optimistic local update as fallback
+        setUser((u) => (u ? { ...u, plan: 'premium', plan_expires_at: verifyData.expires_at || pendingExpiresAt } : null));
+        return { status: 'success', message: verifyData.message || 'Payment verified and premium activated' };
+      }
+
+      if (verifyData.status === 'pending') {
+        // Payment pending webhook - tell user we're waiting for Paystack webhook
+        return { status: 'pending', message: 'Payment received, waiting for Paystack webhook verification. Premium will activate automatically within seconds.' };
+      }
+
+      if (verifyData.status === 'failed') {
+        return { status: 'failed', message: verifyData.message || 'Payment verification failed' };
+      }
+
+      // Unknown status - treat as pending, rely on webhook
+      return { status: 'pending', message: 'Payment submitted, awaiting verification via webhook' };
+    } catch (err: any) {
+      console.error('Verification edge function failed, falling back to webhook wait', err);
+      // Edge function may not be deployed - fallback to optimistic pending, rely on paystack-webhook
+      return { status: 'pending', message: 'Payment logged, premium will activate via Paystack webhook shortly. If not, contact support with reference: ' + paystackRef };
+    }
   };
 
   const refreshPlan = async () => {
@@ -238,9 +354,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(data.preferences.language !== undefined && { language: data.preferences.language }),
       };
 
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert(prefsToUpdate, { onConflict: 'user_id' });
+      const { error } = await supabase.from('user_preferences').upsert(prefsToUpdate as any, { onConflict: 'user_id' });
       if (error) throw error;
     }
 
@@ -248,7 +362,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, planLoading, signUp, signIn, signOut, upgrade, refreshPlan, updateProfile }}>
+    <AuthContext.Provider value={{ user, session, loading, planLoading, signUp, signIn, signInWithGoogle, signInWithOAuth, signOut, upgrade, refreshPlan, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
