@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import {
-  User, Mail, Globe, FileText, Bell, Shield, Crown,
+  User, Mail, Globe, FileText, Bell, Crown,
   Edit3, Save, X, Lock
 } from 'lucide-react';
 

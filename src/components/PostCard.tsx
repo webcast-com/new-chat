@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check, Bookmark, Flag, MapPin } from 'lucide-react';
 import { Post, Comment } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { getPostMediaType, removePostMedia, uploadPostMedia, validatePostMedia, type PostMediaType } from '../lib/postMedia';
 import CommentSection from './CommentSection';
 import ReactionButton from './ReactionButton';
 import ShareButton from './ShareButton';
@@ -23,6 +24,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   const [editContent, setEditContent] = useState(post.content);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(post.image_url || null);
+  const [selectedMediaType, setSelectedMediaType] = useState<PostMediaType>(post.media_type === 'video' ? 'video' : 'image');
   const [removeExistingImage, setRemoveExistingImage] = useState(false);
   const [reactionStats, setReactionStats] = useState<{[key: string]: number}>({});
   const [isBookmarked, setIsBookmarked] = useState(() => {
@@ -31,6 +33,18 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   });
   const [isReported, setIsReported] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => () => {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+  }, []);
+
+  const releasePreview = () => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+  };
 
   const isOwnPost = profile?.id === post.user_id;
 
@@ -69,56 +83,58 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB');
-        return;
-      }
+    if (!file) return;
 
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setRemoveExistingImage(false);
+    const validationError = validatePostMedia(file);
+    if (validationError) {
+      alert(validationError);
+      e.currentTarget.value = '';
+      return;
     }
+
+    const nextMediaType = getPostMediaType(file);
+    if (!nextMediaType) return;
+
+    releasePreview();
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlRef.current = previewUrl;
+    setSelectedImage(file);
+    setSelectedMediaType(nextMediaType);
+    setImagePreview(previewUrl);
+    setRemoveExistingImage(false);
   };
 
   const removeImage = () => {
+    releasePreview();
     setSelectedImage(null);
     setImagePreview(null);
+    setSelectedMediaType('image');
     setRemoveExistingImage(true);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${profile!.id}/${Date.now()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('post-images')
-      .upload(fileName, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage
-      .from('post-images')
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
+  const uploadImage = async (file: File) => {
+    if (!profile) throw new Error('You must be signed in to upload media.');
+    return uploadPostMedia(file, profile.id);
   };
 
   const handleEdit = async () => {
     if (!editContent.trim()) return;
 
+    let uploadedPath = '';
     try {
       let imageUrl = removeExistingImage ? '' : (post.image_url || '');
+      let nextMediaType: PostMediaType = removeExistingImage
+        ? 'image'
+        : (post.media_type === 'video' ? 'video' : 'image');
 
       if (selectedImage) {
-        imageUrl = await uploadImage(selectedImage);
+        const uploaded = await uploadImage(selectedImage);
+        imageUrl = uploaded.publicUrl;
+        uploadedPath = uploaded.path;
+        nextMediaType = uploaded.mediaType;
       }
 
       const { error } = await supabase
@@ -126,17 +142,24 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
         .update({
           content: editContent.trim(),
           image_url: imageUrl,
+          media_type: nextMediaType,
         })
         .eq('id', post.id);
 
       if (error) throw error;
 
+      releasePreview();
+      setImagePreview(imageUrl || null);
+      setSelectedImage(null);
+      setSelectedMediaType(nextMediaType);
+      setRemoveExistingImage(false);
       setIsEditing(false);
       setShowMenu(false);
       onUpdate();
     } catch (error) {
+      if (uploadedPath) await removePostMedia(uploadedPath);
       console.error('Error updating post:', error);
-      alert('Error updating post. Please try again.');
+      alert(error instanceof Error ? error.message : 'Error updating post. Please try again.');
     }
   };
 
@@ -159,10 +182,12 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
   };
 
   const cancelEdit = () => {
+    releasePreview();
     setIsEditing(false);
     setEditContent(post.content);
     setImagePreview(post.image_url || null);
     setSelectedImage(null);
+    setSelectedMediaType(post.media_type === 'video' ? 'video' : 'image');
     setRemoveExistingImage(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -268,17 +293,24 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
             {imagePreview && !removeExistingImage && (
               <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Post preview"
-                  className="w-full rounded-xl object-cover max-h-96"
-                />
+                {selectedMediaType === 'video' ? (
+                  <video
+                    src={imagePreview}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="max-h-96 w-full rounded-xl bg-slate-950"
+                  />
+                ) : (
+                  <img src={imagePreview} alt="Post preview" className="max-h-96 w-full rounded-xl object-cover" />
+                )}
                 <button
                   type="button"
                   onClick={removeImage}
-                  className="absolute top-2 right-2 bg-slate-900 bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90 transition-all"
+                  aria-label="Remove attached media"
+                  className="absolute right-2 top-2 rounded-full bg-slate-900 bg-opacity-70 p-2 text-white transition-all hover:bg-opacity-90"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
             )}
@@ -287,7 +319,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
+                accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/ogg"
                 onChange={handleImageSelect}
                 className="hidden"
                 id={`edit-image-${post.id}`}
@@ -296,7 +328,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 htmlFor={`edit-image-${post.id}`}
                 className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50 cursor-pointer text-sm"
               >
-                Change Photo
+                Change photo or video
               </label>
             </div>
 
@@ -333,7 +365,13 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             {post.image_url && (
               <div className="mb-4 overflow-hidden rounded-lg">
                 {post.media_type === 'video' ? (
-                  <video src={post.image_url} controls className="max-h-[32rem] w-full bg-slate-950" />
+                  <video
+                    src={post.image_url}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    className="max-h-[32rem] w-full bg-slate-950"
+                  />
                 ) : (
                   <Image src={post.image_url} alt="Post content" variant="post" rounded="lg" />
                 )}

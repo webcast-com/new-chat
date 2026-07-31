@@ -92,7 +92,7 @@ function mapSupabaseMatchToLiveMatch(dbMatch: any): LiveMatch | null {
 
     // Try state.score.current format first (e.g., "1 - 0")
     if (dbMatch.state?.score?.current && typeof dbMatch.state.score.current === 'string' && dbMatch.state.score.current !== null) {
-      const scoreParts = dbMatch.state.score.current.split('-').map(s => s.trim());
+      const scoreParts = dbMatch.state.score.current.split('-').map((score: string) => score.trim());
       homeScore = parseInt(scoreParts[0]) || 0;
       awayScore = parseInt(scoreParts[1]) || 0;
     }
@@ -301,7 +301,6 @@ export function useScoreSimulator() {
         console.error(`Edge function error ${response.status}:`, errorData);
 
         // Parse error to check if it's a quota/usage issue
-        const errorInfo = errorData;
         let userFriendlyError = '';
 
         if (response.status === 503 || errorData.includes('usage_exceeded')) {
@@ -324,7 +323,7 @@ export function useScoreSimulator() {
       console.log('Full response:', JSON.stringify(data, null, 2));
 
       // Handle different API response formats
-      let apiMatches = [];
+        let apiMatches: unknown[] = [];
 
       if (Array.isArray(data)) {
         console.log('📊 Response is array, length:', data.length);
@@ -364,7 +363,7 @@ export function useScoreSimulator() {
         // Map API matches to our format - show all matches
         const mappedMatches = apiMatches
           .map(mapSupabaseMatchToLiveMatch)
-          .filter((m): m is LiveMatch => m !== null);
+          .filter((match: LiveMatch | null): match is LiveMatch => match !== null);
 
         console.log(`✅ Successfully mapped ${mappedMatches.length} matches (all available matches displayed)`);
         if (mappedMatches.length > 0) {

@@ -93,7 +93,7 @@ async function fetchUserPreferences(userId: string): Promise<UserPreferences | n
     favorite_leagues: data.favorite_leagues ?? [],
     dark_mode: data.dark_mode ?? false,
     language: data.language ?? 'en',
-  } : undefined;
+  } : null;
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -104,14 +104,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [planLoading, setPlanLoading] = useState(false);
 
-  const buildAuthUser = (u: User, planData: UserPlan, prefsData?: UserPreferences): AuthUser => ({
+  const buildAuthUser = (u: User, planData: UserPlan, prefsData?: UserPreferences | null): AuthUser => ({
     ...u,
     plan: planData.plan,
     plan_expires_at: planData.plan_expires_at,
     name: u.user_metadata?.display_name || u.email?.split('@')[0],
     country: u.user_metadata?.country,
     bio: u.user_metadata?.bio,
-    preferences: prefsData,
+    preferences: prefsData ?? undefined,
   });
 
   const loadPlan = useCallback(async (u: User) => {

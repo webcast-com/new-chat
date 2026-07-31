@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Header from '@/app/components/sports/Header';
 import Footer from '@/app/components/sports/Footer';
 import type { Sport } from '@/app/data/sportsData';
+import SEO from '@/app/components/SEO';
 
 const PrivacyPolicy: React.FC = () => {
   const [activeSport, setActiveSport] = useState<Sport>('all');

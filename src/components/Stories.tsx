@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
+import { getPostMediaType, uploadPostMedia, validatePostMedia } from '../lib/postMedia';
 import { Plus, X, Loader2, ChevronLeft, ChevronRight, Heart, Info } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import Image from './Image';
@@ -10,6 +11,7 @@ interface Story {
   user_id: string;
   profile: Profile;
   image_url: string;
+  media_type?: 'image' | 'video';
   caption?: string;
   created_at: string;
   expires_at: string;
@@ -160,12 +162,12 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please choose an image file.');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError('Story images must be smaller than 10MB.');
+
+    const mediaType = getPostMediaType(file);
+    const validationError = validatePostMedia(file, { maxImageSize: 10 * 1024 * 1024 });
+    if (!mediaType || validationError) {
+      setUploadError(validationError || 'Please choose a supported image or video file.');
+      e.currentTarget.value = '';
       return;
     }
 
@@ -175,19 +177,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
       const { data: { user: authenticatedUser } } = await supabase.auth.getUser();
       if (!authenticatedUser) throw new Error('Your session has expired. Please sign in again.');
 
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${authenticatedUser.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('post-images')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('post-images')
-        .getPublicUrl(fileName);
-
+      const uploaded = await uploadPostMedia(file, authenticatedUser.id, { maxImageSize: 10 * 1024 * 1024 });
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
@@ -195,11 +185,15 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
         .from('stories')
         .insert({
           user_id: authenticatedUser.id,
-          image_url: publicUrl,
+          image_url: uploaded.publicUrl,
+          media_type: uploaded.mediaType,
           expires_at: expiresAt.toISOString()
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        await supabase.storage.from('post-images').remove([uploaded.path]);
+        throw insertError;
+      }
 
       await loadStories();
     } catch (error: unknown) {
@@ -309,7 +303,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/ogg"
           onChange={handleFileChange}
           className="hidden"
         />
@@ -322,12 +316,22 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
               onClick={() => handleStoryClick(latestStory, group)}
               className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105 ring-2 ring-blue-500 ring-offset-2"
             >
-              <Image
-                src={latestStory.image_url}
-                alt={latestStory.profile?.username || 'Story'}
-                variant="story"
-                rounded="lg"
-              />
+              {latestStory.media_type === 'video' ? (
+                <video
+                  src={latestStory.image_url}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={latestStory.image_url}
+                  alt={latestStory.profile?.username || 'Story'}
+                  variant="story"
+                  rounded="lg"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
               <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -348,13 +352,24 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
       {selectedStoryGroup && currentStory && (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
           <div className="relative w-full max-w-sm h-screen md:h-[90vh] md:rounded-2xl overflow-hidden bg-black">
-            <Image
-              src={currentStory.image_url}
-              alt="Story"
-              variant="custom"
-              className="w-full h-full"
-              rounded="lg"
-            />
+            {currentStory.media_type === 'video' ? (
+              <video
+                src={currentStory.image_url}
+                autoPlay
+                controls
+                muted
+                playsInline
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <Image
+                src={currentStory.image_url}
+                alt="Story"
+                variant="custom"
+                className="w-full h-full"
+                rounded="lg"
+              />
+            )}
 
             <button
               onClick={closeStoryViewer}

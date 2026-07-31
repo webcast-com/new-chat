@@ -1,7 +1,5 @@
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 
-import { projectId, publicAnonKey } from '/utils/supabase/info';
-
 export async function fetchSupabaseApi<T>(service: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ service, ...params });
   const response = await fetch(`https://${projectId}.supabase.co/functions/v1/rapidapi?${query}`, {

@@ -3,7 +3,7 @@ import { MOCK_PREDICTIONS } from '../data/mockData';
 import { PredictionCard } from '../components/predictions/PredictionCard';
 import { PredictionFilters, PredictionFilterOptions } from '../components/PredictionFilters';
 import { getPredictions, getFederations, getMarkets, normalizeApiPrediction } from '../services/footballApi';
-import { RefreshCw, WifiOff, Wifi, Calendar, Globe2, Filter, Target, Code, Copy, Check, TrendingUp } from 'lucide-react';
+import { RefreshCw, WifiOff, Wifi, Calendar, Globe2, Filter, Target, Code, Copy, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSavedPredictions } from '../hooks/useSavedPredictions';
 

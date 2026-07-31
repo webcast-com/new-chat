@@ -9,13 +9,13 @@
 
 ### Posts & Content
 - Create, edit, and delete posts
-- Image uploads with preview
+- Image and video uploads with browser preview, Supabase Storage persistence, and feed playback
 - Post engagement tracking
 - Real-time comment threads
 - Nested comment system
 - Community feed search by post content, username, or full name
 - Trending feed ranked by engagement and recency, with 24-hour, weekly, and all-time filters
-- 24-hour image stories with upload, grouped viewing, and automatic progression
+- 24-hour image and video stories with upload, grouped viewing, and automatic progression
 
 ### Reactions (Facebook-like)
 - 6 reaction types: Like 👍, Love ❤️, Haha 😂, Wow 😮, Sad 😢, Angry 😠
@@ -107,14 +107,13 @@
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage (for images)
+- **Storage**: Supabase Storage (for images and videos)
 - **Icons**: Lucide React
 - **Build**: Vite
 
 ## Future Enhancement Opportunities
 - Persistent notification center and delivery for likes, comments, and friend requests
 - Group chats
-- Video uploads
 - Post scheduling
 - Activity timeline
 - Server-enforced privacy settings

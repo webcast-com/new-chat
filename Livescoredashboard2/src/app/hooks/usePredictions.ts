@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getPredictions } from '../services/footballApi';
-import { Prediction } from '../data/mockData';
+import { PredictionOdds } from '../data/mockData';
 
 interface PredictionMap {
-  [matchId: string]: Prediction;
+  [matchId: string]: PredictionOdds;
 }
 
 const mockPredictionMap: PredictionMap = {

@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 export const ActivitySchema = z.object({
   action: z.string().min(1),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type ActivityAction =

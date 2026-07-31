@@ -159,7 +159,6 @@ export function SureBets({ onUpgrade }: { onUpgrade: () => void }) {
   const [filterPrediction, setFilterPrediction] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [cacheInfo, setCacheInfo] = useState<string>("");
   const providerUnavailableRef = useRef(false);
   const leaguesRequestInFlightRef = useRef(false);
@@ -222,7 +221,6 @@ export function SureBets({ onUpgrade }: { onUpgrade: () => void }) {
         setData(cachedData);
         const lastUpdated = cacheManager.getLastUpdated(cacheKey);
         if (lastUpdated) {
-          setLastUpdated(lastUpdated);
           setCacheInfo(`Data cached from ${lastUpdated.toLocaleTimeString()}`);
         }
         setLoading(false);
@@ -236,7 +234,6 @@ export function SureBets({ onUpgrade }: { onUpgrade: () => void }) {
       predictionsRequestInFlightRef.current = true;
       const result = await fetchSupabaseApi<ApiResponse>('sureBetsPredictions', { page: String(page) });
       setData(result);
-      setLastUpdated(new Date());
 
       cacheManager.set(cacheKey, result, CACHE_DURATION.PREDICTIONS);
       setCacheInfo(`Data cached for ${CACHE_DURATION.PREDICTIONS} hours`);

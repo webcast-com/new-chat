@@ -72,8 +72,8 @@ export function useTransfers() {
   });
 
   return {
-    transfers: (query.data as any)?.transfers || fallbackTransfers,
-    source: (query.data as any)?.source || 'loading',
+    transfers: query.data?.transfers || fallbackTransfers,
+    source: query.data?.source || 'loading',
     loading: query.isLoading,
     isFetching: query.isFetching,
     refetch: query.refetch,

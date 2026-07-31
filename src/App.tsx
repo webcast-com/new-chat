@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
+import SEO from './components/SEO';
 import Feed from './components/Feed';
 import { supabase, Profile } from './lib/supabase';
 const CreatePost = lazy(() => import('./components/CreatePost'));
@@ -383,6 +384,7 @@ function PublicFeed() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950">
+      <SEO view="feed" />
       <header className="sticky top-0 z-40 border-b border-violet-900/40 bg-indigo-950/90 text-white shadow-2xl backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -513,6 +515,7 @@ function MainApp() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${dark ? 'bg-gradient-to-br from-zinc-950 via-slate-950 to-indigo-950' : 'bg-slate-50'}`}>
+      <SEO view={activeView} profileName={profile.username} />
 
       {/* ── Top banner ── */}
       <div className="flex justify-between items-center px-4 py-1 bg-gradient-to-r from-indigo-950 via-violet-950 to-indigo-950 border-b border-violet-800/30 text-xs">

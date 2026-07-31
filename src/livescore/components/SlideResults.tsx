@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback, type ComponentProps, type CSSProperties } from 'react';
 import { getPreviousResults, normalizeBetigoloResult, type BetigoloResult } from '../services/betigoloApi';
 import { useAuth } from '../context/AuthContext';
-type ButtonProps = ComponentProps<'button'> & { variant?: 'primary' | 'premium' | 'outline'; size?: 'sm' | 'default' };
+type ButtonProps = ComponentProps<'button'> & { variant?: 'primary' | 'premium' | 'outline' | 'secondary'; size?: 'sm' | 'default' };
 
 function Button({ className = '', variant = 'primary', size = 'default', ...props }: ButtonProps) {
   const variantClass = variant === 'premium'
     ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:opacity-90'
     : variant === 'outline'
       ? 'border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
-      : 'bg-blue-600 text-white hover:bg-blue-700';
+      : variant === 'secondary'
+        ? 'bg-white/15 text-white hover:bg-white/25'
+        : 'bg-blue-600 text-white hover:bg-blue-700';
   return <button {...props} className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all disabled:pointer-events-none disabled:opacity-50 ${size === 'sm' ? 'h-8 px-3 text-xs' : 'h-9 px-4 text-sm'} ${variantClass} ${className}`} />;
 }
 

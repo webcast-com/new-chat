@@ -110,7 +110,7 @@ export function useNews() {
       console.log('✅ News response received');
 
       // Handle different API response formats
-      let apiNews = [];
+      let apiNews: unknown[] = [];
 
       if (data.success && Array.isArray(data.news)) {
         console.log('📰 Found news array, length:', data.news.length);
@@ -136,7 +136,7 @@ export function useNews() {
         // Map API news to our format
         const mappedNews = apiNews
           .map(mapApiNewsToArticle)
-          .filter((n): n is NewsArticle => n !== null)
+          .filter((article: NewsArticle | null): article is NewsArticle => article !== null)
           .slice(0, 20); // Limit to 20 articles
 
         console.log(`✅ Mapped ${mappedNews.length} news articles`);

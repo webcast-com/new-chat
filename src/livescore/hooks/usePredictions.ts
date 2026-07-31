@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getPredictions } from '../services/footballApi';
-import { Prediction } from '../data/mockData';
+import { PredictionOdds } from '../data/mockData';
 
 interface PredictionMap {
-  [matchId: string]: Prediction;
+  [matchId: string]: PredictionOdds;
 }
 
 const mockPredictionMap: PredictionMap = {
@@ -61,8 +61,6 @@ export function usePredictions() {
     }
 
     apiData.forEach((pred: any, index: number) => {
-      const homeTeam = pred.home_name || pred.home_team || '';
-      const awayTeam = pred.away_name || pred.away_team || '';
       const predId = `api-${pred.id || index}`;
 
       let confidence = 65 + (index % 7) * 4;
