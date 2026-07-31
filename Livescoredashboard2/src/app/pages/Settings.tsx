@@ -14,7 +14,7 @@ export function Settings() {
   const { user, updateProfile } = useAuth();
   const { language, setLanguage, languages } = useLanguage();
   const { favorites } = useFavorites();
-  const { achievements, progress } = useAchievements();
+  const { achievements, progress, definitions } = useAchievements();
   const { referralCode, stats, copyReferralLink } = useReferral();
   const { permission, isSupported, isSubscribed, requestPermission, canNotify } = usePushNotifications();
 
@@ -85,7 +85,7 @@ export function Settings() {
               <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full" style={{ width: `${progress.percentage}%` }} /></div>
               <p className="text-xs text-gray-500">{progress.unlocked}/{progress.total} unlocked · {progress.points} points</p>
               <div className="grid grid-cols-4 gap-2 mt-3">
-                {Object.values(require('@/app/hooks/useAchievements').achievementDefinitions || {}).slice(0, 8).map((def: any) => {
+                {Object.values(definitions).slice(0, 8).map((def) => {
                   const unlocked = achievements.some(a => a.achievement_type === def.type);
                   return <div key={def.type} title={`${def.title}: ${def.description}`} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg border ${unlocked ? 'bg-amber-500/20 border-amber-500/30' : 'bg-white/5 border-white/5 opacity-50'}`}>{def.icon}</div>;
                 })}

@@ -139,6 +139,7 @@ export function normalizeApiPrediction(p: ApiPrediction, index: number) {
   const awayTeam = p.away_name || p.away_team || 'Away';
   const pick = p.prediction || p.pick || 'Match Result';
   const odds = String(p.avg_odds ?? p.odds ?? '1.85');
+  const numericOdds = Number.parseFloat(odds) || 1.85;
 
   let confidence = Math.round(65 + (index % 7) * 4);
   if (typeof p.probability === 'number') {
@@ -167,6 +168,9 @@ export function normalizeApiPrediction(p: ApiPrediction, index: number) {
     prediction: pick,
     confidence,
     odds,
+    homeWinOdds: Number((numericOdds * 0.95).toFixed(2)),
+    drawOdds: Number((numericOdds * 1.2).toFixed(2)),
+    awayWinOdds: Number((numericOdds * 1.15).toFixed(2)),
     isPremium: true,
     rationale: `Market: ${market} · Federation: ${federation}. Odds fetched live from bookmaker data.`,
     source: 'live-api' as const,

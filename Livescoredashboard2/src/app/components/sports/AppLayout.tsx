@@ -24,6 +24,7 @@ import { MainTab } from './TabNavigation';
 import SEO, { getOrganizationJsonLd, getWebsiteJsonLd, getBreadcrumbJsonLd, getSportsEventJsonLd } from '@/app/components/SEO';
 import { useActivityTracking } from '@/app/hooks/useActivityTracking';
 import { useRealtimeScores } from '@/app/hooks/useRealtimeScores';
+import ReferralProgram from '@/app/pages/ReferralProgram';
 
 const PredictionsList = lazy(() => import('@/app/pages/PredictionsList').then(m => ({ default: m.PredictionsList })));
 const PremiumUpgrade = lazy(() => import('@/app/pages/PremiumUpgrade').then(m => ({ default: m.PremiumUpgrade })));
@@ -102,7 +103,7 @@ const AppLayout: React.FC = () => {
       }
     } else {
       newParams.set('sport', sport);
-      if (sport !== 'all' && location.pathname === '/') {
+      if (location.pathname === '/') {
         navigate({ pathname: `/sport/${sport}`, search: '' });
         trackSportFilter(sport, prev);
         return;

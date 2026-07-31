@@ -11,6 +11,15 @@ export interface DBReview {
   user_id?: string;
 }
 
+interface ReviewRow {
+  id: string | number;
+  author_name: string;
+  rating: number;
+  created_at: string;
+  text: string;
+  user_id?: string;
+}
+
 interface WatchlistContextType {
   watchlist: number[];
   toggleWatchlist: (id: number) => Promise<void>;
@@ -49,7 +58,7 @@ export const WatchlistProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       .select('*')
       .eq('movie_id', movieId)
       .order('created_at', { ascending: false });
-    const mapped: DBReview[] = (data || []).map((r: any) => ({
+    const mapped: DBReview[] = (data || []).map((r: ReviewRow) => ({
       id: String(r.id),
       author: r.author_name,
       rating: r.rating,

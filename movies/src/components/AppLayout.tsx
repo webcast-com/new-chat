@@ -30,7 +30,7 @@ const AppLayoutInner: React.FC = () => {
   const featured = useMemo(() => [...movies].sort((a, b) => b.rating - a.rating).slice(0, 5), []);
 
   const filtered = useMemo(() => {
-    let result = movies.filter(m => {
+    const result = movies.filter(m => {
       if (search && !m.title.toLowerCase().includes(search.toLowerCase())) return false;
       if (activeGenre !== 'all' && !m.genre.includes(activeGenre)) return false;
       if (m.rating < minRating) return false;

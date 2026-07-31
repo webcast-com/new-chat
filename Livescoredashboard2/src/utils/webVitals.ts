@@ -23,9 +23,8 @@ function logMetric(metric: WebVitalMetric) {
 
 export function initWebVitals() {
   // Dynamic import to avoid bundling web-vitals in initial chunk if not needed
-  import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB, onINP }) => {
+  import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
     onCLS(logMetric);
-    onFID(logMetric);
     onFCP(logMetric);
     onLCP(logMetric);
     onTTFB(logMetric);

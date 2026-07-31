@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "./utils";
 
-type ButtonVariant = "default" | "outline" | "ghost" | "destructive" | "link" | "premium" | "primary";
+type ButtonVariant = "default" | "outline" | "ghost" | "destructive" | "link" | "premium" | "primary" | "secondary";
 type ButtonSize = "default" | "sm" | "lg" | "icon";
 
 interface ButtonProps extends React.ComponentProps<"button"> {
@@ -18,6 +18,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   destructive: "bg-destructive text-white hover:bg-destructive/90",
   link: "text-primary underline-offset-4 hover:underline",
   premium: "bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:opacity-90",
+  secondary: "bg-white/15 text-white hover:bg-white/25",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
