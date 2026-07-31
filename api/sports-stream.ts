@@ -1,14 +1,25 @@
+import { checkRateLimit, setPublicCacheHeaders } from './_rateLimit';
+
 type Request = {
   method?: string;
+  headers?: Record<string, string | string[] | undefined>;
   query?: Record<string, string | string[] | undefined>;
 };
 
 type Response = {
   status: (code: number) => Response;
   json: (body: unknown) => void;
+  setHeader?: (name: string, value: string | number) => void;
 };
 
 export default async function handler(req: Request, res: Response) {
+  const rateLimit = checkRateLimit(req, res, 60);
+  if (!rateLimit.allowed) {
+    res.setHeader?.('Retry-After', rateLimit.retryAfterSeconds);
+    res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
+    return;
+  }
+
   if (req.method !== 'GET') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -35,6 +46,7 @@ export default async function handler(req: Request, res: Response) {
       },
     });
     const body = await response.json();
+    if (response.ok) setPublicCacheHeaders(res, 30);
     res.status(response.status).json(response.ok ? body : { error: 'Stream lookup failed' });
   } catch {
     res.status(502).json({ error: 'Unable to reach the sports streaming service' });

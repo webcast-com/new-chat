@@ -1,14 +1,25 @@
+import { checkRateLimit, setPublicCacheHeaders } from './_rateLimit';
+
 type Request = {
   method?: string;
+  headers?: Record<string, string | string[] | undefined>;
   query?: Record<string, string | string[] | undefined>;
 };
 
 type Response = {
   status: (code: number) => Response;
   json: (body: unknown) => void;
+  setHeader?: (name: string, value: string | number) => void;
 };
 
 export default async function handler(req: Request, res: Response) {
+  const rateLimit = checkRateLimit(req, res, 30);
+  if (!rateLimit.allowed) {
+    res.setHeader?.('Retry-After', rateLimit.retryAfterSeconds);
+    res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
+    return;
+  }
+
   if (req.method !== 'GET') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -43,6 +54,7 @@ export default async function handler(req: Request, res: Response) {
       return;
     }
 
+    setPublicCacheHeaders(res, 60);
     res.status(200).json(body);
   } catch {
     res.status(502).json({ error: 'Unable to reach TikTok feed' });

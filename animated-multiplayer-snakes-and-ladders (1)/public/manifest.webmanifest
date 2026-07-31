@@ -1,0 +1,10 @@
+{
+  "name": "Snakes & Ladders 3D",
+  "short_name": "Snakes & Ladders",
+  "description": "Animated local and online multiplayer Snakes & Ladders.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#10b981",
+  "icons": []
+}
