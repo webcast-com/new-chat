@@ -1,175 +1,93 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/app/context/AuthContext';
+import { z } from 'zod';
 
-export interface LeaderboardEntry {
-  rank: number;
-  predictorId: string;
-  predictorName: string;
-  predictorAvatar?: string;
-  accuracy: number;
-  totalPredictions: number;
-  correctPredictions: number;
-  streak: number;
-  lastUpdated: string;
+export const LeaderboardEntrySchema = z.object({
+  user_id: z.string(),
+  email: z.string().nullable().optional(),
+  first_name: z.string().nullable().optional(),
+  last_name: z.string().nullable().optional(),
+  total_predictions: z.number(),
+  correct_predictions: z.number(),
+  accuracy_percent: z.number(),
+  avg_confidence: z.number().nullable().optional(),
+  last_prediction_at: z.string().nullable().optional(),
+});
+
+export type LeaderboardEntry = z.infer<typeof LeaderboardEntrySchema>;
+
+export type LeaderboardFilter = 'global' | 'friends' | 'weekly' | 'monthly';
+
+interface UseLeaderboardOptions {
+  filter?: LeaderboardFilter;
+  limit?: number;
 }
 
-export interface LeaderboardFilters {
-  timeRange: 'week' | 'month' | 'allTime';
-  sport?: string;
-  confidenceMin?: number;
-}
-
-const mockLeaderboardData: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    predictorId: 'pred-001',
-    predictorName: 'The Oracle',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=oracle',
-    accuracy: 78.5,
-    totalPredictions: 142,
-    correctPredictions: 112,
-    streak: 12,
-    lastUpdated: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    rank: 2,
-    predictorId: 'pred-002',
-    predictorName: 'Stats Master',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=stats',
-    accuracy: 76.2,
-    totalPredictions: 156,
-    correctPredictions: 119,
-    streak: 8,
-    lastUpdated: new Date(Date.now() - 7200000).toISOString(),
-  },
-  {
-    rank: 3,
-    predictorId: 'pred-003',
-    predictorName: 'Goal Guru',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=goal',
-    accuracy: 73.8,
-    totalPredictions: 128,
-    correctPredictions: 95,
-    streak: 6,
-    lastUpdated: new Date(Date.now() - 10800000).toISOString(),
-  },
-  {
-    rank: 4,
-    predictorId: 'pred-004',
-    predictorName: 'Form Analyst',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=form',
-    accuracy: 71.5,
-    totalPredictions: 111,
-    correctPredictions: 79,
-    streak: 4,
-    lastUpdated: new Date(Date.now() - 14400000).toISOString(),
-  },
-  {
-    rank: 5,
-    predictorId: 'pred-005',
-    predictorName: 'Trend Tracker',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=trend',
-    accuracy: 69.2,
-    totalPredictions: 134,
-    correctPredictions: 93,
-    streak: 3,
-    lastUpdated: new Date(Date.now() - 18000000).toISOString(),
-  },
-  {
-    rank: 6,
-    predictorId: 'pred-006',
-    predictorName: 'Data Scientist',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=data',
-    accuracy: 67.8,
-    totalPredictions: 145,
-    correctPredictions: 98,
-    streak: 2,
-    lastUpdated: new Date(Date.now() - 21600000).toISOString(),
-  },
-  {
-    rank: 7,
-    predictorId: 'pred-007',
-    predictorName: 'Match Analyst',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=match',
-    accuracy: 65.4,
-    totalPredictions: 122,
-    correctPredictions: 80,
-    streak: 1,
-    lastUpdated: new Date(Date.now() - 25200000).toISOString(),
-  },
-  {
-    rank: 8,
-    predictorId: 'pred-008',
-    predictorName: 'Odds Expert',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=odds',
-    accuracy: 63.1,
-    totalPredictions: 138,
-    correctPredictions: 87,
-    streak: 0,
-    lastUpdated: new Date(Date.now() - 28800000).toISOString(),
-  },
-  {
-    rank: 9,
-    predictorId: 'pred-009',
-    predictorName: 'Pattern Hunter',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=pattern',
-    accuracy: 61.7,
-    totalPredictions: 147,
-    correctPredictions: 91,
-    streak: 0,
-    lastUpdated: new Date(Date.now() - 32400000).toISOString(),
-  },
-  {
-    rank: 10,
-    predictorId: 'pred-010',
-    predictorName: 'Strategy Pro',
-    predictorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=strategy',
-    accuracy: 60.3,
-    totalPredictions: 129,
-    correctPredictions: 78,
-    streak: 0,
-    lastUpdated: new Date(Date.now() - 36000000).toISOString(),
-  },
+// Mock data for demo/fallback
+const mockLeaderboard: LeaderboardEntry[] = [
+  { user_id: '1', email: 'champ@scorehub.com', first_name: 'Alex', last_name: 'Champion', total_predictions: 245, correct_predictions: 189, accuracy_percent: 77.14, avg_confidence: 82, last_prediction_at: new Date().toISOString() },
+  { user_id: '2', email: 'pro@scorehub.com', first_name: 'Jamie', last_name: 'Pro', total_predictions: 198, correct_predictions: 145, accuracy_percent: 73.23, avg_confidence: 78, last_prediction_at: new Date().toISOString() },
+  { user_id: '3', email: 'expert@scorehub.com', first_name: 'Sam', last_name: 'Expert', total_predictions: 312, correct_predictions: 220, accuracy_percent: 70.51, avg_confidence: 75, last_prediction_at: new Date().toISOString() },
+  { user_id: '4', email: 'analyst@scorehub.com', first_name: 'Taylor', last_name: 'Analyst', total_predictions: 150, correct_predictions: 102, accuracy_percent: 68.0, avg_confidence: 71, last_prediction_at: new Date().toISOString() },
+  { user_id: '5', email: 'guru@scorehub.com', first_name: 'Morgan', last_name: 'Guru', total_predictions: 180, correct_predictions: 120, accuracy_percent: 66.67, avg_confidence: 69, last_prediction_at: new Date().toISOString() },
 ];
 
-export function useLeaderboard(filters?: LeaderboardFilters) {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+async function fetchLeaderboard(filter: LeaderboardFilter = 'global', limit = 50): Promise<LeaderboardEntry[]> {
+  try {
+    // Try leaderboard_view first (aggregated from prediction_results)
+    const { data: viewData, error: viewError } = await supabase.from('leaderboard_view').select('*').limit(limit);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [filters?.timeRange, filters?.sport]);
-
-  const fetchLeaderboard = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Simulate API call with mock data
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      let data = [...mockLeaderboardData];
-
-      // Apply filters if needed
-      if (filters?.confidenceMin) {
-        data = data.filter(entry => entry.accuracy >= filters.confidenceMin!);
-      }
-
-      // Sort by accuracy (already sorted in mock data)
-      data.sort((a, b) => b.accuracy - a.accuracy);
-
-      // Update ranks
-      data = data.map((entry, idx) => ({ ...entry, rank: idx + 1 }));
-
-      setLeaderboard(data);
-    } catch (err) {
-      console.error('Error fetching leaderboard:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch leaderboard');
-      setLeaderboard(mockLeaderboardData);
-    } finally {
-      setLoading(false);
+    if (!viewError && viewData && viewData.length > 0) {
+      return viewData.map((row) => ({
+        user_id: row.user_id,
+        email: row.email,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        total_predictions: Number(row.total_predictions) || 0,
+        correct_predictions: Number(row.correct_predictions) || 0,
+        accuracy_percent: Number(row.accuracy_percent) || 0,
+        avg_confidence: row.avg_confidence ? Number(row.avg_confidence) : null,
+        last_prediction_at: row.last_prediction_at,
+      }));
     }
-  };
 
-  return { leaderboard, loading, error, refetch: fetchLeaderboard };
+    // Fallback to mock for demo
+    let filtered = [...mockLeaderboard];
+    if (filter === 'weekly') filtered = filtered.slice(0, 3);
+    if (filter === 'monthly') filtered = filtered.slice(0, 4);
+    // Friends filter would need friendships table - for demo, return subset
+    if (filter === 'friends') filtered = filtered.slice(0, 2);
+
+    return filtered;
+  } catch {
+    return mockLeaderboard;
+  }
+}
+
+export function useLeaderboard(options: UseLeaderboardOptions = {}) {
+  const { filter = 'global', limit = 50 } = options;
+  const { user } = useAuth();
+
+  const query = useQuery({
+    queryKey: ['leaderboard', filter, limit],
+    queryFn: () => fetchLeaderboard(filter, limit),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    initialData: mockLeaderboard,
+  });
+
+  // Find current user rank
+  const currentUserEntry = query.data?.find(entry => entry.user_id === user?.id);
+  const currentUserRank = currentUserEntry ? (query.data?.indexOf(currentUserEntry) || 0) + 1 : null;
+
+  return {
+    leaderboard: query.data || [],
+    loading: query.isLoading,
+    error: query.error,
+    currentUserEntry,
+    currentUserRank,
+    refetch: query.refetch,
+    isFetching: query.isFetching,
+  };
 }

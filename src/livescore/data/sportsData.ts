@@ -18,7 +18,6 @@ export interface LiveMatch {
   awayLogo?: string;
   leagueLogo?: string;
   countryLogo?: string;
-  streamSlug?: string;
 }
 
 export interface UpcomingMatch {

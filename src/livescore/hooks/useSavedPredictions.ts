@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+
 export function useSavedPredictions() {
   const { user } = useAuth();
   const [savedPredictions, setSavedPredictions] = useState<Set<string>>(new Set());

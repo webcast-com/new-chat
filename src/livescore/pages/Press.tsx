@@ -4,6 +4,7 @@ import Header from '@/app/components/sports/Header';
 import Breadcrumb from '@/app/components/sports/Breadcrumb';
 import Footer from '@/app/components/sports/Footer';
 import type { Sport } from '@/app/data/sportsData';
+import SEO from '@/app/components/SEO';
 
 interface PressRelease {
   id: string;
@@ -64,6 +65,7 @@ const Press: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
+      <SEO pageKey="press" />
       <Header activeSport={activeSport} onSportChange={setActiveSport} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <Breadcrumb activeTab="dashboard" activeSport={activeSport} />
 

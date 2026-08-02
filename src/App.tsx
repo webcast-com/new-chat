@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Auth from './components/Auth';
 import SEO from './components/SEO';
@@ -783,6 +784,7 @@ function App() {
   return (
     <AuthProvider>
       <MainApp />
+      <Analytics />
     </AuthProvider>
   );
 }
