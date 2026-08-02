@@ -72,6 +72,27 @@ Embedding adaptation:
 
 ---
 
+## 3.5 Backlog Completion (Phase 6 — 2026-08-03)
+
+Tackled the remaining optional backlog items from `PHASE_5_COMPLETION.md` and
+`ROADMAP.md` (see `Livescoredashboard2/PHASE_6_COMPLETION.md`):
+
+1. **Admin actions** — `admin-action` edge function (service-role, admin-gated):
+   mark contacts read/replied + notes, refund payments (auto-downgrade premium),
+   suspend/activate users, grant/revoke admin. RLS via `is_admin()` helper +
+   `phase6_admin_and_push.sql`. Full UI in AdminDashboard (new Users tab).
+2. **Background Web Push** — `send-push-notification` edge function with pure
+   WebCrypto VAPID ES256 JWT + aes128gcm encryption (RFC 8291/8292), push
+   subscription persistence to `push_subscriptions`, service workers
+   (`src/sw.ts` injectManifest for the standalone PWA, `public/sw.js` fallback
+   for the embedded host), Send Test Push button in Settings. Crypto
+   round-trip verified via `node .arena-test/webpush_test.mjs`.
+3. **Leaderboard analytics** — `LeaderboardDetailModal` with per-user stat
+   cards and a 7-day PredictionAccuracyChart; click any row to open.
+
+All changes synced to the embedded app (`src/livescore`) and both apps build
+with 0 new lint problems.
+
 ## 4. Status
 
 All four applications in the repository now build and serve:
@@ -80,6 +101,6 @@ All four applications in the repository now build and serve:
 3. **Movies** (`movies/`) — filters, watchlist, auth
 4. **Snakes & Ladders** (`animated-multiplayer-snakes-and-ladders (1)/`) — P2P multiplayer
 
-Remaining optional roadmap backlog (not blockers): OneSignal/Firebase background push,
-MeiliSearch/Algolia for news search, admin actions (ban/refund), Next.js SSR migration,
-betting partner integration.
+Remaining optional roadmap backlog (not blockers, see PHASE_6_COMPLETION.md):
+OneSignal/Firebase push when the browser is closed, MeiliSearch/Algolia server-side
+search, auth-level user bans, Next.js SSR migration, betting partner integration.

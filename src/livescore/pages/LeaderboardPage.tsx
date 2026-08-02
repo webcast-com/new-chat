@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Trophy, Crown, TrendingUp, Users, Calendar, Star, Medal, Target, BarChart3 } from 'lucide-react';
-import { useLeaderboard, LeaderboardFilter } from '@/app/hooks/useLeaderboard';
+import { Trophy, Crown, TrendingUp, Users, Calendar, Star, Medal, Target, BarChart3, Eye } from 'lucide-react';
+import { useLeaderboard, LeaderboardFilter, LeaderboardEntry } from '@/app/hooks/useLeaderboard';
 import { useAuth } from '@/app/context/AuthContext';
 import SEO from '@/app/components/SEO';
+import LeaderboardDetailModal from '@/app/components/LeaderboardDetailModal';
 
 const LeaderboardPage: React.FC = () => {
   const [filter, setFilter] = useState<LeaderboardFilter>('global');
+  const [selected, setSelected] = useState<{ entry: LeaderboardEntry; rank: number } | null>(null);
   const { leaderboard, loading, currentUserRank, currentUserEntry } = useLeaderboard({ filter, limit: 50 });
   const { user } = useAuth();
 
@@ -90,26 +92,35 @@ const LeaderboardPage: React.FC = () => {
               const isCurrentUser = entry.user_id === user?.id;
               return (
                 <div key={entry.user_id} className={`p-4 flex items-center gap-4 hover:bg-white/5 transition-colors ${isCurrentUser ? 'bg-[#00d4ff]/5 border-l-2 border-l-[#00d4ff]' : ''}`}>
-                  <div className="w-10 flex items-center justify-center">{getRankIcon(rank)}</div>
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#0066ff] flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    {(entry.first_name?.[0] || entry.email?.[0] || 'U').toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium truncate flex items-center gap-2">
-                      {entry.first_name ? `${entry.first_name} ${entry.last_name || ''}`.trim() : entry.email?.split('@')[0] || 'Anonymous'}
-                      {rank <= 3 && <Crown className="w-3 h-3 text-amber-400" />}
-                      {isCurrentUser && <span className="text-[10px] bg-[#00d4ff]/20 text-[#00d4ff] px-1.5 py-0.5 rounded">You</span>}
-                    </p>
-                    <p className="text-gray-500 text-xs truncate">{entry.email || 'No email'} · {entry.total_predictions} picks</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-bold ${getAccuracyColor(entry.accuracy_percent)}`}>{entry.accuracy_percent}%</p>
-                    <p className="text-gray-600 text-xs flex items-center gap-1"><Target className="w-3 h-3" /> {entry.correct_predictions}/{entry.total_predictions}</p>
-                  </div>
-                  <div className="hidden md:block text-right">
-                    <p className="text-gray-400 text-xs">Avg conf</p>
-                    <p className="text-white text-sm">{entry.avg_confidence ? `${Math.round(entry.avg_confidence)}%` : '-'}</p>
-                  </div>
+                  <button className="flex items-center gap-4 flex-1 min-w-0 text-left" onClick={() => setSelected({ entry, rank })}>
+                    <div className="w-10 flex items-center justify-center">{getRankIcon(rank)}</div>
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#0066ff] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                      {(entry.first_name?.[0] || entry.email?.[0] || 'U').toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium truncate flex items-center gap-2">
+                        {entry.first_name ? `${entry.first_name} ${entry.last_name || ''}`.trim() : entry.email?.split('@')[0] || 'Anonymous'}
+                        {rank <= 3 && <Crown className="w-3 h-3 text-amber-400" />}
+                        {isCurrentUser && <span className="text-[10px] bg-[#00d4ff]/20 text-[#00d4ff] px-1.5 py-0.5 rounded">You</span>}
+                      </p>
+                      <p className="text-gray-500 text-xs truncate">{entry.email || 'No email'} · {entry.total_predictions} picks</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-bold ${getAccuracyColor(entry.accuracy_percent)}`}>{entry.accuracy_percent}%</p>
+                      <p className="text-gray-600 text-xs flex items-center gap-1"><Target className="w-3 h-3" /> {entry.correct_predictions}/{entry.total_predictions}</p>
+                    </div>
+                    <div className="hidden md:block text-right">
+                      <p className="text-gray-400 text-xs">Avg conf</p>
+                      <p className="text-white text-sm">{entry.avg_confidence ? `${Math.round(entry.avg_confidence)}%` : '-'}</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setSelected({ entry, rank })}
+                    className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:bg-[#00d4ff]/15 hover:text-[#00d4ff] transition-colors shrink-0"
+                    aria-label={`View ${entry.first_name || entry.email} details`}
+                  >
+                    <Eye className="w-3.5 h-3.5" /> Details
+                  </button>
                 </div>
               );
             })}
@@ -118,9 +129,18 @@ const LeaderboardPage: React.FC = () => {
 
         <div className="p-4 bg-white/5 border-t border-white/5 text-[11px] text-gray-500 flex items-center gap-2">
           <TrendingUp className="w-3 h-3" />
-          Phase 4: Leaderboard now uses Supabase view + TanStack Query + friends filter + realtime + accuracy charts ready.
+          Click any predictor for a detailed accuracy breakdown. Supabase view + TanStack Query + realtime + accuracy charts.
         </div>
       </div>
+
+      {selected && (
+        <LeaderboardDetailModal
+          entry={selected.entry}
+          rank={selected.rank}
+          isCurrentUser={selected.entry.user_id === user?.id}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 };
