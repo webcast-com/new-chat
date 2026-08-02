@@ -3,6 +3,7 @@ import Header from '@/app/components/sports/Header';
 import Breadcrumb from '@/app/components/sports/Breadcrumb';
 import Footer from '@/app/components/sports/Footer';
 import type { Sport } from '@/app/data/sportsData';
+import SEO from '@/app/components/SEO';
 
 const About: React.FC = () => {
   const [activeSport, setActiveSport] = useState<Sport>('all');
@@ -10,6 +11,7 @@ const About: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
+      <SEO pageKey="about" />
       <Header activeSport={activeSport} onSportChange={setActiveSport} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <Breadcrumb activeTab="dashboard" activeSport={activeSport} />
 

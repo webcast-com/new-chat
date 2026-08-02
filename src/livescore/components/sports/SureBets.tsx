@@ -534,7 +534,7 @@ export function SureBets({ onUpgrade }: { onUpgrade: () => void }) {
               Showing {displayMatches.length} of {data?.pagination?.no_of_docs_in_page || 0} matches on this page
             </div>
 
-            <motion.div className="grid grid-cols-1 gap-4 lg:grid-cols-2" variants={containerVariants} initial="hidden" animate="show">
+            <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="show">
               {Array.isArray(displayMatches) && displayMatches.map((match) => {
                 const isLocked = !isPremium && !match.is_finished;
                 return (

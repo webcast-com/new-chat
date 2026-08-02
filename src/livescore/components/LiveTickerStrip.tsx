@@ -35,8 +35,8 @@ export function LiveTickerStrip() {
   };
 
   const formatBetigoloMatch = (history: BetigoloResult, index: number): TickerMatch => {
-    const homeTeam = history.home_team_name || history.home_team || history.home || 'HOME';
-    const awayTeam = history.away_team_name || history.away_team || history.away || 'AWAY';
+    const homeTeam = history.homeTeam || history.home || 'HOME';
+    const awayTeam = history.awayTeam || history.away || 'AWAY';
 
     return {
       id: `betigolo-${history.id || index}`,

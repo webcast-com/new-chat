@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, CSSProperties, HTMLAttributes } from 'react';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'default' | 'outline' | 'premium' | 'secondary';
+  variant?: 'default' | 'primary' | 'outline' | 'premium' | 'secondary';
   size?: 'default' | 'sm' | 'lg';
 };
 

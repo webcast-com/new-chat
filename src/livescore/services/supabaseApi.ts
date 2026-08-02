@@ -1,10 +1,10 @@
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { getEdgeFunctionUrl, SUPABASE_ANON_KEY } from '@/lib/supabase';
 
 export async function fetchSupabaseApi<T>(service: string, params: Record<string, string> = {}): Promise<T> {
   const query = new URLSearchParams({ service, ...params });
-  const response = await fetch(`https://${projectId}.supabase.co/functions/v1/rapidapi?${query}`, {
+  const response = await fetch(`${getEdgeFunctionUrl(`rapidapi?${query}`)}`, {
     headers: {
-      Authorization: `Bearer ${publicAnonKey}`,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
     credentials: 'omit',
@@ -19,7 +19,7 @@ export async function fetchSupabaseApi<T>(service: string, params: Record<string
   }
 
   if (!response.ok) {
-    const message = data && typeof data === 'object' && 'error' in data ? String(data.error) : `Supabase API returned ${response.status}`;
+    const message = data && typeof data === 'object' && 'error' in (data as Record<string, unknown>) ? String((data as Record<string, unknown>).error) : `Supabase API returned ${response.status}`;
     throw new Error(message);
   }
 

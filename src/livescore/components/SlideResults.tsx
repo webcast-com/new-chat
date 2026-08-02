@@ -1,30 +1,7 @@
-import { useState, useEffect, useCallback, type ComponentProps, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getPreviousResults, normalizeBetigoloResult, type BetigoloResult } from '../services/betigoloApi';
 import { useAuth } from '../context/AuthContext';
-type ButtonProps = ComponentProps<'button'> & { variant?: 'primary' | 'premium' | 'outline' | 'secondary'; size?: 'sm' | 'default' };
-
-function Button({ className = '', variant = 'primary', size = 'default', ...props }: ButtonProps) {
-  const variantClass = variant === 'premium'
-    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:opacity-90'
-    : variant === 'outline'
-      ? 'border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
-      : variant === 'secondary'
-        ? 'bg-white/15 text-white hover:bg-white/25'
-        : 'bg-blue-600 text-white hover:bg-blue-700';
-  return <button {...props} className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all disabled:pointer-events-none disabled:opacity-50 ${size === 'sm' ? 'h-8 px-3 text-xs' : 'h-9 px-4 text-sm'} ${variantClass} ${className}`} />;
-}
-
-function Card({ className = '', style, ...props }: ComponentProps<'div'> & { style?: CSSProperties }) {
-  return <div {...props} style={style} className={`flex flex-col gap-6 rounded-xl border border-slate-200 bg-white text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-white ${className}`} />;
-}
-
-function CardContent({ className = '', ...props }: ComponentProps<'div'>) {
-  return <div {...props} className={`px-6 ${className}`} />;
-}
-
-function Badge({ className = '', ...props }: ComponentProps<'span'> & { variant?: string }) {
-  return <span {...props} className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${className}`} />;
-}
+import { Button, Card, CardContent, Badge } from './ui';
 import {
   TrendingUp, CheckCircle2, XCircle, BarChart3, Filter,
   ChevronLeft, ChevronRight, RefreshCw, Wifi, WifiOff,
@@ -631,7 +608,7 @@ export function SlideResults({ setActiveTab }: { setActiveTab: (tab: string) => 
                     <pre className="bg-slate-900 text-emerald-300 rounded-md p-3 mt-2 overflow-x-auto text-[11px]">{`curl --request GET \\
   --url https://betigolo-predictions.p.rapidapi.com/sample \\
   --header 'x-rapidapi-host: betigolo-predictions.p.rapidapi.com' \\
-  --header 'x-rapidapi-key: <your-rapidapi-key>'`}</pre>
+  --header 'x-rapidapi-key: b9c6883414msh11dde2eba098703p1a13fdjsne11249e78db1'`}</pre>
                   </div>
                 </div>
               </div>

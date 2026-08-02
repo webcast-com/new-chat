@@ -118,3 +118,21 @@
 - Activity timeline
 - Server-enforced privacy settings
 - Content moderation tools
+
+## ScoreHub Live Scores (Embedded — Roadmap Phases 1–5 Complete)
+
+The Live Scores view embeds the full ScoreHub app, now synced to the 100% roadmap
+state from `Livescoredashboard2/` (see `Livescoredashboard2/AUDIT_AND_UPGRADE_ROADMAP.md`
+and `Livescoredashboard2/PHASE_*_COMPLETION.md`):
+
+- **Routing & SEO:** real router (MemoryRouter, embedded), 21+ routes, `/sport/:sport`
+  filter, 404 page, react-helmet-async meta + JSON-LD (Organization, Breadcrumb, SportsEvent)
+- **Data:** TanStack Query caching, Supabase Realtime live scores + plan sync, edge API with Zod validation
+- **Payments:** Paystack premium, webhook-verified upgrades (no client-side spoofing)
+- **Features:** live predictions feed, sure bets, favorites (teams/leagues), prediction
+  accuracy leaderboard, live match chat, referral program (3-day premium rewards),
+  achievements, push notifications (Web Notifications), Fuse.js global search,
+  i18n (EN/SW/FR/PT/DE), admin dashboard, GDPR cookie consent
+- **Config:** ScoreHub uses its own Supabase project via `VITE_SCOREHUB_SUPABASE_URL` /
+  `VITE_SCOREHUB_SUPABASE_ANON_KEY` (defaults to the ScoreHub project; never inherits the
+  social app's `VITE_SUPABASE_URL`).

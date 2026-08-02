@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { MOCK_PREDICTIONS } from '../data/mockData';
 import { PredictionCard } from '../components/predictions/PredictionCard';
 import { PredictionFilters, PredictionFilterOptions } from '../components/PredictionFilters';
+import { Button, Card, CardContent, Badge } from '../components/ui';
 import { getPredictions, getFederations, getMarkets, normalizeApiPrediction } from '../services/footballApi';
 import { RefreshCw, WifiOff, Wifi, Calendar, Globe2, Filter, Target, Code, Copy, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -374,9 +375,9 @@ export function PredictionsList({ setActiveTab }: { setActiveTab: (tab: string) 
           {allPredictions.map((pred, idx) => (
             <div key={`${pred.id}-${idx}`} className="relative">
               {pred.source === 'live-api' && (
-                <span className="absolute -top-2 -right-2 z-10 rounded-full bg-amber-500 px-2 py-1 text-xs font-bold text-white shadow-lg">
-                  Live API
-                </span>
+                <div className="absolute -top-2 -right-2 z-10">
+                  <Badge variant="premium" className="shadow-lg">⚡ LIVE API</Badge>
+                </div>
               )}
               <PredictionCard
                 prediction={pred}
@@ -387,22 +388,22 @@ export function PredictionsList({ setActiveTab }: { setActiveTab: (tab: string) 
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-800">
-            <Filter className="h-8 w-8 text-slate-400" />
-          </div>
-          <h3 className="mb-1 font-semibold text-white">No predictions found</h3>
-          <p className="mb-4 text-sm text-slate-400">
-            {filter === 'live' && canSeeLive
-              ? apiFailed
-                ? 'The live API is currently unreachable from this browser. Please try refreshing, or check your filters.'
-                : 'No live predictions match your selected filters. Try a different date or federation.'
-              : 'Try adjusting your filters.'}
-          </p>
-          <button onClick={() => { setFilter('all'); setSelectedFederation(''); }} className="rounded-lg bg-[#00d4ff] px-4 py-2 text-sm font-semibold text-[#0d1117]">
-            Reset Filters
-          </button>
-        </div>
+        <Card>
+          <CardContent className="p-12 text-center">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Filter className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">No predictions found</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              {filter === 'live' && canSeeLive
+                ? apiFailed
+                  ? 'The live API is currently unreachable from this browser. Please try refreshing, or check your filters.'
+                  : 'No live predictions match your selected filters. Try a different date or federation.'
+                : 'Try adjusting your filters.'}
+            </p>
+            <Button size="sm" onClick={() => { setFilter('all'); setSelectedFederation(''); }}>Reset Filters</Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

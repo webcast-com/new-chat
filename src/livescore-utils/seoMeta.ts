@@ -9,31 +9,36 @@ interface SEOMeta {
 }
 
 const DEFAULT_OG_IMAGE = 'https://livescoresgames.netlify.app/og-image.png';
-const DOMAIN = 'https://livescoresgames.netlify.app';
+const DOMAIN = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SITE_URL) || 'https://livescoresgames.netlify.app';
 
 export const seoMetaData: Record<string, SEOMeta> = {
   home: {
     title: 'ScoreHub - Live Sports Scores, Highlights & Standings | NFL, NBA, Soccer, MLB',
-    description:
-      'Get instant live scores, match highlights, league standings, and real-time updates for all major sports leagues worldwide.',
+    description: 'Get instant live scores, match highlights, league standings, and real-time updates for all major sports leagues worldwide.',
     keywords: 'live scores, sports scores, NFL, NBA, soccer, baseball, tennis, Premier League, La Liga, Bundesliga',
+    ogType: 'website',
+    canonicalUrl: DOMAIN,
+    twitterCard: 'summary_large_image',
+  },
+  dashboard: {
+    title: 'ScoreHub - Live Sports Scores, Highlights & Standings | NFL, NBA, Soccer, MLB',
+    description: 'Get instant live scores, match highlights, league standings, and real-time updates for all major sports leagues worldwide.',
+    keywords: 'live scores, sports scores, NFL, NBA, soccer, baseball, tennis',
     ogType: 'website',
     canonicalUrl: DOMAIN,
     twitterCard: 'summary_large_image',
   },
   liveScores: {
     title: 'Live Scores - Real-time Sports Updates | ScoreHub',
-    description:
-      'Follow live match scores across NFL, NBA, Premier League, MLB, and tennis. Get instant updates and detailed statistics.',
+    description: 'Follow live match scores across NFL, NBA, Premier League, MLB, and tennis. Get instant updates and detailed statistics.',
     keywords: 'live scores, match updates, sports scores, real-time, leagues',
     ogType: 'website',
-    canonicalUrl: `${DOMAIN}/live-scores`,
+    canonicalUrl: `${DOMAIN}/`,
     twitterCard: 'summary_large_image',
   },
   predictions: {
     title: 'Sports Predictions & Analysis - Expert Picks | ScoreHub',
-    description:
-      'Get accurate sports predictions, expert picks, and detailed analysis for upcoming matches across all major leagues.',
+    description: 'Get accurate sports predictions, expert picks, and detailed analysis for upcoming matches across all major leagues.',
     keywords: 'predictions, sports predictions, expert picks, match analysis, odds',
     ogType: 'website',
     canonicalUrl: `${DOMAIN}/predictions`,
@@ -49,8 +54,7 @@ export const seoMetaData: Record<string, SEOMeta> = {
   },
   premium: {
     title: 'Premium Membership - ScoreHub Pro & Basic Tiers',
-    description:
-      'Unlock premium features: expert picks, advanced filters, detailed stats, and ad-free experience. Choose Basic ($4.99/mo) or Pro ($9.99/mo).',
+    description: 'Unlock premium features: expert picks, advanced filters, detailed stats, and ad-free experience. Choose Basic ($4.99/mo) or Pro ($9.99/mo).',
     keywords: 'premium, subscription, expert picks, advanced filters, betting alerts',
     ogType: 'website',
     canonicalUrl: `${DOMAIN}/premium`,
@@ -65,6 +69,14 @@ export const seoMetaData: Record<string, SEOMeta> = {
     twitterCard: 'summary_large_image',
   },
   sureBets: {
+    title: 'Sure Bets & Sports Picks - ScoreHub',
+    description: 'Explore curated sports picks and high-confidence match insights from ScoreHub.',
+    keywords: 'sure bets, sports picks, match insights, betting tips',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/sure-bets`,
+    twitterCard: 'summary_large_image',
+  },
+  'sure-bets': {
     title: 'Sure Bets & Sports Picks - ScoreHub',
     description: 'Explore curated sports picks and high-confidence match insights from ScoreHub.',
     keywords: 'sure bets, sports picks, match insights, betting tips',
@@ -184,15 +196,71 @@ export const seoMetaData: Record<string, SEOMeta> = {
     canonicalUrl: `${DOMAIN}/accessibility`,
     twitterCard: 'summary_large_image',
   },
+  notFound: {
+    title: '404 - Page Not Found | ScoreHub',
+    description: 'The page you are looking for does not exist. Return to ScoreHub live scores.',
+    keywords: '404, not found, ScoreHub',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/404`,
+    twitterCard: 'summary_large_image',
+  },
+  // Sport-specific SEO
+  football: {
+    title: 'Football Live Scores - NFL & NCAA | ScoreHub',
+    description: 'Follow live American football scores, NFL standings, and match highlights.',
+    keywords: 'football live scores, NFL, NCAA, football standings',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/sport/football`,
+    twitterCard: 'summary_large_image',
+  },
+  basketball: {
+    title: 'Basketball Live Scores - NBA | ScoreHub',
+    description: 'Get NBA live scores, standings, and breaking basketball news.',
+    keywords: 'basketball live scores, NBA, basketball standings',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/sport/basketball`,
+    twitterCard: 'summary_large_image',
+  },
+  soccer: {
+    title: 'Soccer Live Scores - Premier League, La Liga | ScoreHub',
+    description: 'Follow Premier League, La Liga, Serie A, Bundesliga live soccer scores.',
+    keywords: 'soccer live scores, Premier League, La Liga, football scores',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/sport/soccer`,
+    twitterCard: 'summary_large_image',
+  },
+  baseball: {
+    title: 'Baseball Live Scores - MLB | ScoreHub',
+    description: 'MLB live scores, standings, and baseball highlights.',
+    keywords: 'baseball live scores, MLB, baseball standings',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/sport/baseball`,
+    twitterCard: 'summary_large_image',
+  },
+  admin: {
+    title: 'Admin Dashboard - ScoreHub',
+    description: 'Admin dashboard for ScoreHub - manage contacts, payments, activity, favorites with Phase 4 features.',
+    keywords: 'admin dashboard, ScoreHub admin, contact messages, payments',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/admin`,
+    twitterCard: 'summary_large_image',
+  },
+  tennis: {
+    title: 'Tennis Live Scores - ATP, WTA | ScoreHub',
+    description: 'Follow ATP and WTA tennis live scores and tournament updates.',
+    keywords: 'tennis live scores, ATP, WTA, tennis scores',
+    ogType: 'website',
+    canonicalUrl: `${DOMAIN}/sport/tennis`,
+    twitterCard: 'summary_large_image',
+  },
 };
 
-export function setPageMeta(pageKey: keyof typeof seoMetaData) {
-  const meta = seoMetaData[pageKey] || seoMetaData.home;
+export function setPageMeta(pageKey: keyof typeof seoMetaData | string) {
+  const key = pageKey as keyof typeof seoMetaData;
+  const meta = (seoMetaData[key] || seoMetaData[key.replace('-', '') as keyof typeof seoMetaData] || seoMetaData.home) as SEOMeta;
 
-  // Set title
   document.title = meta.title;
 
-  // Set or update meta tags
   const updateMeta = (name: string, content: string) => {
     let element = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
     if (!element) {
@@ -216,20 +284,17 @@ export function setPageMeta(pageKey: keyof typeof seoMetaData) {
   updateMeta('description', meta.description);
   if (meta.keywords) updateMeta('keywords', meta.keywords);
 
-  // Open Graph
   updateProperty('og:title', meta.title);
   updateProperty('og:description', meta.description);
   updateProperty('og:image', meta.ogImage || DEFAULT_OG_IMAGE);
   if (meta.ogType) updateProperty('og:type', meta.ogType);
   if (meta.canonicalUrl) updateProperty('og:url', meta.canonicalUrl);
 
-  // Twitter
   if (meta.twitterCard) updateMeta('twitter:card', meta.twitterCard);
   updateMeta('twitter:title', meta.title);
   updateMeta('twitter:description', meta.description);
   updateMeta('twitter:image', meta.ogImage || DEFAULT_OG_IMAGE);
 
-  // Canonical URL
   if (meta.canonicalUrl) {
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
     if (!canonical) {
