@@ -8,12 +8,14 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resendConfirmation } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -21,7 +23,10 @@ export default function Auth() {
         if (!username.trim()) {
           throw new Error('Username is required');
         }
-        await signUp(email, password, username);
+        const needsEmailConfirmation = await signUp(email, password, username);
+        if (needsEmailConfirmation) {
+          setSuccess('Account created. Check your email to confirm your account, then sign in.');
+        }
       } else {
         await signIn(email, password);
       }
@@ -29,7 +34,11 @@ export default function Auth() {
       const message = err instanceof Error ? err.message : String(err);
       const normalizedMessage = message.toLowerCase();
 
-      if (normalizedMessage.includes('user already registered')) {
+      if (normalizedMessage.includes('email not confirmed')) {
+        setError('Please confirm your email before signing in.');
+      } else if (normalizedMessage.includes('invalid login credentials')) {
+        setError('The email or password is incorrect.');
+      } else if (normalizedMessage.includes('user already registered')) {
         setError('This email is already registered. Switch to Sign In instead.');
       } else if (normalizedMessage.includes('failed to fetch')) {
         setError('Unable to reach Supabase right now. Check your connection and try again.');
@@ -43,7 +52,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-950 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+      <div className="bg-zinc-900 rounded-2xl shadow-xl shadow-black/30 w-full max-w-md p-8 border border-zinc-800">
         <div className="flex justify-center mb-8">
           <div className="bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-4 rounded-2xl">
             {isSignUp ? (
@@ -110,8 +119,30 @@ export default function Auth() {
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
-              {error}
+            <div className="space-y-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+              <p>{error}</p>
+              {!isSignUp && error === 'Please confirm your email before signing in.' && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await resendConfirmation(email);
+                      setSuccess('Confirmation email sent. Check your inbox and spam folder.');
+                      setError('');
+                    } catch (resendError: unknown) {
+                      setError(resendError instanceof Error ? resendError.message : String(resendError));
+                    }
+                  }}
+                  className="font-medium text-red-700 underline underline-offset-2"
+                >
+                  Resend confirmation email
+                </button>
+              )}
+            </div>
+          )}
+          {success && (
+            <div className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status">
+              {success}
             </div>
           )}
 
@@ -129,6 +160,7 @@ export default function Auth() {
             onClick={() => {
               setIsSignUp(!isSignUp);
               setError('');
+              setSuccess('');
             }}
             className="text-indigo-600 hover:text-violet-700 font-medium transition-colors"
           >

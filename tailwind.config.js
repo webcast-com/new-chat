@@ -1,8 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
+      },
+    },
   },
   plugins: [],
 };

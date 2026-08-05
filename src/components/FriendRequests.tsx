@@ -5,6 +5,10 @@ import { UserPlus, Check, X, Loader2, Users } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import MessageButton from './MessageButton';
 
+interface FriendRequestsProps {
+  onStartMessage?: (userId: string) => void;
+}
+
 interface FriendRequest {
   id: string;
   requester: Profile;
@@ -19,7 +23,7 @@ interface Friendship {
   created_at: string;
 }
 
-export default function FriendRequests() {
+export default function FriendRequests({ onStartMessage }: FriendRequestsProps) {
   const { user, profile } = useAuth();
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
@@ -259,9 +263,9 @@ export default function FriendRequests() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="border-b border-slate-200 bg-[#c7b3b3] p-4 sm:p-6">
+      <div className="border-b border-slate-200 p-4 sm:p-6">
         <h2 className="text-xl font-bold sm:text-2xl text-slate-900">Friends</h2>
-        <p className="mt-1 text-sm text-black [text-shadow:1px_1px_3px_rgba(255,198,155,1)]">Manage your friend requests and connections</p>
+        <p className="text-slate-600 text-sm mt-1">Manage your friend requests and connections</p>
       </div>
 
       <div className="flex border-b border-slate-200">
@@ -269,11 +273,9 @@ export default function FriendRequests() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex min-h-12 flex-1 items-center justify-center gap-1 px-2 py-3 text-xs font-medium transition-all sm:gap-2 sm:px-4 sm:text-sm ${
-              tab.id === 'incoming' ? 'bg-[#c556de]' : tab.id === 'outgoing' ? 'bg-[#9b9b9b]' : 'bg-[#909090]'
-            } ${
+            className={`flex min-h-12 flex-1 items-center justify-center gap-1 px-2 py-3 text-xs font-medium sm:gap-2 sm:px-4 sm:text-sm transition-all ${
               activeTab === tab.id
-                ? 'border-0 text-blue-600'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -296,7 +298,10 @@ export default function FriendRequests() {
         {activeTab === 'incoming' && (
           <>
             {incomingRequests.length === 0 ? (
-              <div className="bg-[#6a9fdf] p-4" />
+              <div className="text-center py-8 text-slate-600">
+                <Users className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p>No pending friend requests</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {incomingRequests.map(request => (
@@ -372,8 +377,8 @@ export default function FriendRequests() {
                       </div>
                       <div>
                         <p className="font-semibold text-slate-900">{request.requester.full_name || request.requester.username}</p>
-                        <p className="text-sm text-black">@{request.requester.username}</p>
-                        <p className="text-xs text-black">Request pending</p>
+                        <p className="text-sm text-slate-500">@{request.requester.username}</p>
+                        <p className="text-xs text-slate-400">Request pending</p>
                       </div>
                     </div>
                     <button
@@ -422,11 +427,11 @@ export default function FriendRequests() {
                       </div>
                       <div>
                         <p className="font-semibold text-slate-900">{friendship.friend.full_name || friendship.friend.username}</p>
-                        <p className="text-sm text-black">@{friendship.friend.username}</p>
+                        <p className="text-sm text-slate-500">@{friendship.friend.username}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MessageButton userId={friendship.friend.id} username={friendship.friend.username} />
+                      <MessageButton userId={friendship.friend.id} username={friendship.friend.username} onClick={onStartMessage || (() => {})} />
                       <button
                         onClick={() => handleRemoveFriend(friendship.id)}
                         disabled={actionLoading === friendship.id}

@@ -9,10 +9,13 @@
 
 ### Posts & Content
 - Create, edit, and delete posts
-- Image uploads with preview
+- Image and video uploads with browser preview, Supabase Storage persistence, and feed playback
 - Post engagement tracking
 - Real-time comment threads
 - Nested comment system
+- Community feed search by post content, username, or full name
+- Trending feed ranked by engagement and recency, with 24-hour, weekly, and all-time filters
+- 24-hour image and video stories with upload, grouped viewing, and automatic progression
 
 ### Reactions (Facebook-like)
 - 6 reaction types: Like 👍, Love ❤️, Haha 😂, Wow 😮, Sad 😢, Angry 😠
@@ -32,7 +35,7 @@
 - Profile statistics (posts, friends)
 - Avatar with user initial
 - User discovery
-- Following and follower lists on user profiles
+- Searchable following and follower lists with name sorting
 
 ### Friend System
 - Send friend requests to other users
@@ -52,7 +55,8 @@
 - Sticky header with app branding
 - Desktop sidebar navigation
 - Mobile bottom navigation bar
-- Search bar (UI ready for implementation)
+- Community feed search
+- Quick-create post modal
 - Sign out functionality
 
 ### UI/UX
@@ -61,7 +65,16 @@
 - Smooth transitions and hover states
 - Loading states for async operations
 - Error handling and user feedback
+- Dashboard controls for notification and privacy preferences
 - Clean, modern design with Tailwind CSS
+
+### Direct Messaging
+- Conversation inbox with recent-message previews and unread counts
+- Conversation search by username or full name
+- Send, receive, read, and delete messages
+- Live conversation and thread updates through Supabase Realtime
+- Responsive split-view chat layout with message timestamps and auto-scroll
+- Start conversations from People Discovery and Contacts
 
 ## Database Schema
 
@@ -94,22 +107,32 @@
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage (for images)
+- **Storage**: Supabase Storage (for images and videos)
 - **Icons**: Lucide React
 - **Build**: Vite
 
 ## Future Enhancement Opportunities
-- Direct messaging between users
-- Stories feature (24-hour temporary posts)
-- Notifications system
-- Post search and filtering
-- User search and mentions
-- Like/comment notifications
+- Persistent notification center and delivery for likes, comments, and friend requests
 - Group chats
-- Video uploads
 - Post scheduling
-- Trending posts algorithm
-- Advanced user following lists
 - Activity timeline
-- Privacy settings
+- Server-enforced privacy settings
 - Content moderation tools
+
+## ScoreHub Live Scores (Embedded — Roadmap Phases 1–5 Complete)
+
+The Live Scores view embeds the full ScoreHub app, now synced to the 100% roadmap
+state from `Livescoredashboard2/` (see `Livescoredashboard2/AUDIT_AND_UPGRADE_ROADMAP.md`
+and `Livescoredashboard2/PHASE_*_COMPLETION.md`):
+
+- **Routing & SEO:** real router (MemoryRouter, embedded), 21+ routes, `/sport/:sport`
+  filter, 404 page, react-helmet-async meta + JSON-LD (Organization, Breadcrumb, SportsEvent)
+- **Data:** TanStack Query caching, Supabase Realtime live scores + plan sync, edge API with Zod validation
+- **Payments:** Paystack premium, webhook-verified upgrades (no client-side spoofing)
+- **Features:** live predictions feed, sure bets, favorites (teams/leagues), prediction
+  accuracy leaderboard, live match chat, referral program (3-day premium rewards),
+  achievements, push notifications (Web Notifications), Fuse.js global search,
+  i18n (EN/SW/FR/PT/DE), admin dashboard, GDPR cookie consent
+- **Config:** ScoreHub uses its own Supabase project via `VITE_SCOREHUB_SUPABASE_URL` /
+  `VITE_SCOREHUB_SUPABASE_ANON_KEY` (defaults to the ScoreHub project; never inherits the
+  social app's `VITE_SUPABASE_URL`).

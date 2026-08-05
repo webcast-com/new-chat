@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { Plus, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { compressImage, getPostMediaType, uploadPostMedia, uploadVideoPoster, validatePostMedia } from '../lib/postMedia';
+import { Plus, X, Loader2, ChevronLeft, ChevronRight, Heart, Info } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import Image from './Image';
 
@@ -10,6 +11,8 @@ interface Story {
   user_id: string;
   profile: Profile;
   image_url: string;
+  media_type?: 'image' | 'video';
+  poster_url?: string | null;
   caption?: string;
   created_at: string;
   expires_at: string;
@@ -23,20 +26,43 @@ interface StoryGroup {
   hasUnviewed: boolean;
 }
 
-export default function Stories() {
+interface StoryReactionState {
+  count: number;
+  userReaction: string | null;
+}
+
+const reactionOptions = [
+  { type: 'like', emoji: '👍', label: 'Like' },
+  { type: 'love', emoji: '❤️', label: 'Love' },
+  { type: 'haha', emoji: '😂', label: 'Haha' },
+  { type: 'wow', emoji: '😮', label: 'Wow' },
+  { type: 'sad', emoji: '😢', label: 'Sad' },
+  { type: 'angry', emoji: '😠', label: 'Angry' },
+];
+
+interface StoriesProps {
+  onCreatePost?: () => void;
+  onAboutCreator?: () => void;
+}
+
+export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) {
   const { user, profile } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedStoryGroup, setSelectedStoryGroup] = useState<StoryGroup | null>(null);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [storyReactions, setStoryReactions] = useState<Record<string, StoryReactionState>>({});
+  const [showReactionMenu, setShowReactionMenu] = useState(false);
+  const [reacting, setReacting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadStories();
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (selectedStoryGroup) {
@@ -57,16 +83,74 @@ export default function Stories() {
 
       if (error) throw error;
 
-      const formattedStories = (data || []).map((story: any) => ({
+      const formattedStories = (data || []).map((story) => ({
         ...story,
         profile: story.profiles
       }));
 
       setStories(formattedStories);
+      await loadStoryReactions(formattedStories.map((story) => story.id));
     } catch (error) {
       console.error('Error loading stories:', error);
+    }
+  };
+
+  const loadStoryReactions = async (storyIds: string[]) => {
+    if (storyIds.length === 0) {
+      setStoryReactions({});
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('story_reactions')
+      .select('story_id, user_id, reaction_type')
+      .in('story_id', storyIds);
+
+    if (error) throw error;
+
+    const reactionsByStory = (data || []).reduce<Record<string, StoryReactionState>>((result, reaction) => {
+      const current = result[reaction.story_id] || { count: 0, userReaction: null };
+      result[reaction.story_id] = {
+        count: current.count + 1,
+        userReaction: reaction.user_id === user?.id ? reaction.reaction_type : current.userReaction,
+      };
+      return result;
+    }, {});
+
+    setStoryReactions(reactionsByStory);
+  };
+
+  const handleReaction = async (reactionType: string) => {
+    if (!user || !currentStory || reacting) {
+      if (!user) setShowAuthPrompt(true);
+      return;
+    }
+
+    const storyId = currentStory.id;
+    const previous = storyReactions[storyId] || { count: 0, userReaction: null };
+    const nextReaction = previous.userReaction === reactionType ? null : reactionType;
+    const nextCount = previous.count + (nextReaction && !previous.userReaction ? 1 : !nextReaction ? -1 : 0);
+
+    setReacting(true);
+    setShowReactionMenu(false);
+    setStoryReactions((current) => ({
+      ...current,
+      [storyId]: { count: nextCount, userReaction: nextReaction },
+    }));
+
+    try {
+      const { error } = nextReaction === null
+        ? await supabase.from('story_reactions').delete().eq('story_id', storyId).eq('user_id', user.id)
+        : previous.userReaction
+          ? await supabase.from('story_reactions').update({ reaction_type: nextReaction }).eq('story_id', storyId).eq('user_id', user.id)
+          : await supabase.from('story_reactions').insert({ story_id: storyId, user_id: user.id, reaction_type: nextReaction });
+
+      if (error) throw error;
+    } catch (error) {
+      setStoryReactions((current) => ({ ...current, [storyId]: previous }));
+      console.error('Error updating story reaction:', error);
     } finally {
-      setLoading(false);
+      setReacting(false);
     }
   };
 
@@ -80,39 +164,85 @@ export default function Stories() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !profile) return;
+    if (!file || !profile) return;
+
+    const mediaType = getPostMediaType(file);
+    const validationError = validatePostMedia(file, { maxImageSize: 10 * 1024 * 1024 });
+    if (!mediaType || validationError) {
+      setUploadError(validationError || 'Please choose a supported image or video file.');
+      e.currentTarget.value = '';
+      return;
+    }
 
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStage('');
+    setUploadError('');
+    let uploadedPath = '';
+    let posterPath = '';
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const { data: { user: authenticatedUser } } = await supabase.auth.getUser();
+      if (!authenticatedUser) throw new Error('Your session has expired. Please sign in again.');
 
-      const { error: uploadError } = await supabase.storage
-        .from('post-images')
-        .upload(fileName, file, { upsert: true });
+      // Phase 1: compress photos client-side; capture a poster for videos.
+      let fileToUpload = file;
+      if (mediaType === 'image') {
+        setUploadStage('Optimizing photo…');
+        fileToUpload = await compressImage(file, { maxBytes: 10 * 1024 * 1024 });
+      }
+      setUploadStage('Uploading…');
+      const uploaded = await uploadPostMedia(
+        fileToUpload,
+        authenticatedUser.id,
+        { maxImageSize: 10 * 1024 * 1024 },
+        (percent) => setUploadProgress(percent),
+      );
+      uploadedPath = uploaded.path;
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('post-images')
-        .getPublicUrl(fileName);
+      let posterUrl = '';
+      if (uploaded.mediaType === 'video') {
+        setUploadStage('Capturing video frame…');
+        const poster = await uploadVideoPoster(file, authenticatedUser.id);
+        if (poster) {
+          posterUrl = poster.publicUrl;
+          posterPath = poster.path;
+        }
+      }
 
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
+      const storyRow: Record<string, unknown> = {
+        user_id: authenticatedUser.id,
+        image_url: uploaded.publicUrl,
+        media_type: uploaded.mediaType,
+        ...(posterUrl ? { poster_url: posterUrl } : {}),
+        expires_at: expiresAt.toISOString()
+      };
+
       const { error: insertError } = await supabase
         .from('stories')
-        .insert({
-          user_id: user.id,
-          image_url: publicUrl,
-          expires_at: expiresAt.toISOString()
-        });
+        .insert(storyRow);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Graceful degradation for the un-migrated poster_url column.
+        if (posterUrl && typeof insertError === 'object' && insertError !== null && (insertError as { code?: string }).code === '42703') {
+          const { poster_url, ...rowWithoutPoster } = storyRow;
+          const { error: retryError } = await supabase.from('stories').insert([rowWithoutPoster]);
+          if (retryError) throw retryError;
+          console.warn('[Stories] poster_url column missing — poster skipped (run the phase-1 migration).');
+        } else {
+          throw insertError;
+        }
+      }
 
       await loadStories();
-    } catch (error) {
+    } catch (error: unknown) {
+      if (uploadedPath) await supabase.storage.from('post-images').remove([uploadedPath]).catch(() => {});
+      if (posterPath) await supabase.storage.from('post-images').remove([posterPath]).catch(() => {});
+      const message = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unable to upload your story.';
       console.error('Error uploading story:', error);
+      setUploadError(message);
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -138,14 +268,12 @@ export default function Stories() {
 
   const closeStoryViewer = () => {
     setSelectedStoryGroup(null);
-    setSelectedStory(null);
     setCurrentStoryIndex(0);
   };
 
   const handleStoryClick = (story: Story, group: StoryGroup) => {
     const storyIndex = group.stories.findIndex(s => s.id === story.id);
     setSelectedStoryGroup(group);
-    setSelectedStory(story);
     setCurrentStoryIndex(storyIndex >= 0 ? storyIndex : 0);
   };
 
@@ -165,10 +293,27 @@ export default function Stories() {
   }));
 
   const currentStory = selectedStoryGroup?.stories[currentStoryIndex];
+  const currentReaction = currentStory ? storyReactions[currentStory.id] : undefined;
+  const currentReactionEmoji = reactionOptions.find((reaction) => reaction.type === currentReaction?.userReaction)?.emoji;
 
   return (
     <>
       <div className="-mx-3 mb-5 flex gap-3 overflow-x-auto px-3 pb-2 scrollbar-hide sm:-mx-6 sm:mb-6 sm:px-6">
+        {uploadError && <p className="w-full basis-full text-sm text-red-200">{uploadError}</p>}
+        {uploading && (
+          <div className="w-full basis-full" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-1 w-full overflow-hidden rounded-full bg-white/20">
+              <div
+                className="h-full rounded-full bg-cyan-300 transition-all duration-200"
+                style={{ width: `${Math.max(uploadProgress, 6)}%` }}
+              />
+            </div>
+            <p className="mt-1 text-xs text-cyan-100">
+              {uploadStage || 'Uploading…'}
+              {uploadProgress > 0 && uploadProgress < 100 ? ` ${uploadProgress}%` : ''}
+            </p>
+          </div>
+        )}
         {user && (
           <button
             onClick={handleUploadStory}
@@ -180,14 +325,42 @@ export default function Stories() {
             ) : (
               <Plus className="w-8 h-8" />
             )}
-            <span className="text-xs">{uploading ? 'Uploading...' : 'Your Story'}</span>
+            <span className="text-xs">{uploading ? uploadStage || 'Uploading...' : 'Your Story'}</span>
+          </button>
+        )}
+
+        {onCreatePost && (
+          <button
+            onClick={onCreatePost}
+            className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] bg-gradient-to-br from-violet-600 to-fuchsia-600 flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0"
+          >
+            <Plus className="h-8 w-8" />
+            <span className="text-xs">Create</span>
+          </button>
+        )}
+
+        {onAboutCreator && (
+          <button
+            onClick={onAboutCreator}
+            className="relative h-44 min-w-[96px] overflow-hidden rounded-2xl sm:h-56 sm:min-w-[120px] flex flex-col items-center justify-center gap-2 text-white font-semibold hover:shadow-lg transition-all hover:scale-105 flex-shrink-0"
+          >
+            <img
+              src="/steve01.jpeg"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/10" />
+            <div className="relative flex flex-col items-center gap-2">
+              <Info className="h-8 w-8" />
+              <span className="text-xs">About</span>
+            </div>
           </button>
         )}
 
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/ogg"
           onChange={handleFileChange}
           className="hidden"
         />
@@ -200,12 +373,23 @@ export default function Stories() {
               onClick={() => handleStoryClick(latestStory, group)}
               className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105 ring-2 ring-blue-500 ring-offset-2"
             >
-              <Image
-                src={latestStory.image_url}
-                alt={latestStory.profile?.username || 'Story'}
-                variant="story"
-                rounded="lg"
-              />
+              {latestStory.media_type === 'video' ? (
+                <video
+                  src={latestStory.image_url}
+                  poster={latestStory.poster_url || undefined}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={latestStory.image_url}
+                  alt={latestStory.profile?.username || 'Story'}
+                  variant="story"
+                  rounded="lg"
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
               <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -226,13 +410,25 @@ export default function Stories() {
       {selectedStoryGroup && currentStory && (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
           <div className="relative w-full max-w-sm h-screen md:h-[90vh] md:rounded-2xl overflow-hidden bg-black">
-            <Image
-              src={currentStory.image_url}
-              alt="Story"
-              variant="custom"
-              className="w-full h-full"
-              rounded="lg"
-            />
+            {currentStory.media_type === 'video' ? (
+              <video
+                src={currentStory.image_url}
+                poster={currentStory.poster_url || undefined}
+                autoPlay
+                controls
+                muted
+                playsInline
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <Image
+                src={currentStory.image_url}
+                alt="Story"
+                variant="custom"
+                className="w-full h-full"
+                rounded="lg"
+              />
+            )}
 
             <button
               onClick={closeStoryViewer}
@@ -258,6 +454,35 @@ export default function Stories() {
                 </button>
               </>
             )}
+
+            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between p-4 bg-gradient-to-t from-black/70 to-transparent">
+              <div className="relative">
+                <button
+                  onClick={() => user ? setShowReactionMenu((isOpen) => !isOpen) : setShowAuthPrompt(true)}
+                  disabled={reacting}
+                  className="flex items-center gap-2 rounded-full bg-black/45 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-black/65 disabled:opacity-60"
+                >
+                  {currentReactionEmoji ? <span className="text-lg">{currentReactionEmoji}</span> : <Heart className="h-5 w-5" />}
+                  <span>{currentReaction?.count || 'React'}</span>
+                </button>
+
+                {showReactionMenu && (
+                  <div className="absolute bottom-full left-0 mb-3 flex gap-1 rounded-full border border-white/20 bg-slate-900/95 p-2 shadow-xl">
+                    {reactionOptions.map((reaction) => (
+                      <button
+                        key={reaction.type}
+                        onClick={() => handleReaction(reaction.type)}
+                        className="text-2xl transition-transform hover:scale-125"
+                        title={reaction.label}
+                      >
+                        {reaction.emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {currentStory.caption && <p className="max-w-[60%] text-right text-sm text-white">{currentStory.caption}</p>}
+            </div>
 
             <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/40 to-transparent">
               <div className="flex items-center gap-3">

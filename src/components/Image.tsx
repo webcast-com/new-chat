@@ -14,6 +14,7 @@ interface ImageProps {
   className?: string;
   placeholderClassName?: string;
   onLoad?: () => void;
+  sizes?: string;
 }
 
 const VARIANT_CLASSES: Record<ImageVariant, string> = {
@@ -41,6 +42,16 @@ const OBJECT_FIT_CLASSES: Record<ObjectFit, string> = {
   'scale-down': 'object-scale-down',
 };
 
+const VARIANT_SIZES: Record<ImageVariant, string> = {
+  avatar: '48px',
+  cover: '100vw',
+  post: '(min-width: 1024px) 672px, (min-width: 640px) 640px, calc(100vw - 24px)',
+  card: '(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw',
+  story: '120px',
+  banner: '100vw',
+  custom: '100vw',
+};
+
 export default function Image({
   src,
   alt,
@@ -50,10 +61,10 @@ export default function Image({
   className = '',
   placeholderClassName = '',
   onLoad,
+  sizes,
 }: ImageProps) {
   const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [isVisible, setIsVisible] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const imgRef = useRef<HTMLDivElement>(null);
 
   // Intersection Observer for lazy loading
@@ -82,21 +93,9 @@ export default function Image({
     };
   }, []);
 
-  // Load image when visible
   useEffect(() => {
-    if (!isVisible || !src) return;
-
-    const img = new window.Image();
-    img.onload = () => {
-      setImageSrc(src);
-      setLoadState('loaded');
-      onLoad?.();
-    };
-    img.onerror = () => {
-      setLoadState('error');
-    };
-    img.src = src;
-  }, [isVisible, src, onLoad]);
+    setLoadState('loading');
+  }, [src]);
 
   // Build className once, memoized
   const finalClassName = useMemo(() => {
@@ -124,10 +123,24 @@ export default function Image({
         </div>
       )}
 
-      {imageSrc && <img src={imageSrc} alt={alt} className="w-full h-full object-cover" />}
+      {isVisible && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          sizes={sizes || VARIANT_SIZES[variant]}
+          onLoad={() => {
+            setLoadState('loaded');
+            onLoad?.();
+          }}
+          onError={() => setLoadState('error')}
+          className="h-full w-full object-cover transition-opacity duration-300"
+        />
+      )}
 
-      {!isVisible && !imageSrc && (
-        <div className={`w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 ${placeholderClassName}`} />
+      {!isVisible && (
+        <div className={`h-full w-full bg-gradient-to-br from-slate-100 to-slate-200 ${placeholderClassName}`} />
       )}
     </div>
   );

@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
-import { supabase, Post, Profile } from '../lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase, Post } from '../lib/supabase';
 import PostCard from './PostCard';
 import { Loader2, TrendingUp, Flame, Clock, Sparkles } from 'lucide-react';
 
 interface TrendingPost extends Post {
   trending_score?: number;
-  profiles?: Profile;
 }
 
 type TimeFilter = '24h' | '7d' | 'all';
@@ -15,11 +14,7 @@ export default function Trending() {
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('7d');
 
-  useEffect(() => {
-    loadTrendingPosts();
-  }, [timeFilter]);
-
-  const loadTrendingPosts = async () => {
+  const loadTrendingPosts = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -44,7 +39,7 @@ export default function Trending() {
       // Calculate trending score on client side for now
       // Score = (likes * 1 + comments * 3 + shares * 5) * time_decay
       const scoredPosts = (data || []).map(post => {
-        const shares = (post as any).shares_count || 0;
+        const shares = post.shares_count || 0;
         const hoursSincePost = (now.getTime() - new Date(post.created_at).getTime()) / (1000 * 60 * 60);
 
         let timeDecay: number;
@@ -61,7 +56,6 @@ export default function Trending() {
 
         return {
           ...post,
-          profiles: (post as any).profiles,
           trending_score: engagementScore * timeDecay
         };
       });
@@ -75,7 +69,11 @@ export default function Trending() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeFilter]);
+
+  useEffect(() => {
+    loadTrendingPosts();
+  }, [loadTrendingPosts]);
 
   const formatScore = (score?: number) => {
     if (!score) return '0';

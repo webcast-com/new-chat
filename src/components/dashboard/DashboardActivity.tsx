@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase, Post, Comment } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { Heart, MessageCircle, UserPlus, FileText, Loader2 } from 'lucide-react';
 
 type ActivityItem = {
@@ -57,7 +57,7 @@ export default function DashboardActivity() {
 
       const activityList: ActivityItem[] = [];
 
-      postsRes.data?.forEach((post: any) => {
+      postsRes.data?.forEach((post) => {
         activityList.push({
           id: post.id,
           type: 'post',
@@ -69,7 +69,7 @@ export default function DashboardActivity() {
         });
       });
 
-      commentsRes.data?.forEach((comment: any) => {
+      commentsRes.data?.forEach((comment) => {
         activityList.push({
           id: comment.id,
           type: 'comment',
@@ -81,19 +81,19 @@ export default function DashboardActivity() {
         });
       });
 
-      likesRes.data?.forEach((like: any) => {
+      likesRes.data?.forEach((like) => {
         activityList.push({
           id: like.id,
           type: 'like',
           title: 'Liked a post',
-          description: like.posts?.content?.substring(0, 60) || 'a post',
+          description: like.posts?.[0]?.content?.substring(0, 60) || 'a post',
           timestamp: like.created_at,
           icon: <Heart className="w-4 h-4" />,
           color: 'bg-red-100 text-red-600',
         });
       });
 
-      connectionsRes.data?.forEach((connection: any) => {
+      connectionsRes.data?.forEach((connection) => {
         activityList.push({
           id: connection.id,
           type: 'follow',

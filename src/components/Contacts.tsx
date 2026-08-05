@@ -27,19 +27,20 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
     try {
       const { data, error } = await supabase
         .from('connections')
-        .select('following_id, profiles:following_id(*)')
+        .select('following_id, profiles:profiles!connections_following_id_fkey(*)')
         .eq('follower_id', profile.id)
         .limit(8);
 
       if (error) throw error;
 
-      const contactsData = data
-        ?.map((conn: any) => conn.profiles)
-        .filter(Boolean) || [];
+      const contactsData: Profile[] = (data || [])
+        .map((connection) => Array.isArray(connection.profiles) ? connection.profiles[0] : connection.profiles)
+        .filter((contact): contact is Profile => Boolean(contact));
 
       setContacts(contactsData);
-    } catch (error) {
-      console.error('Error loading contacts:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error loading contacts:', message);
     } finally {
       setLoading(false);
     }
@@ -63,7 +64,7 @@ export default function Contacts({ onStartMessage }: ContactsProps) {
   }
 
   return (
-    <div className="sticky top-24 space-y-3 rounded-2xl border border-slate-200 bg-[#c4cadf] p-6 text-black shadow-sm">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24 space-y-3">
       <h2 className="font-bold text-slate-900">Contacts</h2>
 
       {contacts.length === 0 ? (

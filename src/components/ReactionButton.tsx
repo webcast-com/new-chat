@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Heart, Smile } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import AuthPrompt from './AuthPrompt';
@@ -65,33 +65,36 @@ export default function ReactionButton({ postId, onReactionChange }: ReactionBut
     }
     if (!profile || loading) return;
 
+    const previousReaction = userReaction;
+    const nextReaction = previousReaction === reactionType ? null : reactionType;
     setLoading(true);
-    try {
-      if (userReaction === reactionType) {
-        await supabase
-          .from('reactions')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', profile.id);
-        setUserReaction(null);
-      } else if (userReaction) {
-        await supabase
-          .from('reactions')
-          .update({ reaction_type: reactionType })
-          .eq('post_id', postId)
-          .eq('user_id', profile.id);
-        setUserReaction(reactionType);
-      } else {
-        await supabase
-          .from('reactions')
-          .insert([{ post_id: postId, user_id: profile.id, reaction_type: reactionType }]);
-        setUserReaction(reactionType);
-      }
+    setUserReaction(nextReaction);
+    setShowMenu(false);
 
-      setShowMenu(false);
+    try {
+      const { error } = nextReaction === null
+        ? await supabase
+            .from('reactions')
+            .delete()
+            .eq('post_id', postId)
+            .eq('user_id', profile.id)
+        : previousReaction
+          ? await supabase
+              .from('reactions')
+              .update({ reaction_type: nextReaction })
+              .eq('post_id', postId)
+              .eq('user_id', profile.id)
+          : await supabase
+              .from('reactions')
+              .insert([{ post_id: postId, user_id: profile.id, reaction_type: nextReaction }]);
+
+      if (error) throw error;
       onReactionChange();
-    } catch (error) {
-      console.error('Error updating reaction:', error);
+    } catch (error: unknown) {
+      setUserReaction(previousReaction);
+      const message = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error updating reaction:', message);
+      window.alert(`Unable to update reaction: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -107,7 +110,7 @@ export default function ReactionButton({ postId, onReactionChange }: ReactionBut
           className={`flex items-center gap-2 transition-all px-3 py-2 rounded-lg ${
             userReaction
               ? 'text-violet-700 bg-violet-50'
-              : 'bg-[#107fde] text-white hover:bg-[#107fde]'
+              : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           {currentReactionEmoji ? (

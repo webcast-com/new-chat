@@ -1,5 +1,5 @@
 # Social Hub Robots.txt
-# https://socialhub.app
+# https://hyperlink.hyper.co.ke
 
 User-agent: *
 Allow: /
@@ -15,7 +15,7 @@ Allow: /login
 Allow: /signup
 
 # Sitemap location
-Sitemap: https://socialhub.app/sitemap.xml
+Sitemap: https://hyperlink.hyper.co.ke/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1

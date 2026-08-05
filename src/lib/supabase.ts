@@ -9,12 +9,26 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+export const SUPABASE_URL = supabaseUrl;
+export const SUPABASE_ANON_KEY = supabaseAnonKey;
+
 export type Profile = {
   id: string;
   username: string;
   full_name: string;
   bio: string;
   avatar_url: string;
+  location?: string | null;
+  county?: string | null;
+  constituency?: string | null;
+  /** Phase 6 — opt-in GPS coordinates. */
+  lat?: number | null;
+  lng?: number | null;
+  location_updated_at?: string | null;
+  age?: number | null;
+  work?: string | null;
+  education?: string | null;
+  gender?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -24,6 +38,18 @@ export type Post = {
   user_id: string;
   content: string;
   image_url: string;
+  media_type?: 'image' | 'video';
+  poster_url?: string | null;
+  /** Phase 3 — when set, this post is a quote/repost of another post. */
+  shared_post_id?: string | null;
+  shared_post?: Post | null;
+  visibility?: 'public' | 'county' | 'constituency';
+  county?: string | null;
+  constituency?: string | null;
+  /** Phase 6 — "near me" posts carry the author's GPS at publish time. */
+  near_me?: boolean;
+  post_lat?: number | null;
+  post_lng?: number | null;
   likes_count: number;
   comments_count: number;
   shares_count?: number;
@@ -51,6 +77,7 @@ export type Comment = {
   user_id: string;
   post_id: string;
   content: string;
+  parent_id?: string | null;
   created_at: string;
   profiles?: Profile;
 };

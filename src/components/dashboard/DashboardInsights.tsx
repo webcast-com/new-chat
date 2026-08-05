@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { supabase, Post } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { TrendingUp, Eye, Heart, MessageCircle, Loader2, Award } from 'lucide-react';
 
 type TopPost = {
@@ -8,7 +8,6 @@ type TopPost = {
   content: string;
   likes_count: number;
   comments_count: number;
-  views: number;
 };
 
 export default function DashboardInsights() {
