@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { CreditCard, Send, CheckCircle, AlertCircle, Code } from 'lucide-react';
+import { CreditCard, Send, CheckCircle, AlertCircle, Code, Webhook as WebhookIcon } from 'lucide-react';
 
 export function WebhookSimulator() {
   const { user, refreshPlan } = useAuth();
@@ -11,7 +11,18 @@ export function WebhookSimulator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  if (!user) return null;
+  if (!user) {
+    // Don't leave the tab blank for anonymous visitors — show a sign-in prompt.
+    return (
+      <div className="min-h-[60vh] bg-[#0d1117] text-white flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <WebhookIcon className="w-12 h-12 text-[#00d4ff] mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Sign in required</h1>
+          <p className="text-gray-400">Please sign in to simulate the Paystack webhook and test premium plan upgrades.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSimulateWebhook = async () => {
     setLoading(true);

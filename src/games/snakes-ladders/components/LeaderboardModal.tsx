@@ -1,3 +1,4 @@
+import PlayerAvatar from "./PlayerAvatar";
 import { UserProfile, calculateLevelAndRank } from "../types/profile";
 
 type Props = {
@@ -59,7 +60,7 @@ export default function LeaderboardModal({ isOpen, onClose, allProfiles }: Props
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 text-center font-black text-lg text-slate-300">{rankMedal}</div>
-                  <span className="text-3xl">{profile.avatar}</span>
+                  <PlayerAvatar profile={profile} className="text-3xl" />
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-white text-base">{profile.username}</span>

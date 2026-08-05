@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { TrendingUp, Send, CheckCircle, Twitter, Youtube, Instagram, Facebook } from 'lucide-react';
 
 interface FooterProps {
@@ -6,6 +7,7 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [emailError, setEmailError] = useState('');
@@ -57,8 +59,13 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // ScoreHub is embedded via a MemoryRouter inside the host app, so links must
+  // navigate with the in-memory router. Using window.location.href here would
+  // perform a full browser navigation out of the embedded app (the host has no
+  // /about, /careers, ... routes), dumping the user back on the community feed.
   const handleNavigation = (href: string) => {
-    window.location.href = href;
+    navigate(href);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (

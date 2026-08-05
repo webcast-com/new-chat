@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/context/AuthContext';
@@ -149,8 +150,12 @@ export function useAchievements() {
     },
   });
 
+  // Stable reference (see useFavorites): `data || []` in render would create a
+  // new array every render and break consumers that use it in effect deps.
+  const achievements = useMemo(() => achievementsQuery.data || [], [achievementsQuery.data]);
+
   const hasAchievement = (type: AchievementType) => {
-    return achievementsQuery.data?.some(a => a.achievement_type === type) || false;
+    return achievements.some(a => a.achievement_type === type);
   };
 
   const totalPoints = achievementsQuery.data?.reduce((sum, ach) => {
@@ -166,7 +171,7 @@ export function useAchievements() {
   };
 
   return {
-    achievements: achievementsQuery.data || [],
+    achievements,
     loading: achievementsQuery.isLoading,
     error: achievementsQuery.error,
     hasAchievement,

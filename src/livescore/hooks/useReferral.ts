@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/context/AuthContext';
@@ -228,10 +228,14 @@ export function useReferral() {
     }
   }, [user?.id]);
 
+  // Stable reference (see useFavorites): `data || []` would create a new array
+  // on every render while the query is disabled/loading.
+  const referrals = useMemo(() => referralsQuery.data || [], [referralsQuery.data]);
+
   return {
     referralCode: referralCodeQuery.data,
     stats: statsQuery.data,
-    referrals: referralsQuery.data || [],
+    referrals,
     loading: referralCodeQuery.isLoading || statsQuery.isLoading,
     error: referralCodeQuery.error || statsQuery.error,
     copied,

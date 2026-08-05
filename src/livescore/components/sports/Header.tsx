@@ -64,15 +64,20 @@ const Header: React.FC<HeaderProps> = ({ activeSport, onSportChange, searchQuery
 
   const handleSearchSelect = (result: SearchResult) => {
     setShowSearchResults(false);
-    if (result.type === 'match') onSearchChange(result.title.split(' vs ')[0] || '');
-    else if (result.type === 'team') {
-      onSearchChange(result.title);
+    if (result.type === 'match' || result.type === 'team') {
+      // Keep the picked team as the active filter so the Live Scores list
+      // actually narrows to it (previously the query was set and then
+      // immediately cleared, so selection did nothing).
+      const query = result.type === 'match' ? (result.title.split(' vs ')[0] || '') : result.title;
+      onSearchChange(query);
       document.getElementById('live-scores')?.scrollIntoView({ behavior: 'smooth' });
     } else if (result.type === 'league') {
       const sport = (result.data.sport as Sport) || 'all';
       onSportChange(sport);
+      onSearchChange('');
+    } else {
+      onSearchChange('');
     }
-    onSearchChange('');
   };
 
   const handleNotificationToggle = async () => {

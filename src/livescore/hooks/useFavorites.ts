@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/app/context/AuthContext';
@@ -82,10 +82,16 @@ export function useFavorites() {
     },
   });
 
+  // Stable reference: query.data is undefined while loading/disabled, so a
+  // bare `query.data || []` would create a NEW empty array on every render.
+  // Consumers that use `favorites` in effect deps (e.g. usePushNotifications)
+  // would then re-run their effect forever ("Maximum update depth exceeded").
+  const favorites = useMemo(() => query.data || [], [query.data]);
+
   const isFavorite = useCallback((teamName: string) => {
     if (optimisticFavorites.has(teamName)) return true;
-    return (query.data || []).some(f => f.team_name === teamName);
-  }, [query.data, optimisticFavorites]);
+    return favorites.some(f => f.team_name === teamName);
+  }, [favorites, optimisticFavorites]);
 
   const toggleFavorite = useCallback(async (input: FavoriteInput) => {
     const teamName = input.team_name;
@@ -137,7 +143,7 @@ export function useFavorites() {
   }, [user?.id, queryClient]);
 
   return {
-    favorites: query.data || [],
+    favorites,
     loading: query.isLoading,
     error: query.error,
     isFavorite,

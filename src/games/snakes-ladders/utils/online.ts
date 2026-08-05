@@ -6,6 +6,7 @@ export type PlayerInfo = {
   id: string;
   username: string;
   avatar: string;
+  avatarUrl?: string;
   colorIdx: number;
   level: number;
 };

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { UserProfile, calculateLevelAndRank, AVATAR_OPTIONS } from "../types/profile";
 import { PLAYER_COLORS } from "../game/constants";
 import { createNewUser } from "../utils/storage";
+import PlayerAvatar from "./PlayerAvatar";
 
 type Props = {
   isOpen: boolean;
@@ -10,6 +11,8 @@ type Props = {
   activeProfile: UserProfile;
   onSelectProfile: (id: string) => void;
   onRefreshProfiles: () => void;
+  /** Signed-in users keep the chat identity; local player creation is guest-only. */
+  isGuest?: boolean;
 };
 
 export default function ProfileModal({
@@ -19,6 +22,7 @@ export default function ProfileModal({
   activeProfile,
   onSelectProfile,
   onRefreshProfiles,
+  isGuest = true,
 }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [newUsername, setNewUsername] = useState("");
@@ -48,12 +52,19 @@ export default function ProfileModal({
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-slate-900 p-6 text-slate-100 shadow-2xl ring-1 ring-white/15 sm:p-8">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{activeProfile.avatar}</span>
+            <PlayerAvatar profile={activeProfile} className="text-3xl" />
             <div>
               <h2 className="text-2xl font-bold text-white">{activeProfile.username}</h2>
-              <span className="inline-block rounded-full bg-gradient-to-r from-amber-500 to-rose-500 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-white shadow">
-                Level {level} • {rank}
-              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="inline-block rounded-full bg-gradient-to-r from-amber-500 to-rose-500 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-white shadow">
+                  Level {level} • {rank}
+                </span>
+                {activeProfile.platformId && (
+                  <span className="inline-block rounded-full bg-sky-500/20 px-3 py-0.5 text-xs font-bold text-sky-300 ring-1 ring-sky-400/40">
+                    ✓ Linked to chat profile
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -107,12 +118,18 @@ export default function ProfileModal({
             <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-400">
               Select Player Profile
             </h3>
-            <button
-              onClick={() => setIsCreating(!isCreating)}
-              className="rounded-lg bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/30 transition"
-            >
-              {isCreating ? "Cancel" : "+ New Player"}
-            </button>
+            {isGuest ? (
+              <button
+                onClick={() => setIsCreating(!isCreating)}
+                className="rounded-lg bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/30 transition"
+              >
+                {isCreating ? "Cancel" : "+ New Player"}
+              </button>
+            ) : (
+              <span className="rounded-lg bg-sky-500/15 px-3 py-1 text-xs font-bold text-sky-300 ring-1 ring-sky-500/30">
+                Using chat profile
+              </span>
+            )}
           </div>
 
           {isCreating && (
@@ -192,7 +209,7 @@ export default function ProfileModal({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{p.avatar}</span>
+                      <PlayerAvatar profile={p} className="text-2xl" />
                       <div>
                         <div className="font-bold text-white flex items-center gap-2">
                           {p.username}

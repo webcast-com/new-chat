@@ -29,7 +29,7 @@ Deno.serve(async (request) => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) return json({ error: 'Authentication required' }, 401);
 
-  let body: { postId?: unknown; content?: unknown };
+  let body: { postId?: unknown; content?: unknown; parentId?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -43,10 +43,36 @@ Deno.serve(async (request) => {
     return json({ error: 'Comment content must be between 1 and 2000 characters' }, 400);
   }
 
+  // Phase 2 — threaded replies: when parentId is provided, the parent must
+  // exist and belong to the same post (prevents cross-post replies).
+  let parentId: string | null = null;
+  if (body.parentId != null) {
+    if (typeof body.parentId !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.parentId)) {
+      return json({ error: 'A valid parentId is required' }, 400);
+    }
+    const { data: parent, error: parentError } = await supabase
+      .from('comments')
+      .select('id, post_id, parent_id')
+      .eq('id', body.parentId)
+      .maybeSingle();
+    if (parentError) return json({ error: parentError.message }, 400);
+    if (!parent) return json({ error: 'Parent comment not found' }, 404);
+    if (parent.post_id !== body.postId) {
+      return json({ error: 'Parent comment does not belong to this post' }, 400);
+    }
+    // Replies nest one level deep: replying to a reply targets the root parent.
+    parentId = parent.parent_id ?? parent.id;
+  }
+
   const { data, error } = await supabase
     .from('comments')
-    .insert({ post_id: body.postId, user_id: user.id, content: body.content.trim() })
-    .select('id')
+    .insert({
+      post_id: body.postId,
+      user_id: user.id,
+      content: body.content.trim(),
+      ...(parentId ? { parent_id: parentId } : {}),
+    })
+    .select('id, parent_id')
     .single();
 
   if (error) return json({ error: error.message }, 400);

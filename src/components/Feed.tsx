@@ -30,7 +30,7 @@ export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCre
     try {
       const { data, error } = await supabase
         .from('posts')
-        .select('*, profiles(*)')
+        .select('*, profiles(*), shared_post:shared_post_id(*, profiles(*))')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

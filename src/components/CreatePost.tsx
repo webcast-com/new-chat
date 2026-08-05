@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { getPostMediaType, removePostMedia, uploadPostMedia, validatePostMedia, type PostMediaType } from '../lib/postMedia';
+import { compressImage, getPostMediaType, removePostMedia, uploadPostMedia, uploadVideoPoster, validatePostMedia, type PostMediaType } from '../lib/postMedia';
 import { Send, Image as ImageIcon, X } from 'lucide-react';
 import MentionInput from './MentionInput';
 
@@ -18,7 +18,9 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [mediaType, setMediaType] = useState<PostMediaType>('image');
   const [mediaError, setMediaError] = useState('');
   const [submitError, setSubmitError] = useState('');
-  const [visibility, setVisibility] = useState<'public' | 'county' | 'constituency'>('public');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'county' | 'constituency' | 'near'>('public');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
   const hasCounty = Boolean(profile?.county);
@@ -91,39 +93,85 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
     setLoading(true);
     setSubmitError('');
+    setUploadProgress(0);
+    setUploadStage('');
     let uploadedPath = '';
+    let posterPath = '';
 
     try {
       let imageUrl = '';
       let uploadedMediaType: PostMediaType | undefined;
+      let posterUrl = '';
 
       if (selectedImage) {
-        const uploaded = await uploadPostMedia(selectedImage, profile.id);
+        // Phase 1: compress photos client-side before uploading.
+        let fileToUpload = selectedImage;
+        if (mediaType === 'image') {
+          setUploadStage('Optimizing photo…');
+          fileToUpload = await compressImage(selectedImage);
+        }
+
+        const uploaded = await uploadPostMedia(
+          fileToUpload,
+          profile.id,
+          {},
+          (percent) => setUploadProgress(percent),
+        );
         imageUrl = uploaded.publicUrl;
         uploadedPath = uploaded.path;
         uploadedMediaType = uploaded.mediaType;
+
+        // Phase 1: capture + upload a poster frame for videos so the feed
+        // shows a real frame instead of a black box.
+        if (uploadedMediaType === 'video') {
+          setUploadStage('Capturing video frame…');
+          const poster = await uploadVideoPoster(selectedImage, profile.id);
+          if (poster) {
+            posterUrl = poster.publicUrl;
+            posterPath = poster.path;
+          }
+        }
       }
 
-      const post = {
+      const post: Record<string, unknown> = {
         user_id: profile.id,
         content: content.trim(),
         image_url: imageUrl,
         ...(uploadedMediaType ? { media_type: uploadedMediaType } : {}),
+        ...(posterUrl ? { poster_url: posterUrl } : {}),
         ...(visibility !== 'public' && {
           visibility,
           county: profile.county,
           constituency: visibility === 'constituency' ? profile.constituency : null,
         }),
+        ...(visibility === 'near' && {
+          visibility: 'public' as const,
+          near_me: true,
+          post_lat: profile.lat ?? null,
+          post_lng: profile.lng ?? null,
+        }),
       };
 
       const { error } = await supabase.from('posts').insert([post]);
-      if (error) throw error;
+      if (error) {
+        // Graceful degradation: if the poster_url column migration hasn't been
+        // applied yet, retry without the poster field instead of failing.
+        if (posterUrl && typeof error === 'object' && error !== null && (error as { code?: string }).code === '42703') {
+          const { poster_url, ...postWithoutPoster } = post;
+          const { error: retryError } = await supabase.from('posts').insert([postWithoutPoster]);
+          if (retryError) throw retryError;
+          console.warn('[CreatePost] poster_url column missing — poster skipped (run the phase-1 migration).');
+        } else {
+          throw error;
+        }
+      }
 
       resetComposer();
       onPostCreated();
     } catch (error: unknown) {
-      // Do not leave an orphaned video in storage if the post insert fails.
+      // Do not leave an orphaned video/poster in storage if the post insert fails.
       if (uploadedPath) await removePostMedia(uploadedPath);
+      if (posterPath) await removePostMedia(posterPath);
 
       const details = error && typeof error === 'object' ? error as { message?: string; details?: string; hint?: string } : null;
       const message = details?.message || (error instanceof Error ? error.message : String(error));
@@ -183,6 +231,21 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             )}
 
+            {loading && (
+              <div className="mt-4" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-200"
+                    style={{ width: `${Math.max(uploadProgress, 6)}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500">
+                  {uploadStage || 'Uploading…'}
+                  {uploadProgress > 0 && uploadProgress < 100 ? ` ${uploadProgress}%` : ''}
+                </p>
+              </div>
+            )}
+
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <input
@@ -211,6 +274,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
                   <option value="public">Everyone</option>
                   <option value="county" disabled={!hasCounty}>My county{hasCounty ? '' : ' (set your location first)'}</option>
                   <option value="constituency" disabled={!hasConstituency}>My constituency{hasConstituency ? '' : ' (set your location first)'}</option>
+                  <option value="near" disabled={!profile?.lat || !profile?.lng}>Around me (25 km){profile?.lat ? '' : ' (enable location detection first)'}</option>
                 </select>
               </label>
               <button

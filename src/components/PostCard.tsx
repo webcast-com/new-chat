@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check, Bookmark, Flag, MapPin } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, CreditCard as Edit2, Trash2, X, Check, Bookmark, Flag, MapPin, Repeat2 } from 'lucide-react';
 import { Post, Comment } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -7,6 +7,8 @@ import { getPostMediaType, removePostMedia, uploadPostMedia, validatePostMedia, 
 import CommentSection from './CommentSection';
 import ReactionButton from './ReactionButton';
 import ShareButton from './ShareButton';
+import SharedPostCard from './SharedPostCard';
+import VideoPlayer from './VideoPlayer';
 import Image from './Image';
 import MentionInput, { renderMentions } from './MentionInput';
 
@@ -16,9 +18,11 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onUpdate }: PostCardProps) {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [hasMoreComments, setHasMoreComments] = useState(false);
+  const [loadingMoreComments, setLoadingMoreComments] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
@@ -63,15 +67,66 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     }
   };
 
+  // Phase 2 — paginate comments (25 per page).
+  const COMMENTS_PAGE_SIZE = 25;
   const loadComments = async () => {
     const { data } = await supabase
       .from('comments')
       .select('*, profiles(*)')
       .eq('post_id', post.id)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .range(0, COMMENTS_PAGE_SIZE - 1);
 
-    if (data) setComments(data);
+    if (data) {
+      setComments(data);
+      setHasMoreComments(data.length === COMMENTS_PAGE_SIZE);
+    }
   };
+
+  const loadMoreComments = async () => {
+    if (loadingMoreComments) return;
+    setLoadingMoreComments(true);
+    const { data } = await supabase
+      .from('comments')
+      .select('*, profiles(*)')
+      .eq('post_id', post.id)
+      .order('created_at', { ascending: true })
+      .range(comments.length, comments.length + COMMENTS_PAGE_SIZE - 1);
+
+    if (data && data.length > 0) {
+      setComments(prev => {
+        const seen = new Set(prev.map(c => c.id));
+        return [...prev, ...data.filter(c => !seen.has(c.id))];
+      });
+      setHasMoreComments(data.length === COMMENTS_PAGE_SIZE);
+    } else {
+      setHasMoreComments(false);
+    }
+    setLoadingMoreComments(false);
+  };
+
+  // Phase 2 — deep link: #comment-<id> opens this post's comment section only
+  // when the comment actually belongs to this post (cheap indexed lookup).
+  useEffect(() => {
+    const match = window.location.hash.match(/^#comment-(.+)$/);
+    if (!match) return;
+    const commentId = decodeURIComponent(match[1]);
+    let cancelled = false;
+    supabase
+      .from('comments')
+      .select('id')
+      .eq('post_id', post.id)
+      .eq('id', commentId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data) {
+          loadComments();
+          setShowComments(true);
+        }
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post.id]);
 
   const handleCommentClick = () => {
     if (!showComments) {
@@ -160,6 +215,25 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
       if (uploadedPath) await removePostMedia(uploadedPath);
       console.error('Error updating post:', error);
       alert(error instanceof Error ? error.message : 'Error updating post. Please try again.');
+    }
+  };
+
+  // Phase 8 — real moderation reporting (was a no-op before).
+  const handleReport = async () => {
+    if (!user || isReported) return;
+    setIsReported(true);
+    setShowMenu(false);
+    const { error } = await supabase
+      .from('moderation_reports')
+      .insert({
+        reporter_id: user.id,
+        target_type: 'post',
+        target_id: post.id,
+        reason: 'Flagged from the feed',
+      });
+    if (error) {
+      console.error('Error reporting post:', error);
+      setIsReported(false);
     }
   };
 
@@ -275,7 +349,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   {isOwnPost ? <>
                     <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"><Edit2 className="w-4 h-4" /><span>Edit Post</span></button>
                     <button onClick={handleDelete} className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /><span>Delete Post</span></button>
-                  </> : <button onClick={() => { setIsReported(true); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"><Flag className="w-4 h-4" /><span>{isReported ? 'Reported' : 'Report post'}</span></button>}
+                  </> : <button onClick={() => void handleReport()} className="w-full flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"><Flag className="w-4 h-4" /><span>{isReported ? 'Reported ✓' : 'Report post'}</span></button>}
                 </div>
               )}
             </div>
@@ -356,6 +430,16 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               {renderMentions(post.content)}
             </p>
 
+            {post.shared_post_id && (
+              <div className="mb-4">
+                <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                  <Repeat2 className="h-3.5 w-3.5 text-violet-500" />
+                  Reposted from {post.shared_post?.profiles?.username || 'a post'}
+                </p>
+                <SharedPostCard post={post.shared_post} postId={post.shared_post_id} />
+              </div>
+            )}
+
             {tags.length > 0 && (
               <div className="mb-4 flex flex-wrap gap-2">
                 {tags.map(tag => <button key={tag} onClick={() => navigator.clipboard?.writeText(tag)} className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 transition hover:bg-violet-100">{tag}</button>)}
@@ -365,13 +449,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             {post.image_url && (
               <div className="mb-4 overflow-hidden rounded-lg">
                 {post.media_type === 'video' ? (
-                  <video
-                    src={post.image_url}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    className="max-h-[32rem] w-full bg-slate-950"
-                  />
+                  <VideoPlayer src={post.image_url} poster={post.poster_url} />
                 ) : (
                   <Image src={post.image_url} alt="Post content" variant="post" rounded="lg" />
                 )}
@@ -401,7 +479,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                 <span className="text-sm font-medium">{post.comments_count}</span>
               </button>
 
-              <ShareButton postId={post.id} onShareChange={onUpdate} />
+              <ShareButton postId={post.id} onShareChange={onUpdate} shareCount={post.shares_count} />
             </div>
           </>
         )}
@@ -416,6 +494,9 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             loadReactions();
             onUpdate();
           }}
+          hasMore={hasMoreComments}
+          onLoadMore={() => void loadMoreComments()}
+          loadingMore={loadingMoreComments}
         />
       )}
     </div>

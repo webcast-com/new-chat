@@ -85,6 +85,86 @@ export function createNewUser(username: string, avatar: string, colorIdx: number
   return newUser;
 }
 
+/**
+ * Phase 0 — Unified identity: bind the game to the signed-in chat profile.
+ *
+ * When the platform profile loads (same username the user logs in with), we
+ * find or create the game profile keyed by `platformId`, update its username
+ * and avatar, keep all XP/stats/match history, and make it the active player.
+ * A pristine default "Player 1" profile is adopted (re-pointed) so first-time
+ * users don't see a duplicate local player.
+ */
+export function syncWithPlatformProfile(platform: {
+  id: string;
+  username: string;
+  avatarUrl?: string | null;
+}): { profiles: UserProfile[]; activeId: string } {
+  const all = loadAllProfiles();
+
+  // 1) Already linked — just refresh identity details.
+  const existing = all.find((p) => p.platformId === platform.id);
+  if (existing) {
+    // Mirror the platform identity: username always, avatar only when the
+    // platform profile actually has one (removing it clears the game avatar).
+    const updated = all.map((p) =>
+      p.platformId === platform.id
+        ? { ...p, username: platform.username, avatarUrl: platform.avatarUrl || undefined }
+        : p
+    );
+    saveAllProfiles(updated);
+    setActiveUserId(existing.id);
+    return { profiles: updated, activeId: existing.id };
+  }
+
+  // 2) Adopt an untouched default "Player 1" (no platform link, no games played).
+  const pristineDefault = all.find(
+    (p) =>
+      !p.isBot &&
+      !p.platformId &&
+      p.username === "Player 1" &&
+      p.stats.gamesPlayed === 0
+  );
+  if (pristineDefault) {
+    const adopted: UserProfile = {
+      ...pristineDefault,
+      platformId: platform.id,
+      username: platform.username,
+      avatarUrl: platform.avatarUrl || undefined,
+    };
+    const updated = all.map((p) => (p.id === pristineDefault.id ? adopted : p));
+    saveAllProfiles(updated);
+    setActiveUserId(adopted.id);
+    return { profiles: updated, activeId: adopted.id };
+  }
+
+  // 3) Create a fresh linked profile (stats start at 0).
+  const linked: UserProfile = {
+    id: "user-" + Math.random().toString(36).slice(2, 9),
+    username: platform.username || "New Slitherer",
+    avatar: "🦁",
+    colorIdx: all.length % PLAYER_COLOR_COUNT,
+    points: 0,
+    level: 1,
+    stats: {
+      gamesPlayed: 0,
+      wins: 0,
+      losses: 0,
+      laddersClimbed: 0,
+      snakesHit: 0,
+      highestStreak: 0,
+    },
+    matchHistory: [],
+    platformId: platform.id,
+    avatarUrl: platform.avatarUrl || undefined,
+  };
+  const updated = [linked, ...all];
+  saveAllProfiles(updated);
+  setActiveUserId(linked.id);
+  return { profiles: updated, activeId: linked.id };
+}
+
+const PLAYER_COLOR_COUNT = 4;
+
 export function recordGameResult(
   winnerProfileId: string,
   participantIds: string[],

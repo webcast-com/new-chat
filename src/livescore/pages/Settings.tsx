@@ -25,7 +25,18 @@ export function Settings() {
   const [form, setForm] = useState({ name: user?.name || '', country: user?.country || '', bio: user?.bio || '' });
   const [notifs, setNotifs] = useState(user?.preferences || { email_notifications: true, push_notifications: true, sms_notifications: false, favorite_teams: [], favorite_leagues: [], dark_mode: false, language: 'en' });
 
-  if (!user) return null;
+  if (!user) {
+    // Don't leave the tab blank for anonymous visitors — show a sign-in prompt.
+    return (
+      <div className="min-h-[60vh] bg-[#0d1117] text-white flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <SettingsIcon className="w-12 h-12 text-[#00d4ff] mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Sign in required</h1>
+          <p className="text-gray-400">Please sign in to manage your profile, notifications, favorites and preferences.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSave = async () => {
     setSaving(true);

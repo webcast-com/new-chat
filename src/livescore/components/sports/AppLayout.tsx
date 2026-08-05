@@ -78,6 +78,9 @@ const AppLayout: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMatch, setSelectedMatch] = useState<LiveMatch | null>(null);
   const [showPricingPopup, setShowPricingPopup] = useState(false);
+  const [pricingDismissed, setPricingDismissed] = useState(() => {
+    try { return sessionStorage.getItem('scorehub-pricing-dismissed') === '1'; } catch { return false; }
+  });
 
   const activeTab: MainTab = useMemo(() => {
     if (location.pathname.startsWith('/sport/')) return 'dashboard';
@@ -138,11 +141,20 @@ const AppLayout: React.FC = () => {
   // Phase 3: Realtime layer on top of polling
   const { matches: simulatedMatches, isConnected: realtimeConnected, lastUpdate: realtimeLastUpdate } = useRealtimeScores(baseMatches);
 
+  // Show the upgrade nudge 2s after auth settles, but only once per session:
+  // auth loading can resolve late on slow networks, and re-running this effect
+  // (e.g. after a plan refresh) must not re-open a popup the user dismissed.
+  const dismissPricingPopup = () => {
+    setShowPricingPopup(false);
+    setPricingDismissed(true);
+    try { sessionStorage.setItem('scorehub-pricing-dismissed', '1'); } catch { /* ignore */ }
+  };
+
   useEffect(() => {
-    if (authLoading || user?.plan === 'premium') return;
+    if (pricingDismissed || authLoading || user?.plan === 'premium') return;
     const popupTimer = window.setTimeout(() => setShowPricingPopup(true), 2000);
     return () => window.clearTimeout(popupTimer);
-  }, [authLoading, user?.plan]);
+  }, [authLoading, user?.plan, pricingDismissed]);
 
   const breadcrumbItems = useMemo(() => {
     const base = [{ label: 'Home', href: '/' }];
@@ -327,7 +339,7 @@ const AppLayout: React.FC = () => {
       {showPricingPopup && user?.plan !== 'premium' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="pricing-popup-title">
           <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 text-gray-800 shadow-[0_24px_40px_-12px_rgba(139,92,246,0.25)] transition-transform duration-300 hover:-translate-y-2">
-            <button type="button" onClick={() => setShowPricingPopup(false)} aria-label="Close premium offer" className="absolute right-3 top-3 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700">
+            <button type="button" onClick={dismissPricingPopup} aria-label="Close premium offer" className="absolute right-3 top-3 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700">
               <X className="h-4 w-4" />
             </button>
             <span className="inline-block rounded-full bg-gradient-to-br from-violet-500 to-pink-500 px-2.5 py-1 text-[10px] font-bold tracking-widest text-white">PRO</span>
@@ -340,7 +352,7 @@ const AppLayout: React.FC = () => {
                 <li key={feature} className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 font-bold text-emerald-500" />{feature}</li>
               ))}
             </ul>
-            <button type="button" onClick={() => { setShowPricingPopup(false); handleTabChange('premium'); }} className="w-full rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gradient-to-br hover:from-violet-500 hover:to-pink-500">Choose Pro</button>
+            <button type="button" onClick={() => { dismissPricingPopup(); handleTabChange('premium'); }} className="w-full rounded-lg bg-gray-800 px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gradient-to-br hover:from-violet-500 hover:to-pink-500">Choose Pro</button>
           </div>
         </div>
       )}

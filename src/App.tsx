@@ -10,6 +10,7 @@ const UserProfile = lazy(() => import('./components/UserProfile'));
 const PeopleDiscovery = lazy(() => import('./components/PeopleDiscovery'));
 const FriendRequests = lazy(() => import('./components/FriendRequests'));
 const Messages = lazy(() => import('./components/Messages'));
+const Groups = lazy(() => import('./components/Groups'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const Contacts = lazy(() => import('./components/Contacts'));
 const Trending = lazy(() => import('./components/Trending'));
@@ -25,11 +26,11 @@ import {
 } from 'lucide-react';
 
 /* ─── Types ─────────────────────────────────────────────────────── */
-type ActiveView = 'feed' | 'profile' | 'people' | 'friends' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'about' | 'game' | 'movies' | 'live-scores';
+type ActiveView = 'feed' | 'profile' | 'people' | 'friends' | 'groups' | 'messages' | 'dashboard' | 'trending' | 'tools' | 'about' | 'game' | 'movies' | 'live-scores';
 
 type NotifItem = {
   id: string;
-  kind: 'comment' | 'follow';
+  kind: 'comment' | 'comment_reply' | 'follow' | 'group_broadcast' | 'group_invite' | 'message';
   msg: string;
   time: string;
 };
@@ -79,7 +80,7 @@ function NotificationBell({ profile }: { profile: Profile | null }) {
     if (!profile) return;
     (async () => {
       try {
-        const [{ data: comments }, { data: follows }] = await Promise.all([
+        const [{ data: comments }, { data: follows }, { data: events }, { data: messages }] = await Promise.all([
           supabase
             .from('comments')
             .select('id, content, created_at, profiles(username)')
@@ -92,6 +93,19 @@ function NotificationBell({ profile }: { profile: Profile | null }) {
             .eq('following_id', profile.id)
             .order('created_at', { ascending: false })
             .limit(4),
+          supabase
+            .from('notification_events')
+            .select('id, kind, title, body, created_at, actor:profiles!notification_events_actor_id_fkey(username)')
+            .eq('recipient_id', profile.id)
+            .in('kind', ['group_broadcast', 'group_invite'])
+            .order('created_at', { ascending: false })
+            .limit(6),
+          supabase
+            .from('messages')
+            .select('id, content, created_at, sender:profiles!messages_sender_id_fkey(username)')
+            .eq('recipient_id', profile.id)
+            .order('created_at', { ascending: false })
+            .limit(5),
         ]);
         const list: NotifItem[] = [];
         comments?.forEach((c) => list.push({
@@ -103,6 +117,19 @@ function NotificationBell({ profile }: { profile: Profile | null }) {
           id: `f${f.id}`, kind: 'follow',
           msg: `${f.follower?.[0]?.username ?? 'Someone'} started following you`,
           time: f.created_at,
+        }));
+        // Phase 8 — group broadcasts / invites (from notification_events)
+        events?.forEach((ev) => list.push({
+          id: `e${ev.id}`,
+          kind: ev.kind === 'group_invite' ? 'group_invite' : 'group_broadcast',
+          msg: ev.title || ev.body || 'Group update',
+          time: ev.created_at,
+        }));
+        // Phase 8 — latest incoming DMs
+        messages?.forEach((m) => list.push({
+          id: `m${m.id}`, kind: 'message',
+          msg: `${m.sender?.[0]?.username ?? 'Someone'} messaged you: "${m.content.slice(0, 40)}${m.content.length > 40 ? '…' : ''}"`,
+          time: m.created_at,
         }));
         list.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         setItems(list.slice(0, 8));
@@ -168,7 +195,7 @@ function NotificationBell({ profile }: { profile: Profile | null }) {
               const isRead = readIds.has(n.id);
               return (
                 <div key={n.id} className={`flex gap-3 px-4 py-3 transition hover:bg-zinc-800/60 ${!isRead ? 'bg-violet-950/30' : ''}`}>
-                  <span className="mt-0.5 text-base">{n.kind === 'comment' ? '💬' : '👤'}</span>
+                  <span className="mt-0.5 text-base">{n.kind === 'comment' || n.kind === 'comment_reply' ? '💬' : n.kind === 'group_broadcast' ? '📢' : n.kind === 'group_invite' ? '👥' : n.kind === 'message' ? '✉️' : '👤'}</span>
                   <div className="min-w-0 flex-1">
                     <p className={`text-sm leading-snug ${!isRead ? 'text-zinc-100' : 'text-zinc-400'}`}>{n.msg}</p>
                     <p className="mt-0.5 text-xs text-zinc-500">{fmt(n.time)} ago</p>
@@ -501,6 +528,7 @@ function MainApp() {
     { id: 'trending',  icon: TrendingUp, label: 'Trending' },
     { id: 'people',    icon: Users,      label: 'Discover' },
     { id: 'friends',   icon: UserPlus,   label: 'Friends' },
+    { id: 'groups',    icon: Users,      label: 'Groups' },
     { id: 'messages',  icon: Mail,       label: 'Messages' },
     { id: 'game',      icon: Gamepad2,   label: 'Play' },
     { id: 'movies',    icon: Film,       label: 'Movies' },
@@ -511,7 +539,7 @@ function MainApp() {
   ];
 
   const mobileNavItems = navItems.filter(n =>
-    ['feed', 'dashboard', 'people', 'friends', 'messages', 'profile', 'game', 'movies', 'live-scores', 'trending', 'about'].includes(n.id)
+    ['feed', 'dashboard', 'people', 'friends', 'groups', 'messages', 'profile', 'game', 'movies', 'live-scores', 'trending', 'about'].includes(n.id)
   );
 
   return (
@@ -715,6 +743,7 @@ function MainApp() {
               {activeView === 'profile'   && <UserProfile />}
               {activeView === 'people'    && <PeopleDiscovery onStartMessage={handleStartMessage} />}
               {activeView === 'friends'   && <FriendRequests onStartMessage={handleStartMessage} />}
+              {activeView === 'groups'    && <Groups />}
               {activeView === 'messages'  && user && <Messages initialRecipientId={messageRecipientId} />}
             </Suspense>
           </main>

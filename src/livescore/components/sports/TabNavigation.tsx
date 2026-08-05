@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Radio, Target, Crown, Settings, Webhook, CreditCard, BarChart3, Zap, Trophy, Shield, Gift } from 'lucide-react';
 
 export type MainTab = 'dashboard' | 'predictions' | 'results' | 'sure-bets' | 'premium' | 'settings' | 'subscription' | 'webhook' | 'leaderboard' | 'admin' | 'referral';
@@ -29,12 +29,24 @@ interface TabNavigationProps {
 }
 
 const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onChange }) => {
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  // The tab strip is overflow-x-auto, so on smaller screens the active tab can
+  // be outside the visible area after a navigation (e.g. Admin/Webhook tabs on
+  // a 1440px viewport). Keep the active tab in view when it changes. Uses an
+  // instant scroll: an animated (smooth) scroll can make a fast user click the
+  // wrong tab while the strip is still moving under the cursor.
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+  }, [activeTab]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-      <div className="flex gap-2 p-1.5 border border-white/10 rounded-2xl w-full overflow-x-auto backdrop-blur-sm self-stretch scrollbar-thin" style={{ backgroundColor: 'rgba(158, 86, 16, 0.2)', textShadow: '1px 1px 3px rgba(0, 0, 0, 1)' }}>
+      <div data-testid="tab-nav" className="flex gap-2 p-1.5 border border-white/10 rounded-2xl w-full overflow-x-auto backdrop-blur-sm self-stretch scrollbar-thin" style={{ backgroundColor: 'rgba(158, 86, 16, 0.2)', textShadow: '1px 1px 3px rgba(0, 0, 0, 1)' }}>
         {TABS.map((tab) => (
           <button
             key={tab.key}
+            ref={tab.key === activeTab ? activeRef : undefined}
             onClick={() => onChange(tab.key)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${
               activeTab === tab.key

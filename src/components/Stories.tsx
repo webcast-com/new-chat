@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Profile } from '../lib/supabase';
-import { getPostMediaType, uploadPostMedia, validatePostMedia } from '../lib/postMedia';
+import { compressImage, getPostMediaType, uploadPostMedia, uploadVideoPoster, validatePostMedia } from '../lib/postMedia';
 import { Plus, X, Loader2, ChevronLeft, ChevronRight, Heart, Info } from 'lucide-react';
 import AuthPrompt from './AuthPrompt';
 import Image from './Image';
@@ -12,6 +12,7 @@ interface Story {
   profile: Profile;
   image_url: string;
   media_type?: 'image' | 'video';
+  poster_url?: string | null;
   caption?: string;
   created_at: string;
   expires_at: string;
@@ -51,6 +52,8 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [storyReactions, setStoryReactions] = useState<Record<string, StoryReactionState>>({});
   const [showReactionMenu, setShowReactionMenu] = useState(false);
@@ -172,31 +175,71 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
     }
 
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStage('');
     setUploadError('');
+    let uploadedPath = '';
+    let posterPath = '';
     try {
       const { data: { user: authenticatedUser } } = await supabase.auth.getUser();
       if (!authenticatedUser) throw new Error('Your session has expired. Please sign in again.');
 
-      const uploaded = await uploadPostMedia(file, authenticatedUser.id, { maxImageSize: 10 * 1024 * 1024 });
+      // Phase 1: compress photos client-side; capture a poster for videos.
+      let fileToUpload = file;
+      if (mediaType === 'image') {
+        setUploadStage('Optimizing photo…');
+        fileToUpload = await compressImage(file, { maxBytes: 10 * 1024 * 1024 });
+      }
+      setUploadStage('Uploading…');
+      const uploaded = await uploadPostMedia(
+        fileToUpload,
+        authenticatedUser.id,
+        { maxImageSize: 10 * 1024 * 1024 },
+        (percent) => setUploadProgress(percent),
+      );
+      uploadedPath = uploaded.path;
+
+      let posterUrl = '';
+      if (uploaded.mediaType === 'video') {
+        setUploadStage('Capturing video frame…');
+        const poster = await uploadVideoPoster(file, authenticatedUser.id);
+        if (poster) {
+          posterUrl = poster.publicUrl;
+          posterPath = poster.path;
+        }
+      }
+
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
+      const storyRow: Record<string, unknown> = {
+        user_id: authenticatedUser.id,
+        image_url: uploaded.publicUrl,
+        media_type: uploaded.mediaType,
+        ...(posterUrl ? { poster_url: posterUrl } : {}),
+        expires_at: expiresAt.toISOString()
+      };
+
       const { error: insertError } = await supabase
         .from('stories')
-        .insert({
-          user_id: authenticatedUser.id,
-          image_url: uploaded.publicUrl,
-          media_type: uploaded.mediaType,
-          expires_at: expiresAt.toISOString()
-        });
+        .insert(storyRow);
 
       if (insertError) {
-        await supabase.storage.from('post-images').remove([uploaded.path]);
-        throw insertError;
+        // Graceful degradation for the un-migrated poster_url column.
+        if (posterUrl && typeof insertError === 'object' && insertError !== null && (insertError as { code?: string }).code === '42703') {
+          const { poster_url, ...rowWithoutPoster } = storyRow;
+          const { error: retryError } = await supabase.from('stories').insert([rowWithoutPoster]);
+          if (retryError) throw retryError;
+          console.warn('[Stories] poster_url column missing — poster skipped (run the phase-1 migration).');
+        } else {
+          throw insertError;
+        }
       }
 
       await loadStories();
     } catch (error: unknown) {
+      if (uploadedPath) await supabase.storage.from('post-images').remove([uploadedPath]).catch(() => {});
+      if (posterPath) await supabase.storage.from('post-images').remove([posterPath]).catch(() => {});
       const message = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unable to upload your story.';
       console.error('Error uploading story:', error);
       setUploadError(message);
@@ -257,6 +300,20 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
     <>
       <div className="-mx-3 mb-5 flex gap-3 overflow-x-auto px-3 pb-2 scrollbar-hide sm:-mx-6 sm:mb-6 sm:px-6">
         {uploadError && <p className="w-full basis-full text-sm text-red-200">{uploadError}</p>}
+        {uploading && (
+          <div className="w-full basis-full" role="progressbar" aria-valuenow={uploadProgress} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-1 w-full overflow-hidden rounded-full bg-white/20">
+              <div
+                className="h-full rounded-full bg-cyan-300 transition-all duration-200"
+                style={{ width: `${Math.max(uploadProgress, 6)}%` }}
+              />
+            </div>
+            <p className="mt-1 text-xs text-cyan-100">
+              {uploadStage || 'Uploading…'}
+              {uploadProgress > 0 && uploadProgress < 100 ? ` ${uploadProgress}%` : ''}
+            </p>
+          </div>
+        )}
         {user && (
           <button
             onClick={handleUploadStory}
@@ -268,7 +325,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
             ) : (
               <Plus className="w-8 h-8" />
             )}
-            <span className="text-xs">{uploading ? 'Uploading...' : 'Your Story'}</span>
+            <span className="text-xs">{uploading ? uploadStage || 'Uploading...' : 'Your Story'}</span>
           </button>
         )}
 
@@ -319,6 +376,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
               {latestStory.media_type === 'video' ? (
                 <video
                   src={latestStory.image_url}
+                  poster={latestStory.poster_url || undefined}
                   muted
                   playsInline
                   preload="metadata"
@@ -355,6 +413,7 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
             {currentStory.media_type === 'video' ? (
               <video
                 src={currentStory.image_url}
+                poster={currentStory.poster_url || undefined}
                 autoPlay
                 controls
                 muted

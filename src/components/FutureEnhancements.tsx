@@ -5,19 +5,13 @@ import {
   Bell,
   CalendarClock,
   Flag,
-  Loader2,
   Lock,
-  MessageSquarePlus,
-  Plus,
-  Send,
-  Users,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 
 type Tab =
   | "notifications"
-  | "groups"
   | "schedule"
   | "activity"
   | "privacy"
@@ -29,12 +23,6 @@ type Notification = {
   title: string;
   body: string;
   read_at: string | null;
-  created_at: string;
-};
-type Group = {
-  id: string;
-  name: string;
-  description: string;
   created_at: string;
 };
 type ScheduledPost = {
@@ -53,7 +41,6 @@ type ActivityEvent = {
 
 const tabs = [
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "groups", label: "Group chats", icon: Users },
   { id: "schedule", label: "Scheduled posts", icon: CalendarClock },
   { id: "activity", label: "Activity timeline", icon: Activity },
   { id: "privacy", label: "Privacy", icon: Lock },
@@ -89,7 +76,6 @@ export default function FutureEnhancements() {
       {profile && activeTab === "notifications" && (
         <Notifications userId={profile.id} />
       )}
-      {profile && activeTab === "groups" && <Groups userId={profile.id} />}
       {profile && activeTab === "schedule" && <Schedule userId={profile.id} />}
       {profile && activeTab === "activity" && (
         <ActivityTimeline userId={profile.id} />
@@ -174,284 +160,6 @@ function Notifications({ userId }: { userId: string }) {
         </div>
       )}
     </Panel>
-  );
-}
-
-type GroupMessage = {
-  id: string;
-  group_id: string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-};
-
-function Groups({ userId }: { userId: string }) {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [content, setContent] = useState("");
-  const [messages, setMessages] = useState<GroupMessage[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [loadingMessages, setLoadingMessages] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const loadGroups = async () => {
-    const { data: memberships, error: membershipsError } = await supabase
-      .from("chat_group_members")
-      .select("group_id")
-      .eq("user_id", userId);
-    if (membershipsError) {
-      setErrorMessage(membershipsError.message);
-      return;
-    }
-    const groupIds = (memberships || []).map(
-      (membership) => membership.group_id,
-    );
-    const filters = [
-      `owner_id.eq.${userId}`,
-      ...(groupIds.length ? [`id.in.(${groupIds.join(",")})`] : []),
-    ];
-    const { data, error } = await supabase
-      .from("chat_groups")
-      .select("*")
-      .or(filters.join(","))
-      .order("created_at", { ascending: false });
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
-    setGroups(data || []);
-  };
-
-  useEffect(() => {
-    void loadGroups();
-  }, [userId]);
-
-  useEffect(() => {
-    if (!selectedGroup) {
-      setMessages([]);
-      return;
-    }
-
-    let active = true;
-    setLoadingMessages(true);
-    supabase
-      .from("chat_group_messages")
-      .select("*")
-      .eq("group_id", selectedGroup.id)
-      .order("created_at", { ascending: true })
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) setErrorMessage(error.message);
-        else setMessages(data || []);
-        setLoadingMessages(false);
-      });
-    const channel = supabase
-      .channel(`group-messages:${selectedGroup.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_group_messages",
-          filter: `group_id=eq.${selectedGroup.id}`,
-        },
-        ({ new: message }) => {
-          setMessages((current) =>
-            current.some((item) => item.id === (message as GroupMessage).id)
-              ? current
-              : [...current, message as GroupMessage],
-          );
-        },
-      )
-      .subscribe();
-    return () => {
-      active = false;
-      void supabase.removeChannel(channel);
-    };
-  }, [selectedGroup]);
-
-  const create = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!name.trim()) return;
-    setErrorMessage("");
-    setBusy(true);
-    const { data, error } = await supabase
-      .from("chat_groups")
-      .insert({
-        owner_id: userId,
-        name: name.trim(),
-        description: description.trim(),
-      })
-      .select()
-      .single();
-    if (error) {
-      setErrorMessage(error.message);
-    } else if (data) {
-      const { error: membershipError } = await supabase
-        .from("chat_group_members")
-        .insert({ group_id: data.id, user_id: userId });
-      if (membershipError) {
-        setErrorMessage(membershipError.message);
-      } else {
-        setName("");
-        setDescription("");
-        await loadGroups();
-        setSelectedGroup(data);
-      }
-    }
-    setBusy(false);
-  };
-
-  const sendMessage = async (event: FormEvent) => {
-    event.preventDefault();
-    const trimmed = content.trim();
-    if (!selectedGroup || !trimmed || busy) return;
-    setErrorMessage("");
-    setBusy(true);
-    const { data, error } = await supabase
-      .from("chat_group_messages")
-      .insert({
-        group_id: selectedGroup.id,
-        sender_id: userId,
-        content: trimmed,
-      })
-      .select()
-      .single();
-    if (error) {
-      setErrorMessage(error.message);
-    } else if (data) {
-      setMessages((current) =>
-        current.some((item) => item.id === data.id)
-          ? current
-          : [...current, data],
-      );
-      setContent("");
-    }
-    setBusy(false);
-  };
-
-  return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
-      {errorMessage && (
-        <p className="lg:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-          {errorMessage}
-        </p>
-      )}
-      <Panel>
-        <h2 className="mb-1 text-lg font-bold text-slate-900">
-          Create a group chat
-        </h2>
-        <p className="mb-4 text-sm text-slate-500">
-          Start a shared conversation and invite friends from the group.
-        </p>
-        <form onSubmit={create} className="space-y-3">
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Group name"
-            maxLength={80}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
-          />
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="What is this group about?"
-            rows={3}
-            className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
-          />
-          <button
-            type="submit"
-            disabled={busy || !name.trim()}
-            className="flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
-          >
-            <Plus className="h-4 w-4" />
-            {busy ? "Creating..." : "Create group"}
-          </button>
-        </form>
-      </Panel>
-      <Panel>
-        <h2 className="mb-4 text-lg font-bold text-slate-900">Your groups</h2>
-        {groups.length === 0 ? (
-          <Empty text="No group chats yet." />
-        ) : (
-          <div className="space-y-2">
-            {groups.map((group) => (
-              <button
-                type="button"
-                key={group.id}
-                onClick={() => setSelectedGroup(group)}
-                className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors ${selectedGroup?.id === group.id ? "border-violet-300 bg-violet-50" : "border-slate-200 hover:bg-slate-50"}`}
-              >
-                <div className="rounded-xl bg-violet-100 p-2 text-violet-700">
-                  <MessageSquarePlus className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-slate-900">
-                    {group.name}
-                  </p>
-                  <p className="truncate text-sm text-slate-500">
-                    {group.description || "No description"}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </Panel>
-      {selectedGroup && (
-        <Panel>
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-slate-900">
-              {selectedGroup.name}
-            </h2>
-            <p className="text-sm text-slate-500">
-              {selectedGroup.description || "Group conversation"}
-            </p>
-          </div>
-          <div className="mb-4 max-h-80 space-y-2 overflow-y-auto rounded-xl bg-slate-50 p-3">
-            {loadingMessages ? (
-              <Loader2 className="mx-auto h-5 w-5 animate-spin text-violet-600" />
-            ) : messages.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-500">
-                No messages yet. Start the conversation.
-              </p>
-            ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender_id === userId ? "justify-end" : "justify-start"}`}
-                >
-                  <p
-                    className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${message.sender_id === userId ? "bg-violet-600 text-white" : "bg-white text-slate-800 shadow-sm"}`}
-                  >
-                    {message.content}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-          <form onSubmit={sendMessage} className="flex gap-2">
-            <input
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              maxLength={2000}
-              placeholder="Write a message..."
-              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500"
-            />
-            <button
-              type="submit"
-              disabled={busy || !content.trim()}
-              className="rounded-lg bg-violet-600 p-2 text-white disabled:opacity-50"
-              aria-label="Send group message"
-            >
-              <Send className="h-5 w-5" />
-            </button>
-          </form>
-        </Panel>
-      )}
-    </div>
   );
 }
 

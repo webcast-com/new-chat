@@ -33,6 +33,10 @@ export type UserProfile = {
   };
   matchHistory: MatchRecord[];
   isBot?: boolean;
+  /** Linked platform (chat) profile id — set when the player is signed in. */
+  platformId?: string;
+  /** Platform profile avatar URL (rendered instead of the emoji when set). */
+  avatarUrl?: string;
 };
 
 export function calculateLevelAndRank(points: number): { level: number; rank: UserRank; nextLevelPoints: number; progressPercent: number } {

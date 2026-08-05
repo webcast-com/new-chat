@@ -13,12 +13,15 @@ import {
   getActiveUserId,
   setActiveUserId,
   recordGameResult,
+  syncWithPlatformProfile,
 } from "./utils/storage";
 import { useOnlineMultiplayer, OnlineMessage } from "./utils/online";
 import ProfileModal from "./components/ProfileModal";
 import LeaderboardModal from "./components/LeaderboardModal";
 import OnlineModal from "./components/OnlineModal";
 import EmoteBar from "./components/EmoteBar";
+import PlayerAvatar from "./components/PlayerAvatar";
+import { useAuth } from "../../contexts/AuthContext";
 import { isSoundMuted, playDiceRoll, playTokenStep, playLadderClimb, playSnakeSlide, playVictory, setSoundMuted } from "./audio/sounds";
 
 type Phase = "idle" | "rolling" | "moving" | "landed" | "finished";
@@ -44,6 +47,11 @@ function buildPath(from: number, roll: number): number[] {
 }
 
 export default function App() {
+  // Phase 0 — unified identity: the game uses the signed-in chat profile
+  // (same username/avatar as the platform login) instead of a local "Player 1".
+  const { profile: platformProfile } = useAuth();
+  const platformUserId = platformProfile?.id;
+
   // Memory & Profiles State
   const [allProfiles, setAllProfiles] = useState<UserProfile[]>(() => loadAllProfiles());
   const [activeUserId, setActiveUserIdState] = useState<string>(() => getActiveUserId());
@@ -88,6 +96,20 @@ export default function App() {
   const refreshProfiles = useCallback(() => {
     setAllProfiles(loadAllProfiles());
   }, []);
+
+  // Phase 0 — when the chat profile loads, sync the game identity with it
+  // (username, avatar, and the same profile id), preserving game XP/stats.
+  useEffect(() => {
+    if (!platformProfile) return;
+    const { profiles, activeId } = syncWithPlatformProfile({
+      id: platformProfile.id,
+      username: platformProfile.username,
+      avatarUrl: platformProfile.avatar_url || null,
+    });
+    setAllProfiles(profiles);
+    setActiveUserIdState(activeId);
+    setActiveUserId(activeId);
+  }, [platformUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelectActiveUser = useCallback((id: string) => {
     setActiveUserId(id);
@@ -285,6 +307,7 @@ export default function App() {
           id: p.id,
           username: p.username,
           avatar: p.avatar,
+          avatarUrl: p.avatarUrl,
           colorIdx: p.colorIdx,
           points: 0,
           level: 1,
@@ -313,6 +336,7 @@ export default function App() {
       id: p.id,
       username: p.username,
       avatar: p.avatar,
+      avatarUrl: p.avatarUrl,
       colorIdx: p.colorIdx,
     }));
     online.sendMessage({ type: "GAME_START", numPlayers: num, players: playersPayload });
@@ -322,6 +346,7 @@ export default function App() {
       id: p.id,
       username: p.username,
       avatar: p.avatar,
+      avatarUrl: p.avatarUrl,
       colorIdx: p.colorIdx,
       points: 0,
       level: p.level,
@@ -350,6 +375,7 @@ export default function App() {
         id: activeProfile.id,
         username: activeProfile.username,
         avatar: activeProfile.avatar,
+        avatarUrl: activeProfile.avatarUrl,
         colorIdx: activeProfile.colorIdx,
         level,
       });
@@ -424,7 +450,7 @@ export default function App() {
               onClick={() => setShowProfileModal(true)}
               className="flex items-center gap-2.5 rounded-2xl bg-white/10 px-3.5 py-1.5 ring-1 ring-white/20 transition hover:bg-white/20 shadow-lg"
             >
-              <span className="text-2xl">{activeProfile.avatar}</span>
+              <PlayerAvatar profile={activeProfile} className="text-2xl" />
               <div className="text-left">
                 <div className="text-xs font-bold text-white flex items-center gap-1.5">
                   {activeProfile.username}
@@ -504,7 +530,7 @@ export default function App() {
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-white text-xs uppercase tracking-wider">🔔 Join Request</div>
                     <div className="mt-1 text-base font-semibold truncate">
-                      {n.requester?.avatar} {n.requester?.username} wants to join!
+                      {n.requester && <PlayerAvatar profile={n.requester} className="text-sm" />} {n.requester?.username} wants to join!
                     </div>
                     <div className="text-xs text-emerald-200/80">
                       Lv.{n.requester?.level} &bull; Room {online.roomCode}
@@ -590,7 +616,7 @@ export default function App() {
                     {winner !== null ? "Game Finished" : isOnlineMode ? "Live Online Turn" : "Current Turn"}
                   </div>
                   <div className="flex items-center gap-1.5 text-base font-bold mt-0.5">
-                    <span className="text-xl">{currentParticipant.avatar}</span>
+                    <PlayerAvatar profile={currentParticipant} className="text-xl" />
                     <span
                       className={`inline-block h-3 w-3 rounded-full ${currentColor.bg}`}
                     />
@@ -681,7 +707,7 @@ export default function App() {
                         </div>
                         <div>
                           <div className="font-bold text-white flex items-center gap-1.5 text-sm">
-                            <span>{participant.avatar}</span>
+                            <PlayerAvatar profile={participant} className="text-sm" />
                             {participant.username}
                             {participant.isBot && (
                               <span className="rounded bg-white/10 px-1 py-0.2 text-[9px] font-mono text-slate-400">
@@ -741,6 +767,7 @@ export default function App() {
         activeProfile={activeProfile}
         onSelectProfile={handleSelectActiveUser}
         onRefreshProfiles={refreshProfiles}
+        isGuest={!platformProfile}
       />
 
       <LeaderboardModal
@@ -806,7 +833,7 @@ export default function App() {
                 Match Finished &bull; Memory Stored!
               </div>
               <div className="mt-2 flex items-center justify-center gap-3 text-3xl font-black text-white">
-                <span>{participants[winner]?.avatar}</span>
+                {participants[winner] && <PlayerAvatar profile={participants[winner]} className="text-3xl" />}
                 {participants[winner]?.username} Wins!
               </div>
 
@@ -823,7 +850,7 @@ export default function App() {
                       return (
                         <div key={p.id} className="flex items-center justify-between text-xs">
                           <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                            <span>{p.avatar}</span> {p.username}
+                            <PlayerAvatar profile={p} className="text-sm" /> {p.username}
                             {isW && <span className="text-amber-400 font-bold">🏆</span>}
                           </span>
                           <span className="font-mono font-black text-emerald-300">

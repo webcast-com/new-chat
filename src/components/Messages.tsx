@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Profile } from '../lib/supabase';
+import { supabase, Profile, Post } from '../lib/supabase';
 import VideoCall from './VideoCall';
+import SharedPostCard from './SharedPostCard';
 import { ArrowLeft, File, ImagePlus, Loader2, MessageCircle, Paperclip, Plus, Search, Send, Smile, Trash2, X, Video as VideoIcon } from 'lucide-react';
 
 interface Message {
@@ -14,6 +15,8 @@ interface Message {
   attachment_url?: string | null;
   attachment_name?: string | null;
   attachment_type?: string | null;
+  shared_post_id?: string | null;
+  shared_post?: Post | null;
   sender?: Profile;
   recipient?: Profile;
 }
@@ -156,12 +159,12 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
       const [{ data: sent, error: sentError }, { data: received, error: receivedError }] = await Promise.all([
         supabase
           .from('messages')
-          .select('recipient_id, content, created_at, is_read, profiles!messages_recipient_id_fkey(*)')
+          .select('recipient_id, content, created_at, is_read, shared_post_id, shared_post:shared_post_id(*, profiles(*)), profiles!messages_recipient_id_fkey(*)')
           .eq('sender_id', profile.id)
           .order('created_at', { ascending: false }),
         supabase
           .from('messages')
-          .select('sender_id, content, created_at, is_read, profiles!messages_sender_id_fkey(*)')
+          .select('sender_id, content, created_at, is_read, shared_post_id, shared_post:shared_post_id(*, profiles(*)), profiles!messages_sender_id_fkey(*)')
           .eq('recipient_id', profile.id)
           .order('created_at', { ascending: false }),
       ]);
@@ -634,6 +637,11 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                         }`}
                       >
                         {message.content && <p className="break-words whitespace-pre-wrap">{message.content}</p>}
+                        {(message.shared_post || message.shared_post_id) && (
+                          <div className="mt-2">
+                            <SharedPostCard post={message.shared_post} postId={message.shared_post_id} compact />
+                          </div>
+                        )}
                         {message.attachment_url && (
                           <a href={message.attachment_url} target="_blank" rel="noreferrer" className="mt-2 flex items-center gap-2 rounded-lg bg-black/10 p-2 text-sm underline">
                             {message.attachment_type?.startsWith('image/') ? <ImagePlus className="h-4 w-4" /> : <File className="h-4 w-4" />}

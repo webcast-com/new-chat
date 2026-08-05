@@ -30,6 +30,12 @@ function getBreadcrumbs(activeTab: MainTab, activeSport?: Sport): Array<{ label:
     case 'results':
       breadcrumbs.push({ label: 'Results & Performance', href: '/results' });
       break;
+    case 'leaderboard':
+      breadcrumbs.push({ label: 'Leaderboard', href: '/leaderboard' });
+      break;
+    case 'referral':
+      breadcrumbs.push({ label: 'Refer & Earn', href: '/referral' });
+      break;
     case 'premium':
       breadcrumbs.push({ label: 'Premium', href: '/premium' });
       break;
@@ -41,6 +47,9 @@ function getBreadcrumbs(activeTab: MainTab, activeSport?: Sport): Array<{ label:
       break;
     case 'webhook':
       breadcrumbs.push({ label: 'Webhook Simulator', href: '/webhook' });
+      break;
+    case 'admin':
+      breadcrumbs.push({ label: 'Admin Dashboard', href: '/admin' });
       break;
   }
   return breadcrumbs;
