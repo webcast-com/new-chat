@@ -25,7 +25,7 @@ const Hero: React.FC<Props> = ({ featured, onOpenMovie, onRequireAuth }) => {
   const saved = isInWatchlist(movie.id);
 
   return (
-    <section className="relative h-[85vh] min-h-[560px] w-full overflow-hidden">
+    <section className="relative h-[60vh] min-h-[400px] sm:h-[70vh] md:h-[75vh] lg:h-[85vh] sm:min-h-[500px] lg:min-h-[560px] w-full overflow-hidden">
       {featured.map((m, i) => (
         <div
           key={m.id}
@@ -47,7 +47,7 @@ const Hero: React.FC<Props> = ({ featured, onOpenMovie, onRequireAuth }) => {
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-red-600/20 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-400 ring-1 ring-red-600/40">
             <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" /> Featured Now
           </div>
-          <h1 className="mb-4 text-5xl font-black leading-tight text-white drop-shadow-2xl md:text-7xl">
+          <h1 className="mb-4 text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black leading-tight text-white drop-shadow-2xl">
             {movie.title}
           </h1>
           <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-neutral-300">
