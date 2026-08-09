@@ -9,7 +9,7 @@ interface SEOMeta {
 }
 
 const DEFAULT_OG_IMAGE = 'https://livescoresgames.netlify.app/og-image.png';
-const DOMAIN = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SITE_URL) || 'https://livescoresgames.netlify.app';
+const DOMAIN = (process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VITE_SITE_URL ?? 'https://livescoresgames.netlify.app');
 
 export const seoMetaData: Record<string, SEOMeta> = {
   home: {

@@ -18,7 +18,7 @@ interface PushNotificationState {
 // When set, the browser registers a real Web Push subscription and stores it
 // in push_subscriptions so the send-push-notification edge function can
 // deliver background pushes. When unset, in-app Notification() alerts still work.
-const VAPID_PUBLIC_KEY = (import.meta.env?.VITE_VAPID_PUBLIC_KEY as string | undefined) || '';
+const VAPID_PUBLIC_KEY = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? process.env.VITE_VAPID_PUBLIC_KEY as string | undefined) || '';
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);

@@ -49,13 +49,13 @@ export function useActivityTracking() {
 
       // Fire and forget - don't block UI
       supabase.from('user_activity').insert(payload).then(({ error }) => {
-        if (error && import.meta.env.DEV) {
+        if (error && process.env.NODE_ENV !== 'production') {
           console.warn('Activity tracking failed', error.message);
         }
       });
 
       // Also log to console in dev
-      if (import.meta.env.DEV) {
+      if (process.env.NODE_ENV !== 'production') {
         console.log(`[Activity] ${action}`, metadata);
       }
     } catch (e) {

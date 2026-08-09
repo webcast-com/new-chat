@@ -1,3 +1,5 @@
+'use client';
+
 import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';

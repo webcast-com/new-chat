@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-const PAYSTACK_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_live_d4e12fc3d689e19440973a66eaa985fcfdf1a7cc';
+const PAYSTACK_KEY = (process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? process.env.VITE_PAYSTACK_PUBLIC_KEY) || 'pk_live_d4e12fc3d689e19440973a66eaa985fcfdf1a7cc';
 const PLAN = { code: 'KES', symbol: 'KSh', amount: 100, amountInKobo: 10000 };
 
 export function PremiumUpgrade({ setActiveTab }: { setActiveTab: (tab: string) => void }) {

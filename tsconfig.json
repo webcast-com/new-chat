@@ -1,7 +1,64 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@movies/*": [
+        "src/movies/*"
+      ],
+      "@/app/*": [
+        "src/livescore/*"
+      ],
+      "@/lib/supabase": [
+        "src/livescore-lib/supabase.ts"
+      ],
+      "@/utils/*": [
+        "src/livescore-utils/*"
+      ],
+      "/utils/supabase/info": [
+        "src/livescore-supabase/info.ts"
+      ],
+      "@/*": [
+        "src/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/**/*",
+    "src/**/*",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "Livescoredashboard2",
+    "animated-multiplayer-snakes-and-ladders (1)",
+    "movies",
+    ".next",
+    "supabase"
   ]
 }

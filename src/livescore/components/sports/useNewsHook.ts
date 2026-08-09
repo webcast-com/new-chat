@@ -3,7 +3,7 @@ import { NewsArticle, newsArticles as fallbackNews } from '@/app/data/sportsData
 import { getEdgeFunctionUrl, SUPABASE_ANON_KEY } from '@/lib/supabase';
 
 const POLL_INTERVAL = 5 * 60 * 1000;
-const LIVE_SPORTS_API_ENABLED = import.meta.env.VITE_ENABLE_LIVE_SPORTS_API !== 'false';
+const LIVE_SPORTS_API_ENABLED = (process.env.NEXT_PUBLIC_ENABLE_LIVE_SPORTS_API ?? process.env.VITE_ENABLE_LIVE_SPORTS_API) !== 'false';
 
 function mapApiNewsToArticle(apiNews: any, index: number): NewsArticle | null {
   try {
