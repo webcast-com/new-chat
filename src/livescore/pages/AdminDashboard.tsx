@@ -35,7 +35,7 @@ const AdminDashboard: React.FC = () => {
   });
 
   // Admin gate: real is_admin flag + email fallback; in dev mode allow all authenticated
-  const isAdmin = (import.meta.env?.DEV === true) ||
+  const isAdmin = (process.env.NODE_ENV !== 'production') ||
     ownProfileQuery.data?.is_admin === true ||
     user?.email?.includes('admin') === true ||
     user?.email === 'steve@scorehub.com';

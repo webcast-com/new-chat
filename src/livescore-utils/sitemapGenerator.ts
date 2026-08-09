@@ -1,5 +1,5 @@
 // Sitemap configuration - Phase 4 enhanced
-const SITE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SITE_URL) || 'https://livescoresgames.netlify.app';
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VITE_SITE_URL ?? 'https://livescoresgames.netlify.app');
 const LAST_MOD = new Date().toISOString().split('T')[0];
 
 interface SitemapEntry {

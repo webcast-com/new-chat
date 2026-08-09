@@ -188,7 +188,7 @@ const AppLayout: React.FC = () => {
       <TabNavigation activeTab={activeTab} onChange={handleTabChange} />
 
       {activeTab !== 'premium' && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-2" aria-label="Premium predictions promotion">
+        <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] pb-2" aria-label="Premium predictions promotion">
           <div className="relative overflow-hidden rounded-2xl border border-[#00d4ff]/20 bg-gradient-to-r from-[#00d4ff]/10 via-[#161b22] to-[#00ff88]/10 px-5 py-4 sm:px-7 sm:py-5 shadow-lg shadow-[#00d4ff]/5">
             <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#00ff88]/10 blur-3xl" />
             <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -269,52 +269,52 @@ const AppLayout: React.FC = () => {
         )}
 
         {activeTab === 'predictions' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <PredictionsList setActiveTab={(t) => handleTabChange(t as MainTab)} />
           </div>
         )}
         {activeTab === 'results' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <SlideResults setActiveTab={(t) => handleTabChange(t as MainTab)} />
           </div>
         )}
         {activeTab === 'sure-bets' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <SureBets onUpgrade={() => handleTabChange('premium')} />
           </div>
         )}
         {activeTab === 'premium' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <PremiumUpgrade setActiveTab={(t) => handleTabChange(t as MainTab)} />
           </div>
         )}
         {activeTab === 'settings' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <Settings />
           </div>
         )}
         {activeTab === 'subscription' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <SubscriptionManagement setActiveTab={(t) => handleTabChange(t as MainTab)} />
           </div>
         )}
         {activeTab === 'webhook' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <WebhookSimulator />
           </div>
         )}
         {activeTab === 'leaderboard' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <LeaderboardPage />
           </div>
         )}
         {activeTab === 'admin' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <AdminDashboard />
           </div>
         )}
         {activeTab === 'referral' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px] py-6 sm:py-8">
             <ReferralProgram />
           </div>
         )}

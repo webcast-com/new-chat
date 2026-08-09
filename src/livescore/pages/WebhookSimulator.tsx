@@ -35,7 +35,7 @@ export function WebhookSimulator() {
 
       const payloadStr = JSON.stringify(webhookPayload);
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
       if (!supabaseUrl) throw new Error('Supabase URL not configured');
 
       const response = await fetch(

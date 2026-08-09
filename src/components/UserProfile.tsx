@@ -31,6 +31,8 @@ export default function UserProfile() {
   const [connectionSearch, setConnectionSearch] = useState('');
   const [connectionSort, setConnectionSort] = useState<'recent' | 'name'>('recent');
   const [loading, setLoading] = useState(true);
+  const [verificationRequested, setVerificationRequested] = useState(false);
+  const isVerified = (profile as any)?.is_verified;
 
   useEffect(() => {
     if (profile) {
@@ -215,11 +217,24 @@ export default function UserProfile() {
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePictureUpload} className="hidden" />
           </div>
           {!editing ? (
-            <div className="mt-14 flex gap-2">
+            <div className="mt-14 flex gap-2 flex-wrap">
               <ProfileShareButton username={profile?.username || ''} fullName={profile?.full_name || ''} />
+              {!(profile as any)?.is_verified && (
+                <button
+                  onClick={async () => {
+                    if (!profile) return;
+                    const { error } = await (await import('../lib/supabase')).supabase.from('profiles').update({ verification_requested_at: new Date().toISOString() } as any).eq('id', profile.id);
+                    if (!error) alert('Verification requested — our team will review within 24h.');
+                    else alert('Request failed: ' + error.message);
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
+                >
+                  <Check className="h-4 w-4" /> {(profile as any)?.verification_requested_at ? 'Requested' : 'Request Verification'}
+                </button>
+              )}
               <button
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-2 rounded-lg bg-indigo-50 px-4 py-2 text-indigo-700 transition-all hover:bg-indigo-100"
+                className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-slate-50"
               >
                 <Edit2 className="w-4 h-4" />
                 <span>Edit Profile</span>
@@ -274,8 +289,9 @@ export default function UserProfile() {
           </div>
         ) : (
           <div className="mt-4">
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
               {profile?.full_name || profile?.username}
+              {(profile as any)?.is_verified && <span className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-2 py-0.5 text-xs font-bold text-white"><Check className="h-3 w-3" /> Verified</span>}
             </h1>
             <p className="text-slate-600 mt-1">@{profile?.username}</p>
             {profile?.bio && (

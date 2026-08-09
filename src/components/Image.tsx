@@ -1,4 +1,6 @@
+'use client';
 import { useState, useEffect, useRef, useMemo } from 'react';
+import NextImage from 'next/image';
 import { Loader2 } from 'lucide-react';
 
 type ImageVariant = 'avatar' | 'cover' | 'post' | 'card' | 'story' | 'banner' | 'custom';
@@ -15,10 +17,11 @@ interface ImageProps {
   placeholderClassName?: string;
   onLoad?: () => void;
   sizes?: string;
+  priority?: boolean;
 }
 
 const VARIANT_CLASSES: Record<ImageVariant, string> = {
-  avatar: 'w-10 h-10 object-cover rounded-full',
+  avatar: 'w-10 h-10 rounded-full overflow-hidden',
   cover: 'w-full h-[220px] md:h-[350px] lg:h-[500px]',
   post: 'w-full aspect-square',
   card: 'w-full h-[200px]',
@@ -52,6 +55,16 @@ const VARIANT_SIZES: Record<ImageVariant, string> = {
   custom: '100vw',
 };
 
+const VARIANT_DIMENSIONS: Record<ImageVariant, { width: number; height: number }> = {
+  avatar: { width: 48, height: 48 },
+  cover: { width: 1200, height: 500 },
+  post: { width: 672, height: 672 },
+  card: { width: 320, height: 200 },
+  story: { width: 120, height: 220 },
+  banner: { width: 1200, height: 400 },
+  custom: { width: 800, height: 600 },
+};
+
 export default function Image({
   src,
   alt,
@@ -62,13 +75,18 @@ export default function Image({
   placeholderClassName = '',
   onLoad,
   sizes,
+  priority = false,
 }: ImageProps) {
   const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [isVisible, setIsVisible] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading (skip if priority)
   useEffect(() => {
+    if (priority) {
+      setIsVisible(true);
+      return;
+    }
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -78,7 +96,7 @@ export default function Image({
           }
         });
       },
-      { threshold: 0.01 }
+      { threshold: 0.01, rootMargin: '100px' }
     );
 
     if (imgRef.current) {
@@ -91,13 +109,12 @@ export default function Image({
       }
       observer.disconnect();
     };
-  }, []);
+  }, [priority]);
 
   useEffect(() => {
     setLoadState('loading');
   }, [src]);
 
-  // Build className once, memoized
   const finalClassName = useMemo(() => {
     const baseClasses = variant === 'custom' ? className : VARIANT_CLASSES[variant];
     const fitClass = OBJECT_FIT_CLASSES[objectFit];
@@ -108,6 +125,8 @@ export default function Image({
 
   const isLoading = loadState === 'loading';
   const isError = loadState === 'error';
+  const dimensions = VARIANT_DIMENSIONS[variant];
+  const isExternal = src.startsWith('http') && !src.includes('localhost');
 
   return (
     <div ref={imgRef} className={`relative overflow-hidden ${finalClassName}`}>
@@ -123,20 +142,43 @@ export default function Image({
         </div>
       )}
 
-      {isVisible && (
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          sizes={sizes || VARIANT_SIZES[variant]}
-          onLoad={() => {
-            setLoadState('loaded');
-            onLoad?.();
-          }}
-          onError={() => setLoadState('error')}
-          className="h-full w-full object-cover transition-opacity duration-300"
-        />
+      {isVisible && !isError && (
+        <>
+          {/* Use next/image for optimization when possible, fallback to <img> for external unoptimized */}
+          {variant === 'avatar' || variant === 'post' || isExternal ? (
+            // For avatars/posts and external URLs, use optimized next/image with unoptimized fallback
+            <NextImage
+              src={src}
+              alt={alt}
+              width={dimensions.width}
+              height={dimensions.height}
+              sizes={sizes || VARIANT_SIZES[variant]}
+              priority={priority}
+              unoptimized={isExternal}
+              onLoad={() => {
+                setLoadState('loaded');
+                onLoad?.();
+              }}
+              onError={() => setLoadState('error')}
+              className="h-full w-full object-cover transition-opacity duration-300"
+              style={{ objectFit }}
+            />
+          ) : (
+            <img
+              src={src}
+              alt={alt}
+              loading={priority ? 'eager' : 'lazy'}
+              decoding="async"
+              sizes={sizes || VARIANT_SIZES[variant]}
+              onLoad={() => {
+                setLoadState('loaded');
+                onLoad?.();
+              }}
+              onError={() => setLoadState('error')}
+              className="h-full w-full object-cover transition-opacity duration-300"
+            />
+          )}
+        </>
       )}
 
       {!isVisible && (

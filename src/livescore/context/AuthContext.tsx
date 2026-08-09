@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .subscribe((status) => {
-        if (import.meta.env.DEV) console.log(`[Realtime] user_plans channel status: ${status}`);
+        if (process.env.NODE_ENV !== 'production') console.log(`[Realtime] user_plans channel status: ${status}`);
       });
 
     realtimeChannelRef.current = channel;

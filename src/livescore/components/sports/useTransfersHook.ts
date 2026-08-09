@@ -11,7 +11,7 @@ export interface Transfer {
 }
 
 const POLL_INTERVAL = 5 * 60 * 1000;
-const LIVE_TRANSFERS_API_ENABLED = import.meta.env.VITE_ENABLE_LIVE_TRANSFERS_API !== 'false';
+const LIVE_TRANSFERS_API_ENABLED = (process.env.NEXT_PUBLIC_ENABLE_LIVE_TRANSFERS_API ?? process.env.VITE_ENABLE_LIVE_TRANSFERS_API) !== 'false';
 const fallbackTransfers: Transfer[] = [
   { id: 'demo-1', player: 'Recent transfer updates', from: 'Transfer window', to: 'Live feed', fee: 'Check back soon', date: 'Demo data' },
   { id: 'demo-2', player: 'Football transfer news', from: 'Clubs and leagues', to: 'Worldwide', fee: 'Latest moves', date: 'Demo data' },

@@ -11,6 +11,11 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+.next
+out
+build
+
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -21,3 +26,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+tsconfig.tsbuildinfo

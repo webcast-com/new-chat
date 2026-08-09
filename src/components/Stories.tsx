@@ -70,6 +70,18 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
     }
   }, [selectedStoryGroup, currentStoryIndex, selectedStoryGroup?.stories.length]);
 
+  // Keyboard navigation for story viewer (accessibility)
+  useEffect(() => {
+    if (!selectedStoryGroup) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') nextStory();
+      else if (e.key === 'ArrowLeft') prevStory();
+      else if (e.key === 'Escape') setSelectedStoryGroup(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedStoryGroup, currentStoryIndex]);
+
   const loadStories = async () => {
     try {
       const { data, error } = await supabase
@@ -314,7 +326,8 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
             <button
               key={group.userId}
               onClick={() => handleStoryClick(latestStory, group)}
-              className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105 ring-2 ring-blue-500 ring-offset-2"
+              aria-label={`View ${latestStory.profile?.username || 'user'}'s story`}
+              className="h-44 min-w-[96px] rounded-2xl sm:h-56 sm:min-w-[120px] overflow-hidden relative flex-shrink-0 group hover:shadow-lg transition-all hover:scale-105 ring-2 ring-blue-500 ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
               {latestStory.media_type === 'video' ? (
                 <video
@@ -352,6 +365,14 @@ export default function Stories({ onCreatePost, onAboutCreator }: StoriesProps) 
       {selectedStoryGroup && currentStory && (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
           <div className="relative w-full max-w-sm h-screen md:h-[90vh] md:rounded-2xl overflow-hidden bg-black">
+            {/* Progress bar */}
+            <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-2">
+              {selectedStoryGroup.stories.map((_, idx) => (
+                <div key={idx} className="h-1 flex-1 rounded-full bg-white/30 overflow-hidden">
+                  <div className={`h-full bg-white transition-all duration-100 ${idx < currentStoryIndex ? "w-full" : idx === currentStoryIndex ? "w-full animate-[progress_5s_linear]" : "w-0"}`} />
+                </div>
+              ))}
+            </div>
             {currentStory.media_type === 'video' ? (
               <video
                 src={currentStory.image_url}

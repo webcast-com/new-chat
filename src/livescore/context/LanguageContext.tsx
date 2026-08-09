@@ -99,7 +99,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = (key: string): string => {
     const entry = translations[key];
     if (!entry) {
-      if (import.meta.env.DEV) console.warn(`Missing translation for key: ${key}`);
+      if (process.env.NODE_ENV !== 'production') console.warn(`Missing translation for key: ${key}`);
       return key;
     }
     return entry[language] || entry.en;

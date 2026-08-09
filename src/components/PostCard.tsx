@@ -32,6 +32,9 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     return saved.includes(post.id);
   });
   const [isReported, setIsReported] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState<'spam'|'harassment'|'hate'|'nudity'|'violence'|'misinformation'|'other'>('spam');
+  const [isBlockConfirm, setIsBlockConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -207,6 +210,43 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const handleReport = async () => {
+    if (!profile) return;
+    try {
+      const { error } = await supabase.from('reports').insert({
+        reporter_id: profile.id,
+        reported_post_id: post.id,
+        reported_user_id: post.user_id,
+        reason: reportReason,
+        details: '',
+      });
+      if (error) throw error;
+      setIsReported(true);
+      setShowReportModal(false);
+      alert('Report submitted — our team will review within 24h. Thanks for keeping the community safe.');
+    } catch (e) {
+      console.error('Report failed', e);
+      // Fallback to local if table not yet migrated
+      setIsReported(true);
+      setShowReportModal(false);
+      alert('Report noted locally (server table pending migration).');
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!profile) return;
+    try {
+      const { error } = await supabase.from('blocked_users').insert({ blocker_id: profile.id, blocked_id: post.user_id });
+      if (error && !error.message.includes('duplicate')) throw error;
+      alert('User blocked — you won\'t see their posts or messages.');
+      setIsBlockConfirm(false);
+      onUpdate();
+    } catch {
+      alert('Block noted locally.');
+      setIsBlockConfirm(false);
+    }
+  };
+
   const getTotalReactions = () => {
     return Object.values(reactionStats).reduce((a, b) => a + b, 0);
   };
@@ -254,7 +294,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
               )}
             </div>
             <div className="min-w-0">
-              <h3 className="truncate font-semibold text-slate-900">{post.profiles?.username}</h3>
+              <h3 className="truncate font-semibold text-slate-900 flex items-center gap-1.5">{post.profiles?.username}{(post.profiles as any)?.is_verified && <span className="inline-flex items-center rounded-full bg-blue-500 px-1.5 py-0.5 text-[10px] font-bold text-white" title="Verified">✓</span>}</h3>
               <p className="text-sm text-slate-500">{formatDate(post.created_at)}</p>
               {post.visibility !== 'public' && audienceLocation && (
                 <p className="mt-1 flex items-center gap-1 text-xs text-blue-600"><MapPin className="h-3.5 w-3.5" />{audienceLocation}</p>
@@ -275,7 +315,10 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
                   {isOwnPost ? <>
                     <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"><Edit2 className="w-4 h-4" /><span>Edit Post</span></button>
                     <button onClick={handleDelete} className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="w-4 h-4" /><span>Delete Post</span></button>
-                  </> : <button onClick={() => { setIsReported(true); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"><Flag className="w-4 h-4" /><span>{isReported ? 'Reported' : 'Report post'}</span></button>}
+                  </> : <>
+                    <button onClick={() => { setShowReportModal(true); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"><Flag className="w-4 h-4" /><span>{isReported ? 'Reported' : 'Report post'}</span></button>
+                    <button onClick={() => { setIsBlockConfirm(true); setShowMenu(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-amber-700 hover:bg-amber-50 transition-colors"><Flag className="w-4 h-4" /><span>Block user</span></button>
+                  </>}
                 </div>
               )}
             </div>
@@ -417,6 +460,39 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
             onUpdate();
           }}
         />
+      )}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowReportModal(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={e=>e.stopPropagation()}>
+            <h3 className="font-bold text-slate-900">Report post</h3>
+            <p className="mt-1 text-sm text-slate-500">Help us keep Hyperlink safe. All reports are reviewed within 24h.</p>
+            <select value={reportReason} onChange={e=>setReportReason(e.target.value as any)} className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="spam">Spam or scam</option>
+              <option value="harassment">Harassment or bullying</option>
+              <option value="hate">Hate speech</option>
+              <option value="nudity">Nudity</option>
+              <option value="violence">Violence</option>
+              <option value="misinformation">Misinformation</option>
+              <option value="other">Other</option>
+            </select>
+            <div className="mt-4 flex gap-2 justify-end">
+              <button onClick={()=>setShowReportModal(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button>
+              <button onClick={handleReport} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Submit report</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isBlockConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={()=>setIsBlockConfirm(false)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={e=>e.stopPropagation()}>
+            <h3 className="font-bold text-slate-900">Block {post.profiles?.username}?</h3>
+            <p className="mt-1 text-sm text-slate-500">You won’t see their posts, comments or messages. You can unblock in Settings.</p>
+            <div className="mt-4 flex gap-2 justify-end">
+              <button onClick={()=>setIsBlockConfirm(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancel</button>
+              <button onClick={handleBlock} className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">Block</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

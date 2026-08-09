@@ -40,7 +40,7 @@ export function useRealtimeScores(initialMatches: LiveMatch[] = []) {
       })
     );
     setLastUpdate(new Date());
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV !== 'production') {
       console.log('[Realtime] Score update:', update);
     }
   }, []);
@@ -68,7 +68,7 @@ export function useRealtimeScores(initialMatches: LiveMatch[] = []) {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
-          if (import.meta.env.DEV) console.log('[Realtime] Connected to live-scores channel');
+          if (process.env.NODE_ENV !== 'production') console.log('[Realtime] Connected to live-scores channel');
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
           setIsConnected(false);
         }
