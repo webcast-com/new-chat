@@ -9,6 +9,19 @@ const nextConfig = {
   reactStrictMode: true,
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: false },
+  // Allow preview / codespace / E2B hosts (fixes "Cross origin request detected")
+  allowedDevOrigins: ['*.e2b.app', '*.e2b.dev', '*.app.github.dev'],
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Allow embedding in E2B / Arena preview iframe
+          { key: 'X-Frame-Options', value: 'ALLOWALL' },
+        ],
+      },
+    ];
+  },
   // Keep the same path aliases as vite.config.ts
   webpack: (config) => {
     config.resolve.alias['@movies'] = path.resolve(__dirname, 'src/movies');
