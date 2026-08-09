@@ -50,9 +50,18 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   const [recipientCandidates, setRecipientCandidates] = useState<Profile[]>([]);
   const [showRecipientPicker, setShowRecipientPicker] = useState(false);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesTopRef = useRef<HTMLDivElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emojiOptions = ['👍', '❤️', '😂', '🎉', '😮', '😢'];
+  const MESSAGES_PAGE_SIZE = 30;
 
   const getErrorMessage = (error: unknown) => {
     if (error instanceof Error) return error.message;
@@ -69,6 +78,10 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
 
   useEffect(() => {
     if (!profile) return;
+    // Load blocked users for filtering
+    supabase.from('blocked_users').select('blocked_id').eq('blocker_id', profile.id).then(({ data }) => {
+      if (data) setBlockedIds(new Set(data.map(d => d.blocked_id)));
+    });
 
     loadConversations();
 
@@ -138,6 +151,26 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation);
+      // Typing indicator channel
+      if (typingChannelRef.current) {
+        supabase.removeChannel(typingChannelRef.current);
+        typingChannelRef.current = null;
+      }
+      const typingChannel = supabase.channel(`typing:${[profile?.id, selectedConversation].sort().join(':')}`)
+        .on('broadcast', { event: 'typing' }, ({ payload }) => {
+          if (payload.userId !== profile?.id) {
+            setTypingUser(payload.username || 'Someone');
+            setIsTyping(true);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+          }
+        })
+        .subscribe();
+      typingChannelRef.current = typingChannel;
+      return () => {
+        if (typingChannelRef.current) supabase.removeChannel(typingChannelRef.current);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      };
     }
   }, [selectedConversation]);
 
@@ -270,26 +303,35 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
     setShowRecipientPicker(false);
   };
 
-  const loadMessages = async (userId: string) => {
+  const loadMessages = async (userId: string, offset = 0, append = false) => {
     if (!profile) return;
 
     try {
-      const { data } = await supabase
+      if (!append) setLoadingMore(false);
+      else setLoadingMore(true);
+      const { data, count } = await supabase
         .from('messages')
-        .select('*, profiles!messages_sender_id_fkey(*)')
+        .select('*, profiles!messages_sender_id_fkey(*)', { count: 'exact' })
         .or(`and(sender_id.eq.${profile.id},recipient_id.eq.${userId}),and(sender_id.eq.${userId},recipient_id.eq.${profile.id})`)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .range(offset, offset + MESSAGES_PAGE_SIZE - 1);
 
       if (data) {
-        const messagesWithSignedAttachments = await Promise.all(data.map(async (message: Message) => {
+        const ordered = [...data].reverse();
+        const messagesWithSignedAttachments = await Promise.all(ordered.map(async (message: Message) => {
           if (!message.attachment_url) return message;
           const { data: signed } = await supabase.storage
             .from('message-attachments')
             .createSignedUrl(message.attachment_url, 3600);
           return { ...message, attachment_url: signed?.signedUrl || null };
         }));
-        setMessages(messagesWithSignedAttachments);
-        await loadReactions(data.map((message: Message) => message.id));
+        if (append) {
+          setMessages(prev => [...messagesWithSignedAttachments, ...prev]);
+        } else {
+          setMessages(messagesWithSignedAttachments);
+        }
+        setHasMore((count || 0) > offset + data.length);
+        await loadReactions(ordered.map((message: Message) => message.id));
 
         const unreadIds = data
           .filter((msg: Message) => msg.recipient_id === profile.id && !msg.is_read)
@@ -476,8 +518,9 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
   };
 
   const filteredConversations = conversations.filter(conv =>
+    !blockedIds.has(conv.userId) && (
     conv.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const selectedUser = conversations.find(c => c.userId === selectedConversation);
@@ -616,9 +659,17 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/70">
+            {hasMore && messages.length > 0 && (
+              <div className="flex justify-center pb-2">
+                <button type="button" onClick={() => loadMessages(selectedConversation!, messages.length, true)} disabled={loadingMore} className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+                  {loadingMore ? 'Loading...' : 'Load older messages'}
+                </button>
+              </div>
+            )}
+            <div ref={messagesTopRef} />
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-slate-500">
-                <p>No messages yet. Start the conversation!</p>
+                <p>No messages yet. Start the conversation! <span className="text-xs block mt-1">Press Shift+Enter for new line</span></p>
               </div>
             ) : (
               messages.map((message) => {
@@ -640,8 +691,9 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                             <span className="max-w-48 truncate">{message.attachment_name || 'Attachment'}</span>
                           </a>
                         )}
-                        <p className={`mt-1 px-1 text-[11px] ${isSent ? 'text-blue-100' : 'text-slate-500'}`}>
-                          {formatTime(message.created_at)}
+                        <p className={`mt-1 px-1 text-[11px] flex items-center gap-1 ${isSent ? 'text-blue-100' : 'text-slate-500'}`}>
+                          <span>{formatTime(message.created_at)}</span>
+                          {isSent && <span className={`text-[10px] ${message.is_read ? 'text-blue-200' : 'text-white/60'}`}>{message.is_read ? '✓✓' : '✓'}</span>}
                         </p>
                       </div>
                       <div className="mt-1 flex flex-wrap gap-1">
@@ -666,6 +718,14 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                 );
               })
             )}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="rounded-2xl bg-white border border-slate-200 px-4 py-2.5 shadow-sm flex items-center gap-2">
+                  <span className="text-xs text-slate-500">{typingUser} is typing</span>
+                  <span className="flex gap-1">{[0,1,2].map(d=><span key={d} className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:`${d*0.15}s`}} />)}</span>
+                </div>
+              </div>
+            )}
             {sendingMessage && (
               <div className="flex justify-end">
                 <div className="ios-bubble-sent inline-flex items-center gap-1.5 bg-[#007AFF] px-4 py-3 shadow-sm" aria-label="Sending message">
@@ -686,8 +746,19 @@ export default function Messages({ initialRecipientId }: MessagesProps) {
                 <input
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message..."
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    if (selectedConversation && e.target.value.trim() && typingChannelRef.current) {
+                      typingChannelRef.current.send({ type: 'broadcast', event: 'typing', payload: { userId: profile?.id, username: profile?.username } });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e as any);
+                    }
+                  }}
+                  placeholder="Type a message... (Shift+Enter for new line)"
                   className="w-full rounded-full border border-slate-300 px-4 py-2.5 pr-10 outline-none transition-all focus:border-[#007AFF] focus:ring-2 focus:ring-blue-100"
                 />
                 <button type="button" onClick={() => setShowEmojiPicker((visible) => !visible)} className="absolute right-2 top-2 rounded p-1 text-slate-500 hover:bg-slate-100" aria-label="Add emoji"><Smile className="h-5 w-5" /></button>

@@ -28,6 +28,37 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
   }, []);
 
+  // Draft autosave — local + server (post_drafts) for cross-device
+  useEffect(() => {
+    if (!profile) return;
+    const saved = localStorage.getItem(`draft:${profile.id}`);
+    if (saved && !content && !imagePreview) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.content) setContent(parsed.content);
+        if (parsed.visibility) setVisibility(parsed.visibility);
+      } catch {}
+    }
+  }, [profile?.id]);
+
+  useEffect(() => {
+    if (!profile) return;
+    const timeout = setTimeout(() => {
+      const draft = { content, visibility, updatedAt: Date.now() };
+      localStorage.setItem(`draft:${profile.id}`, JSON.stringify(draft));
+      // Also sync to server if content exists (fire-and-forget)
+      if (content.trim()) {
+        supabase.from('post_drafts').upsert({
+          user_id: profile.id,
+          content: content.trim(),
+          visibility,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' }).then(()=>{},()=>{});
+      }
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, [content, visibility, profile?.id]);
+
   const releasePreview = () => {
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
@@ -79,6 +110,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
     setVisibility('public');
     setMediaError('');
     setSubmitError('');
+    if (profile) localStorage.removeItem(`draft:${profile.id}`);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -183,6 +215,13 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             )}
 
+            {content && (
+              <p className="mt-3 text-xs text-slate-500 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Draft saved — will be restored if you reload
+                <button type="button" onClick={resetComposer} className="ml-2 underline hover:text-slate-700">Clear draft</button>
+              </p>
+            )}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <input
