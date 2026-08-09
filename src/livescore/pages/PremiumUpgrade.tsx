@@ -120,27 +120,23 @@ export function PremiumUpgrade({ setActiveTab }: { setActiveTab: (tab: string) =
           user_id: user?.id,
           plan_name: 'Premium Plan',
         },
-        callback: async (response: any) => {
+        callback: function (response: any) {
           console.log('✓ Payment callback reference:', response.reference);
           setLoadingPaystack(true);
-          try {
-            const result = await upgrade(response.reference || response.ref || 'paystack-unknown');
-            setPaymentStatus({ status: result.status as any, reference: response.reference, message: result.message });
-            if (result.status === 'success') {
+          // Paystack inline.js validates that callback is a plain function (not async).
+          // Handle the async upgrade via promises to avoid "Attribute callback must be a valid function".
+          upgrade(response.reference || response.ref || 'paystack-unknown')
+            .then((result) => {
+              setPaymentStatus({ status: result.status as any, reference: response.reference, message: result.message });
               setLoadingPaystack(false);
-            } else if (result.status === 'pending') {
-              // Keep loading false but show pending UI, polling will upgrade via realtime
+            })
+            .catch((err: any) => {
+              console.error('Upgrade failed', err);
+              setPaymentStatus({ status: 'failed', reference: response.reference, message: err.message });
               setLoadingPaystack(false);
-            } else {
-              setLoadingPaystack(false);
-            }
-          } catch (err: any) {
-            console.error('Upgrade failed', err);
-            setPaymentStatus({ status: 'failed', reference: response.reference, message: err.message });
-            setLoadingPaystack(false);
-          }
+            });
         },
-        onClose: () => setLoadingPaystack(false),
+        onClose: function () { setLoadingPaystack(false); },
       });
       if (!handler?.openIframe) throw new Error('Paystack handler init failed');
       handler.openIframe();
