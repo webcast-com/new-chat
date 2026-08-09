@@ -9,8 +9,8 @@ const nextConfig = {
   reactStrictMode: true,
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: false },
-  // Allow preview / codespace / E2B hosts (fixes "Cross origin request detected")
-  allowedDevOrigins: ['*.e2b.app', '*.e2b.dev', '*.app.github.dev'],
+  // Allow preview / codespace / E2B / Arena hosts (fixes "Cross origin request detected" + ChunkLoadError on arena.site)
+  allowedDevOrigins: ['*.e2b.app', '*.e2b.dev', '*.app.github.dev', '*.arena.site', '*.arena.ai', '*.hyper.co.ke'],
   async headers() {
     return [
       {
