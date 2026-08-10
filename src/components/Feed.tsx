@@ -6,7 +6,6 @@ import Stories from './Stories';
 import { movies } from '../movies/data/movies';
 import { ArrowRight, SearchX, Star } from 'lucide-react';
 import ParticleSphere from './ParticleSphere';
-import TikTokFeed from './TikTokFeed';
 
 interface FeedProps {
   refreshKey: number;
@@ -142,7 +141,6 @@ export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCre
           </div>
         </div>
       </section>
-      <TikTokFeed />
       {visiblePosts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/80 p-10 text-center shadow-sm">
           <SearchX className="mx-auto h-10 w-10 text-violet-400" />
