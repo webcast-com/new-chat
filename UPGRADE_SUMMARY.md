@@ -34,7 +34,7 @@
 ## 2. Upgrades Shipped This Session
 
 ### A. Trust & Safety (Gain User Trust)
-- **DB Migration `20260810000000_add_trust_features.sql`:** `profiles.is_verified`/`verification_requested_at`, `posts.visibility` (`public|friends|county|constituency`), `reports` (7 reasons, `pending|reviewed|actioned|dismissed`, RLS admin via `is_verified`), `blocked_users` (unique `blocker_id,blocked_id`), `post_drafts` (cross-device).
+- **Canonical DB Migration `20260811000000_full_database.sql`:** complete social schema with `profiles.is_verified`/`verification_requested_at`, public table reads, messaging, groups, stories, reports, blocks, cross-device drafts, locations, movie reviews, watchlists, storage, triggers, and realtime.
 - **PostCard:** Verified badge `✓` on `profiles.is_verified`, **Report modal** (select `spam|harassment|hate|nudity|violence|misinformation|other` → `reports` insert + 24h review toast, fallback local), **Block user** → `blocked_users`.
 - **UserProfile:** `Request Verification` button → `profiles.verification_requested_at`, badge on `h1`.
 - **Messages:** `blockedIds` `Set` filters `filteredConversations`.
@@ -90,4 +90,4 @@ npm run dev       # http://localhost:3000 → hard refresh after .next clear
 # /sitemap.xml → 8 entries
 ```
 
-All upgrades are **non-breaking** (fallback to local if tables not yet migrated) — apply `supabase/migrations/20260810000000_add_trust_features.sql` in Supabase dashboard to enable server persistence.
+All upgrades are **non-breaking** (fallback to local if tables not yet migrated) — apply the single canonical `supabase/migrations/20260811000000_full_database.sql` in the Supabase SQL Editor to enable server persistence.

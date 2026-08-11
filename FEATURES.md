@@ -93,9 +93,9 @@
 
 ### Security
 - Row Level Security (RLS) enabled on all tables
-- User-specific access policies
-- Authenticated user checks
-- Ownership verification for modifications
+- Public read access is enabled across the application tables by product choice
+- Authenticated-user checks and ownership verification remain enforced for writes
+- Direct-message attachments remain in a private storage bucket
 
 ### Indexes
 - Optimized queries with strategic indexes
