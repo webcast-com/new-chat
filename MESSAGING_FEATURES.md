@@ -66,7 +66,7 @@ CREATE TABLE messages (
 - **Live open thread** - Refreshes the active conversation when a relevant message changes
 - **Manual mark as read** - Automatically marks messages as read when opened
 
-Supabase Realtime must be enabled for the `messages` table in the project dashboard. Row Level Security policies continue to control which message events each signed-in user can receive.
+The canonical database repair migration adds `messages` and `chat_group_messages` to the `supabase_realtime` publication. Row Level Security continues to control which message events each signed-in user can receive. Apply `supabase/migrations/20260811000000_repair_database.sql` to older deployments before testing realtime chat.
 
 ## Performance Optimizations
 - **Efficient queries** - Uses OR conditions to find bidirectional conversations

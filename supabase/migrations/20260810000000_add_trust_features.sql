@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS post_drafts (
   visibility text DEFAULT 'public',
   scheduled_at timestamptz,
   created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_drafts_user ON post_drafts(user_id);
 ALTER TABLE post_drafts ENABLE ROW LEVEL SECURITY;

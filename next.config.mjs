@@ -51,8 +51,13 @@ const nextConfig = {
     ],
     unoptimized: true, // keep compatibility with Vite's unoptimized images
   },
-  // Expose env for backwards compatibility: VITE_* -> NEXT_PUBLIC_*
-  env: {},
+  // Expose the social Supabase client to the browser in both Next.js and the
+  // legacy Vite build. Next.js does not automatically bundle VITE_* variables,
+  // so map them at build time when NEXT_PUBLIC_* is not present.
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY,
+  },
 };
 
 export default nextConfig;
