@@ -55,10 +55,10 @@ CREATE TABLE messages (
 - `idx_messages_recipient_id` - Quick lookup of received messages
 
 ## Security Features
-- **Row Level Security (RLS)** - Users can only see their own messages
-- **Authenticated access** - Only logged-in users can message
-- **Ownership verification** - Users can only delete their own messages
-- **Recipient access** - Recipients can read and mark messages as read
+- **Row Level Security (RLS)** - Table reads are public by current product configuration
+- **Authenticated writes** - Only logged-in users can send, update, or delete messages
+- **Ownership verification** - Message mutations remain scoped to participants
+- **Attachment privacy** - Message attachments remain private and are signed per conversation
 
 ## Real-time Updates
 - **Supabase realtime subscriptions** - Receives message inserts, updates, and deletes without polling
@@ -66,7 +66,7 @@ CREATE TABLE messages (
 - **Live open thread** - Refreshes the active conversation when a relevant message changes
 - **Manual mark as read** - Automatically marks messages as read when opened
 
-The canonical database repair migration adds `messages` and `chat_group_messages` to the `supabase_realtime` publication. Row Level Security continues to control which message events each signed-in user can receive. Apply `supabase/migrations/20260811000000_repair_database.sql` to older deployments before testing realtime chat.
+The canonical database migration adds `messages` and `chat_group_messages` to the `supabase_realtime` publication. Apply `supabase/migrations/20260811000000_full_database.sql` before testing realtime chat. The current product configuration exposes table reads publicly; write operations and message attachments remain protected by their own policies.
 
 ## Performance Optimizations
 - **Efficient queries** - Uses OR conditions to find bidirectional conversations
