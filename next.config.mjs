@@ -10,7 +10,11 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: false },
   // Allow preview / codespace / E2B / Arena hosts (fixes "Cross origin request detected" + ChunkLoadError on arena.site)
-  allowedDevOrigins: ['*.e2b.app', '*.e2b.dev', '*.app.github.dev', '*.arena.site', '*.arena.ai', '*.hyper.co.ke'],
+  allowedDevOrigins: [
+    '*.e2b.app', '*.e2b.dev', '*.app.github.dev', '*.arena.site', '*.arena.ai', '*.hyper.co.ke',
+    // Base44 preview origin (port 3000 on the public suffix host)
+    ...(process.env.BASE44_PUBLIC_HOST_SUFFIX ? [`3000-${process.env.BASE44_PUBLIC_HOST_SUFFIX}`] : []),
+  ],
   async headers() {
     return [
       {
