@@ -400,18 +400,22 @@ function PublicFeed() {
             <button
               type="button"
               onClick={() => setShowMovies(true)}
+              aria-label="Watch Movies"
+              title="Watch Movies"
               className="flex items-center gap-1.5 rounded-lg border border-fuchsia-400/60 bg-fuchsia-950/70 px-2 py-2 text-xs font-medium text-fuchsia-100 transition-colors hover:bg-fuchsia-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 sm:gap-2 sm:px-3 sm:text-sm"
             >
               <Film className="h-4 w-4" />
-              <span>Watch Movies</span>
+              <span className="hidden sm:inline">Watch Movies</span>
             </button>
             <button
               type="button"
               onClick={() => { window.history.pushState({}, '', '/sure-bets'); setShowFreeBets(true); }}
+              aria-label="Today's Free Bets"
+              title="Today's Free Bets"
               className="flex items-center gap-1.5 rounded-lg border border-emerald-400/60 bg-emerald-950/70 px-2 py-2 text-xs font-medium text-emerald-100 transition-colors hover:bg-emerald-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:gap-2 sm:px-3 sm:text-sm"
             >
               <TrendingUp className="h-4 w-4" />
-              <span>Today&apos;s Free Bets</span>
+              <span className="hidden sm:inline">Today&apos;s Free Bets</span>
             </button>
             <button
               type="button"
@@ -432,7 +436,12 @@ function PublicFeed() {
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6 sm:py-6">
-        <Feed refreshKey={0} searchQuery="" />
+        <Feed
+          refreshKey={0}
+          searchQuery=""
+          onBrowseMovies={() => setShowMovies(true)}
+          onBrowsePredictions={() => { window.history.pushState({}, '', '/sure-bets'); setShowFreeBets(true); }}
+        />
       </main>
     </div>
   );
@@ -758,6 +767,7 @@ function MainApp() {
                   onCreatePost={() => setIsCreatePostOpen(true)}
                   onAboutCreator={() => setActiveView('about')}
                   onBrowseMovies={() => setActiveView('movies')}
+                  onBrowsePredictions={() => setActiveView('live-scores')}
                 />
               )}
               {activeView === 'trending'  && <Trending />}
