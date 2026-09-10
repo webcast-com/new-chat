@@ -279,7 +279,7 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
 
   return (
     <div className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="p-4 sm:p-6">
+      <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between mb-4">
           <div className="flex min-w-0 gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-lg overflow-hidden flex-shrink-0">
@@ -395,60 +395,82 @@ export default function PostCard({ post, onUpdate }: PostCardProps) {
           </div>
         ) : (
           <>
-            <p className="mb-4 break-words whitespace-pre-wrap text-base leading-relaxed text-slate-800">
+            <p className="break-words whitespace-pre-wrap text-base leading-relaxed text-slate-800">
               {renderMentions(post.content)}
             </p>
 
             {tags.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {tags.map(tag => <button key={tag} onClick={() => navigator.clipboard?.writeText(tag)} className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700 transition hover:bg-violet-100">{tag}</button>)}
               </div>
             )}
-
-            {post.image_url && (
-              <div className="mb-4 overflow-hidden rounded-lg">
-                {post.media_type === 'video' ? (
-                  <video
-                    src={post.image_url}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    className="max-h-[32rem] w-full bg-slate-950"
-                  />
-                ) : (
-                  <Image src={post.image_url} alt="Post content" variant="post" rounded="lg" />
-                )}
-              </div>
-            )}
-
-            {getTotalReactions() > 0 && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg mb-4 text-sm">
-                <span className="text-lg">{getReactionEmojis()}</span>
-                <span className="text-slate-600">{getTotalReactions()} reactions</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-4 sm:flex sm:items-center sm:gap-4 pt-4 border-t border-slate-100">
-              <ReactionButton postId={post.id} onReactionChange={loadReactions} />
-
-              <button onClick={toggleBookmark} aria-pressed={isBookmarked} className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${isBookmarked ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-100'}`}>
-                <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
-                <span className="hidden text-sm font-medium sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
-              </button>
-
-              <button
-                onClick={handleCommentClick}
-                className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span className="text-sm font-medium">{post.comments_count}</span>
-              </button>
-
-              <ShareButton postId={post.id} onShareChange={onUpdate} />
-            </div>
           </>
         )}
       </div>
+
+      {!isEditing && post.image_url && (
+        <div className="bg-slate-950">
+          {post.media_type === 'video' ? (
+            <video
+              src={post.image_url}
+              controls
+              playsInline
+              preload="metadata"
+              className="max-h-[32rem] w-full bg-slate-950"
+            />
+          ) : (
+            <Image src={post.image_url} alt="Post content" variant="post" rounded="none" />
+          )}
+        </div>
+      )}
+
+      {!isEditing && (
+        <div className="p-4 pt-3 sm:px-5">
+          {(getTotalReactions() > 0 || post.comments_count > 0) && (
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 text-slate-500">
+                {getTotalReactions() > 0 && (
+                  <>
+                    <span className="text-lg leading-none">{getReactionEmojis()}</span>
+                    <span>{getTotalReactions()}</span>
+                  </>
+                )}
+              </span>
+              {post.comments_count > 0 && (
+                <button
+                  onClick={handleCommentClick}
+                  className="text-slate-500 transition-colors hover:text-slate-700 hover:underline"
+                >
+                  {post.comments_count} comments
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-4 border-t border-slate-100 pt-1">
+            <div className="flex justify-center">
+              <ReactionButton postId={post.id} onReactionChange={loadReactions} />
+            </div>
+
+            <button onClick={toggleBookmark} aria-pressed={isBookmarked} className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 transition-colors ${isBookmarked ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-100'}`}>
+              <Bookmark className={`h-5 w-5 ${isBookmarked ? 'fill-current' : ''}`} />
+              <span className="hidden text-sm font-medium sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
+            </button>
+
+            <button
+              onClick={handleCommentClick}
+              className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-slate-600 transition-colors hover:bg-slate-100"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="hidden text-sm font-medium sm:inline">Comment</span>
+            </button>
+
+            <div className="flex justify-center">
+              <ShareButton postId={post.id} onShareChange={onUpdate} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {showComments && !isEditing && (
         <CommentSection

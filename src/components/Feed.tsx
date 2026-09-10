@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase, Post } from '../lib/supabase';
 import PostCard from './PostCard';
 import Stories from './Stories';
-import { movies } from '../movies/data/movies';
-import { ArrowRight, SearchX, Star } from 'lucide-react';
-import ParticleSphere from './ParticleSphere';
+import FeedMovieCard from './feed/FeedMovieCard';
+import FeedPredictionCard from './feed/FeedPredictionCard';
+import { movies, Movie } from '../movies/data/movies';
+import { MOCK_PREDICTIONS, Prediction } from '../livescore/data/mockData';
+import { SearchX } from 'lucide-react';
 
 interface FeedProps {
   refreshKey: number;
@@ -13,13 +14,20 @@ interface FeedProps {
   onCreatePost?: () => void;
   onAboutCreator?: () => void;
   onBrowseMovies?: () => void;
+  onBrowsePredictions?: () => void;
 }
 
 const INITIAL_POST_COUNT = 4;
 const POST_BATCH_SIZE = 4;
+/** A suggested movie or prediction is interleaved after this many posts. */
+const UNIT_INTERVAL = 2;
 
-export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCreator, onBrowseMovies }: FeedProps) {
-  const featuredMovies = movies.slice(0, 5);
+type FeedItem =
+  | { kind: 'post'; key: string; post: Post }
+  | { kind: 'movie'; key: string; movie: Movie }
+  | { kind: 'prediction'; key: string; prediction: Prediction };
+
+export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCreator, onBrowseMovies, onBrowsePredictions }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(INITIAL_POST_COUNT);
@@ -74,6 +82,35 @@ export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCre
     return () => observer.disconnect();
   }, [visibleCount, visiblePosts.length]);
 
+  /**
+   * Facebook-style stream: posts with suggested movies and ScoreHub predictions
+   * woven in as the user scrolls, plus a closing pair once the posts run out.
+   */
+  const feedItems = useMemo<FeedItem[]>(() => {
+    const shown = visiblePosts.slice(0, visibleCount);
+    const items: FeedItem[] = [];
+    let movieIdx = 0;
+    let predIdx = 0;
+    const pushNext = (anchor: string) => {
+      if (movieIdx <= predIdx) {
+        items.push({ kind: 'movie', key: `movie-${anchor}`, movie: movies[movieIdx++ % movies.length] });
+      } else {
+        items.push({ kind: 'prediction', key: `pred-${anchor}`, prediction: MOCK_PREDICTIONS[predIdx++ % MOCK_PREDICTIONS.length] });
+      }
+    };
+
+    shown.forEach((post, i) => {
+      items.push({ kind: 'post', key: post.id, post });
+      if ((i + 1) % UNIT_INTERVAL === 0) pushNext(post.id);
+    });
+
+    if (shown.length > 0 && visibleCount >= visiblePosts.length) {
+      items.push({ kind: 'movie', key: 'movie-end', movie: movies[movieIdx++ % movies.length] });
+      items.push({ kind: 'prediction', key: 'pred-end', prediction: MOCK_PREDICTIONS[predIdx++ % MOCK_PREDICTIONS.length] });
+    }
+    return items;
+  }, [visiblePosts, visibleCount]);
+
   if (loading) {
     return (
       <div className="space-y-6" aria-label="Loading community feed" aria-busy="true">
@@ -100,62 +137,34 @@ export default function Feed({ refreshKey, searchQuery, onCreatePost, onAboutCre
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Stories onCreatePost={onCreatePost} onAboutCreator={onAboutCreator} />
-      <section className="relative overflow-hidden rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-950/70 via-zinc-900 to-fuchsia-950/50 p-4 shadow-lg shadow-violet-950/20 sm:p-5" aria-labelledby="featured-movies-heading">
-        <ParticleSphere className="absolute -right-24 -top-24 h-60 w-60 opacity-40 sm:-right-16 sm:-top-20 sm:h-72 sm:w-72" />
-        <div className="relative">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">Now showing</p>
-              <h2 id="featured-movies-heading" className="mt-1 text-xl font-bold text-white">Featured movies</h2>
-            </div>
-            <button
-              type="button"
-              onClick={onBrowseMovies}
-              className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 text-sm font-semibold text-violet-200 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
-            >
-              Browse all <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {featuredMovies.map((movie) => (
-              <div key={movie.id} className="group min-w-0">
-                <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-zinc-800 shadow-md">
-                  <img
-                    src={movie.poster}
-                    alt={movie.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    onError={(event) => { event.currentTarget.src = `https://placehold.co/500x750/1a1a1a/f5c518?text=${encodeURIComponent(movie.title)}`; }}
-                  />
-                  <div className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-black/75 px-1.5 py-1 text-xs font-semibold text-white backdrop-blur">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    {movie.rating.toFixed(1)}
-                  </div>
-                </div>
-                <h3 className="mt-2 truncate text-sm font-semibold text-white">{movie.title}</h3>
-                <p className="truncate text-xs text-zinc-400">{movie.year} · {movie.genre[0]}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
       {visiblePosts.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/80 p-10 text-center shadow-sm">
-          <SearchX className="mx-auto h-10 w-10 text-violet-400" />
-          <p className="mt-4 text-lg font-semibold text-white">
-            {normalizedSearchQuery ? 'No posts match your search.' : 'Your community is ready for its first post.'}
-          </p>
-          <p className="mt-2 text-sm text-zinc-400">
-            {normalizedSearchQuery ? 'Try a different keyword or browse the latest conversations.' : 'Share a project, toy idea, or bit of workshop magic.'}
-          </p>
-        </div>
+        <>
+          <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/80 p-10 text-center shadow-sm">
+            <SearchX className="mx-auto h-10 w-10 text-violet-400" />
+            <p className="mt-4 text-lg font-semibold text-white">
+              {normalizedSearchQuery ? 'No posts match your search.' : 'Your community is ready for its first post.'}
+            </p>
+            <p className="mt-2 text-sm text-zinc-400">
+              {normalizedSearchQuery ? 'Try a different keyword or browse the latest conversations.' : 'Share a project, toy idea, or bit of workshop magic.'}
+            </p>
+          </div>
+          <FeedMovieCard movie={movies[0]} onBrowseMovies={onBrowseMovies} />
+          <FeedPredictionCard prediction={MOCK_PREDICTIONS[0]} onBrowsePredictions={onBrowsePredictions} />
+        </>
       ) : (
         <>
-          {visiblePosts.slice(0, visibleCount).map((post) => (
-            <PostCard key={post.id} post={post} onUpdate={loadPosts} />
-          ))}
+          {feedItems.map((item) =>
+            item.kind === 'post' ? (
+              <PostCard key={item.key} post={item.post} onUpdate={loadPosts} />
+            ) : item.kind === 'movie' ? (
+              <FeedMovieCard key={item.key} movie={item.movie} onBrowseMovies={onBrowseMovies} />
+            ) : (
+              <FeedPredictionCard key={item.key} prediction={item.prediction} onBrowsePredictions={onBrowsePredictions} />
+            )
+          )}
           {visibleCount < visiblePosts.length && (
             <div ref={loadMoreRef} className="space-y-3 py-2" aria-label="Loading more posts" aria-busy="true">
               <div className="h-24 animate-pulse rounded-2xl bg-zinc-900" />

@@ -436,7 +436,12 @@ function PublicFeed() {
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6 sm:py-6">
-        <Feed refreshKey={0} searchQuery="" />
+        <Feed
+          refreshKey={0}
+          searchQuery=""
+          onBrowseMovies={() => setShowMovies(true)}
+          onBrowsePredictions={() => { window.history.pushState({}, '', '/sure-bets'); setShowFreeBets(true); }}
+        />
       </main>
     </div>
   );
@@ -762,6 +767,7 @@ function MainApp() {
                   onCreatePost={() => setIsCreatePostOpen(true)}
                   onAboutCreator={() => setActiveView('about')}
                   onBrowseMovies={() => setActiveView('movies')}
+                  onBrowsePredictions={() => setActiveView('live-scores')}
                 />
               )}
               {activeView === 'trending'  && <Trending />}
